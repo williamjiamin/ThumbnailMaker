@@ -29,9 +29,22 @@
 		3D1063462CF06CC000477F9E /* ThumbnailMakerUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ThumbnailMakerUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		3D4665662CF43D3800A5EC6D /* Exceptions for "ThumbnailMaker" folder in "ThumbnailMaker" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 3D10632B2CF06CBD00477F9E /* ThumbnailMaker */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		3D10632E2CF06CBD00477F9E /* ThumbnailMaker */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				3D4665662CF43D3800A5EC6D /* Exceptions for "ThumbnailMaker" folder in "ThumbnailMaker" target */,
+			);
 			path = ThumbnailMaker;
 			sourceTree = "<group>";
 		};
@@ -396,8 +409,12 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"ThumbnailMaker/Preview Content\"";
+				DEVELOPMENT_TEAM = U9LAD2DX7Z;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = ThumbnailMaker/Info.plist;
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "This App needs Access to Save Your Thumbnails to your photo library";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "This App needs Access to select Image from your Photo Library";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -424,8 +441,12 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"ThumbnailMaker/Preview Content\"";
+				DEVELOPMENT_TEAM = U9LAD2DX7Z;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = ThumbnailMaker/Info.plist;
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "This App needs Access to Save Your Thumbnails to your photo library";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "This App needs Access to select Image from your Photo Library";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
