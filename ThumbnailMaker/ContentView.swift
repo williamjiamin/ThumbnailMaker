@@ -50,7 +50,7 @@ struct ContentView: View {
     @State private var horizontalAlignment: HorizontalAlignment = .center
     
     // Add a constant for preview proportion
-    private let controlsHeight: CGFloat = 150       // Increased to accommodate new controls
+    private let controlsHeight: CGFloat = 380       // Increased to accommodate all sections
     private let usableHeightProportion: CGFloat = 0.6  // Use 60% of the screen for the entire UI, leave 40% for keyboard
     private let previewHeightProportion: CGFloat = 0.35  // Allocate 35% of the usable height to the preview
     private let textFieldHeight: CGFloat = 50       // Fixed height for the text editor to reduce space
@@ -76,7 +76,7 @@ struct ContentView: View {
             let previewWidth = previewHeight * selectedRatio.value
             
             ScrollView { // Added ScrollView to allow scrolling when keyboard appears
-                VStack(spacing: 16) { // Increased spacing for better readability
+                VStack(spacing: 24) { // Increased spacing between main sections
                     // Title Section
                     Text("William JM's Thumbnail Maker")
                         .font(.largeTitle)
@@ -84,64 +84,122 @@ struct ContentView: View {
                         .padding(.top, 10)
                         .padding(.bottom, 20)
                     
-                    // Top Controls Section (reduced fixed height)
-                    VStack(spacing: 16) { // Added more spacing between buttons and preview
-                        // Aspect ratio selector
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: 10) {
-                                Spacer(minLength: 0)
-                                ForEach(AspectRatio.allCases, id: \.self) { ratio in
-                                    Button(ratio.rawValue) {
-                                        selectedRatio = ratio
+                    // Top Controls Section
+                    VStack(spacing: 16) {
+                        // All controls container
+                        VStack(spacing: 12) {
+                            // Aspect Ratio Section
+                            VStack(spacing: 8) {
+                                Text("Choose Ratio")
+                                    .font(.headline)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .padding(.horizontal)
+                                
+                                ScrollView(.horizontal, showsIndicators: false) {
+                                    HStack(spacing: 10) {
+                                        ForEach(AspectRatio.allCases, id: \.self) { ratio in
+                                            Button(ratio.rawValue) {
+                                                selectedRatio = ratio
+                                            }
+                                            .padding(8)
+                                            .background(selectedRatio == ratio ? Color.blue : Color.gray.opacity(0.3))
+                                            .foregroundColor(.white)
+                                            .cornerRadius(8)
+                                        }
                                     }
-                                    .padding(8)
-                                    .background(selectedRatio == ratio ? Color.blue : Color.gray.opacity(0.3))
-                                    .foregroundColor(.white)
-                                    .cornerRadius(8)
-                                }
-                                Spacer(minLength: 0)
-                            }
-                            .padding(.horizontal, 20)
-                        }
-                        
-                        // Color pickers and alignment controls
-                        HStack(spacing: 20) {
-                            ColorPicker("Background", selection: $backgroundColor)
-                                .labelsHidden()
-                                .frame(width: 100)
-                            
-                            ColorPicker("Text Color", selection: $textColor)
-                                .labelsHidden()
-                                .frame(width: 100)
-                            
-                            Slider(value: $textSize, in: 0.05...0.2)
-                                .frame(width: 100)
-                        }
-                        .padding(.horizontal)
-                        
-                        // Alignment controls
-                        HStack(spacing: 20) {
-                            Picker("Vertical", selection: $verticalAlignment) {
-                                ForEach(VerticalAlignment.allCases, id: \.self) { alignment in
-                                    Text(alignment.rawValue).tag(alignment)
+                                    .padding(.horizontal)
                                 }
                             }
-                            .pickerStyle(.segmented)
                             
-                            Picker("Horizontal", selection: $horizontalAlignment) {
-                                ForEach(HorizontalAlignment.allCases, id: \.self) { alignment in
-                                    Text(alignment.rawValue).tag(alignment)
+                            Divider()
+                            
+                            // Customize Appearance Section
+                            VStack(spacing: 8) {
+                                Text("Customize Appearance")
+                                    .font(.headline)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .padding(.horizontal)
+                                
+                                HStack(spacing: 20) {
+                                    // Background color picker
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text("Background")
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                        ColorPicker("", selection: $backgroundColor)
+                                            .frame(width: 100)
+                                    }
+                                    
+                                    // Text color picker
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text("Text Color")
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                        ColorPicker("", selection: $textColor)
+                                            .frame(width: 100)
+                                    }
+                                    
+                                    // Text size slider
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text("Text Size")
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                        Slider(value: $textSize, in: 0.05...0.2)
+                                            .frame(width: 100)
+                                            .tint(.blue)
+                                    }
                                 }
+                                .padding(.horizontal)
                             }
-                            .pickerStyle(.segmented)
+                            
+                            Divider()
+                            
+                            // Text Position Section
+                            VStack(spacing: 8) {
+                                Text("Text Position")
+                                    .font(.headline)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .padding(.horizontal)
+                                
+                                VStack(spacing: 8) {
+                                    // Vertical alignment
+                                    HStack {
+                                        Text("Vertical:")
+                                            .font(.subheadline)
+                                            .foregroundColor(.secondary)
+                                        Picker("", selection: $verticalAlignment) {
+                                            ForEach(VerticalAlignment.allCases, id: \.self) { alignment in
+                                                Text(alignment.rawValue).tag(alignment)
+                                            }
+                                        }
+                                        .pickerStyle(.segmented)
+                                    }
+                                    
+                                    // Horizontal alignment
+                                    HStack {
+                                        Text("Horizontal:")
+                                            .font(.subheadline)
+                                            .foregroundColor(.secondary)
+                                        Picker("", selection: $horizontalAlignment) {
+                                            ForEach(HorizontalAlignment.allCases, id: \.self) { alignment in
+                                                Text(alignment.rawValue).tag(alignment)
+                                            }
+                                        }
+                                        .pickerStyle(.segmented)
+                                    }
+                                }
+                                .padding(.horizontal)
+                            }
                         }
+                        .padding(.vertical, 8)
+                        .background(Color(uiColor: .secondarySystemBackground))
+                        .cornerRadius(12)
                         .padding(.horizontal)
                         
                         // Action buttons
                         HStack(spacing: 20) {
-                            Spacer(minLength: 0)
                             PhotosPicker(selection: $imageSelection,
-                                       matching: .images) {
+                                        matching: .images) {
                                 Text("Select Image")
                                     .padding()
                                     .background(Color.blue)
@@ -158,8 +216,8 @@ struct ContentView: View {
                                 .foregroundColor(.white)
                                 .cornerRadius(8)
                             }
-                            Spacer(minLength: 0)
                         }
+                        .padding(.horizontal)
                     }
                     .frame(height: controlsHeight)
                     .padding(.bottom, 16) // Added padding to create space between controls and preview
@@ -277,13 +335,14 @@ struct ContentView: View {
                 .font(.system(size: height * textSize, weight: .bold))
                 .foregroundColor(textColor)
                 .shadow(color: .black, radius: 3, x: 1, y: 1)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, width * 0.05)
-                .padding(.vertical, height * 0.05)
+                .multilineTextAlignment(horizontalAlignment == .center ? .center : 
+                          horizontalAlignment == .leading ? .leading : .trailing)
                 .frame(width: width * 0.9, alignment: horizontalAlignment == .center ? .center : 
                        horizontalAlignment == .leading ? .leading : .trailing)
                 .frame(maxHeight: .infinity, alignment: verticalAlignment == .center ? .center :
                        verticalAlignment == .top ? .top : .bottom)
+                .padding(.horizontal, width * 0.05)
+                .padding(.vertical, height * 0.05)
         }
         .frame(width: width, height: height)
         .clipped()
