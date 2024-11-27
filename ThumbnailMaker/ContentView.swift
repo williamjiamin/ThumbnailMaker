@@ -122,25 +122,27 @@ struct ContentView: View {
                                 
                                 HStack(spacing: 20) {
                                     // Background color picker
-                                    VStack(alignment: .leading, spacing: 4) {
+                                    VStack(alignment: .center, spacing: 4) {
                                         Text("Background")
                                             .font(.caption)
                                             .foregroundColor(.secondary)
                                         ColorPicker("", selection: $backgroundColor)
-                                            .frame(width: 100)
+                                            .labelsHidden()
                                     }
+                                    .frame(width: 100, alignment: .center)
                                     
                                     // Text color picker
-                                    VStack(alignment: .leading, spacing: 4) {
+                                    VStack(alignment: .center, spacing: 4) {
                                         Text("Text Color")
                                             .font(.caption)
                                             .foregroundColor(.secondary)
                                         ColorPicker("", selection: $textColor)
-                                            .frame(width: 100)
+                                            .labelsHidden()
                                     }
+                                    .frame(width: 100, alignment: .center)
                                     
                                     // Text size slider
-                                    VStack(alignment: .leading, spacing: 4) {
+                                    VStack(alignment: .center, spacing: 4) {
                                         Text("Text Size")
                                             .font(.caption)
                                             .foregroundColor(.secondary)
