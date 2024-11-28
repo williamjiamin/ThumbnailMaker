@@ -326,6 +326,14 @@ struct ContentView: View {
             }
         }
         .animation(.default, value: isSettingsPresented)
+        .onChange(of: imageSelection, initial: false) { oldValue, newValue in
+            Task {
+                if let data = try? await newValue?.loadTransferable(type: Data.self),
+                   let uiImage = UIImage(data: data) {
+                    selectedImage = uiImage
+                }
+            }
+        }
     }
 
     @MainActor
