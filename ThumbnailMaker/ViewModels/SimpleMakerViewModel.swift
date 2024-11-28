@@ -15,7 +15,6 @@ class SimpleMakerViewModel: ObservableObject {
     @Published var saveError: String?
     @State private var showingSaveAlert = false
 //    i don't think it should be here
-    @Published var selectedTab: Tab = .simpleMaker
     
     // Add a constant for preview proportion
     let controlsHeight: CGFloat = 380       // Increased to accommodate all sections
@@ -39,8 +38,11 @@ class SimpleMakerViewModel: ObservableObject {
         let (targetWidth, targetHeight) = simpleMakerConfigration.selectedRatio.dimensions
         let renderer = ImageRenderer(content: content)
         
-        // Configure renderer
-        renderer.scale = 2
+        // Set the proper dimensions for the renderer
+        renderer.proposedSize = ProposedViewSize(width: targetWidth, height: targetHeight)
+        
+        // Configure renderer with higher scale for better resolution
+        renderer.scale = 3
         renderer.colorMode = .nonLinear
         
         // Generate the final image
@@ -58,7 +60,6 @@ class SimpleMakerViewModel: ObservableObject {
             }
         }
     }
-    
     
     
     

@@ -16,17 +16,27 @@ struct PreviewComponentView: View {
         thumbnailContent
     }
     
-    
     @ViewBuilder
     private var thumbnailContent: some View {
         ZStack {
             Rectangle()
                 .fill(simpleMakerConfigration.backgroundColor)
             
-            if let image =  simpleMakerConfigration.selectedImage {
+            if let image = simpleMakerConfigration.selectedImage {
                 Image(uiImage: image)
                     .resizable()
                     .scaledToFit()
+            } else {
+                VStack(spacing: 12) {
+                    Image(systemName: "photo.fill")
+                        .font(.system(size: 40))
+                        .foregroundColor(.gray)
+                    Text("Please Select an Image to Customize")
+                        .font(.headline)
+                        .foregroundColor(.gray)
+                        .multilineTextAlignment(.center)
+                }
+                .padding()
             }
             
             Text(simpleMakerConfigration.overlayText)
@@ -36,11 +46,11 @@ struct PreviewComponentView: View {
                 .truncationMode(.tail)
                 .shadow(color: .black, radius: 3, x: 1, y: 1)
                 .multilineTextAlignment(simpleMakerConfigration.horizontalAlignment == .center ? .center :
-                                            simpleMakerConfigration.horizontalAlignment == .leading ? .leading : .trailing)
+                    simpleMakerConfigration.horizontalAlignment == .leading ? .leading : .trailing)
                 .frame(width: width * 0.9, alignment: simpleMakerConfigration.horizontalAlignment == .center ? .center :
-                        simpleMakerConfigration.horizontalAlignment == .leading ? .leading : .trailing)
+                    simpleMakerConfigration.horizontalAlignment == .leading ? .leading : .trailing)
                 .frame(maxHeight: .infinity, alignment: simpleMakerConfigration.verticalAlignment == .center ? .center :
-                        simpleMakerConfigration.verticalAlignment == .top ? .top : .bottom)
+                    simpleMakerConfigration.verticalAlignment == .top ? .top : .bottom)
                 .padding(.horizontal, width * 0.05)
                 .padding(.vertical, height * 0.05)
         }
