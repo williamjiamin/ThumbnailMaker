@@ -8,11 +8,36 @@
 import SwiftUI
 
 struct AspectRatioSelectorComponentView: View {
+    @Binding var selectedRatio: AspectRatio
+    
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        VStack(spacing: 8) {
+            Text("Aspect Ratio")
+                .font(.headline)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal)
+            
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 12) {
+                    ForEach(AspectRatio.allCases, id: \.self) { ratio in
+                        Button(action: {
+                            selectedRatio = ratio
+                        }) {
+                            Text(ratio.rawValue)
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 8)
+                                .background(selectedRatio == ratio ? Color.blue : Color.gray.opacity(0.2))
+                                .foregroundColor(selectedRatio == ratio ? .white : .primary)
+                                .cornerRadius(8)
+                        }
+                    }
+                }
+                .padding(.horizontal)
+            }
+        }
     }
 }
 
 #Preview {
-    AspectRatioSelectorComponentView()
+    AspectRatioSelectorComponentView(selectedRatio: .constant(.ratio16_9))
 }

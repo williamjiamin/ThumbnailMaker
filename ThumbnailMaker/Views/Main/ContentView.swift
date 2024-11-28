@@ -7,216 +7,47 @@
 import SwiftUI
 import PhotosUI
 
-enum AspectRatio: String, CaseIterable {
-    case ratio16_9 = "16:9"
-    case ratio9_16 = "9:16"
-    case ratio1_1 = "1:1"
-    case ratio4_3 = "4:3"
-    case ratio3_4 = "3:4"
-    
-    var value: CGFloat {
-        switch self {
-        case .ratio16_9: return 16.0/9.0
-        case .ratio9_16: return 9.0/16.0
-        case .ratio1_1: return 1.0
-        case .ratio4_3: return 4.0/3.0
-        case .ratio3_4: return 3.0/4.0
-        }
-    }
-    
-    var dimensions: (width: CGFloat, height: CGFloat) {
-        switch self {
-        case .ratio16_9: return (1024, 576)
-        case .ratio9_16: return (576, 1024)
-        case .ratio1_1: return (1024, 1024)
-        case .ratio4_3: return (1024, 768)
-        case .ratio3_4: return (768, 1024)
-        }
-    }
-}
-
 struct ContentView: View {
-    @State private var selectedImage: UIImage?
-    @State private var imageSelection: PhotosPickerItem?
-    @State private var overlayText: String = ""
-    @State private var showingSaveAlert = false
-    @State private var saveError: String?
-    @FocusState private var isFocused : Bool
-    @State private var selectedRatio: AspectRatio = .ratio16_9
-    @State private var backgroundColor: Color = .yellow  // Default yellow as per current code
-    @State private var textColor: Color = .white        // Default white as per current code
-    @State private var textSize: CGFloat = 0.15          // Changed from 0.1 to 0.15
-    @State private var verticalAlignment: VerticalAlignment = .center
-    @State private var horizontalAlignment: HorizontalAlignment = .center
-    @State private var selectedTab: Tab = .simpleMaker
+    @StateObject private var viewModel = SimpleMakerViewModel()
+    @FocusState private var isFocused: Bool
     @State private var isSettingsPresented: Bool = false
-
-    // Add a constant for preview proportion
-    private let controlsHeight: CGFloat = 380       // Increased to accommodate all sections
-    private let usableHeightProportion: CGFloat = 0.6  // Use 60% of the screen for the entire UI, leave 40% for keyboard
-    private let previewHeightProportion: CGFloat = 0.35  // Allocate 35% of the usable height to the preview
-    private let textFieldHeight: CGFloat = 50       // Fixed height for the text editor to reduce space
-
-    // Add enum for alignment options
-    enum VerticalAlignment: String, CaseIterable {
-        case top = "Top"
-        case center = "Center"
-        case bottom = "Bottom"
-    }
-
-    enum HorizontalAlignment: String, CaseIterable {
-        case leading = "Left"
-        case center = "Center"
-        case trailing = "Right"
-    }
-
-    enum Tab: String, CaseIterable {
-        case simpleMaker = "Simple Maker"
-        case premium = "Premium Maker"
-    }
-
+    
     var body: some View {
         ZStack {
-            // Main Content
             NavigationView {
                 GeometryReader { geometry in
                     let availableWidth = geometry.size.width - 40
-                    let availableHeight = geometry.size.height * usableHeightProportion
-                    let previewHeight = availableHeight * previewHeightProportion
-                    let previewWidth = previewHeight * selectedRatio.value
+                    let availableHeight = geometry.size.height * viewModel.usableHeightProportion
+                    let previewHeight = availableHeight * viewModel.previewHeightProportion
+                    let previewWidth = previewHeight * viewModel.simpleMakerConfigration.selectedRatio.value
                     
                     VStack(spacing: 0) {
-                        // Main content area
                         ScrollView {
                             VStack(spacing: 24) {
-                                // Top Controls Section
+                                // Controls Section
                                 VStack(spacing: 16) {
-                                    // All controls container
-                                    VStack(spacing: 12) {
-                                        // Aspect Ratio Section
-                                        VStack(spacing: 8) {
-                                            Text("Choose Ratio")
-                                                .font(.headline)
-                                                .frame(maxWidth: .infinity, alignment: .leading)
-                                                .padding(.horizontal)
-
-                                            ScrollView(.horizontal, showsIndicators: false) {
-                                                HStack(spacing: 10) {
-                                                    ForEach(AspectRatio.allCases, id: \.self) { ratio in
-                                                        Button(ratio.rawValue) {
-                                                            selectedRatio = ratio
-                                                        }
-                                                        .padding(8)
-                                                        .background(selectedRatio == ratio ? Color.blue : Color.gray.opacity(0.3))
-                                                        .foregroundColor(.white)
-                                                        .cornerRadius(8)
-                                                    }
-                                                }
-                                                .padding(.horizontal)
-                                            }
-                                        }
-
-                                        Divider()
-
-                                        // Customize Appearance Section
-                                        VStack(spacing: 8) {
-                                            Text("Customize Appearance")
-                                                .font(.headline)
-                                                .frame(maxWidth: .infinity, alignment: .leading)
-                                                .padding(.horizontal)
-
-                                            HStack(spacing: 20) {
-                                                // Background color picker
-                                                VStack(alignment: .center, spacing: 4) {
-                                                    Text("Background")
-                                                        .font(.caption)
-                                                        .foregroundColor(.secondary)
-                                                    ColorPicker("", selection: $backgroundColor)
-                                                        .labelsHidden()
-                                                }
-                                                .frame(width: 100, alignment: .center)
-
-                                                // Text color picker
-                                                VStack(alignment: .center, spacing: 4) {
-                                                    Text("Text Color")
-                                                        .font(.caption)
-                                                        .foregroundColor(.secondary)
-                                                    ColorPicker("", selection: $textColor)
-                                                        .labelsHidden()
-                                                }
-                                                .frame(width: 100, alignment: .center)
-
-                                                // Text size slider
-                                                VStack(alignment: .center, spacing: 4) {
-                                                    Text("Text Size")
-                                                        .font(.caption)
-                                                        .foregroundColor(.secondary)
-                                                    Slider(value: $textSize, in: 0.1...0.3)
-                                                        .frame(width: 100)
-                                                        .tint(.blue)
-                                                }
-                                            }
-                                            .padding(.horizontal)
-                                        }
-
-                                        Divider()
-
-                                        // Text Position Section
-                                        VStack(spacing: 8) {
-                                            Text("Text Position")
-                                                .font(.headline)
-                                                .frame(maxWidth: .infinity, alignment: .leading)
-                                                .padding(.horizontal)
-
-                                            VStack(spacing: 8) {
-                                                // Vertical alignment
-                                                HStack {
-                                                    Text("Vertical:")
-                                                        .font(.subheadline)
-                                                        .foregroundColor(.secondary)
-                                                    Picker("", selection: $verticalAlignment) {
-                                                        ForEach(VerticalAlignment.allCases, id: \.self) { alignment in
-                                                            Text(alignment.rawValue).tag(alignment)
-                                                        }
-                                                    }
-                                                    .pickerStyle(.segmented)
-                                                }
-
-                                                // Horizontal alignment
-                                                HStack {
-                                                    Text("Horizontal:")
-                                                        .font(.subheadline)
-                                                        .foregroundColor(.secondary)
-                                                    Picker("", selection: $horizontalAlignment) {
-                                                        ForEach(HorizontalAlignment.allCases, id: \.self) { alignment in
-                                                            Text(alignment.rawValue).tag(alignment)
-                                                        }
-                                                    }
-                                                    .pickerStyle(.segmented)
-                                                }
-                                            }
-                                            .padding(.horizontal)
-                                        }
-                                    }
-                                    .padding(.vertical, 8)
-                                    .background(Color(uiColor: .secondarySystemBackground))
-                                    .cornerRadius(12)
-                                    .padding(.horizontal)
-
+                                    CustomizationControlComponentView(configuration: $viewModel.simpleMakerConfigration)
+                                        .frame(height: viewModel.controlsHeight)
+                                        .padding(.bottom, 16)
+                                    
                                     // Action buttons
                                     HStack(spacing: 20) {
-                                        PhotosPicker(selection: $imageSelection,
-                                                    matching: .images) {
+                                        PhotosPicker(selection: $viewModel.imageSelection,
+                                                   matching: .images) {
                                             Text("Select Image")
                                                 .padding()
                                                 .background(Color.blue)
                                                 .foregroundColor(.white)
                                                 .cornerRadius(8)
                                         }
-
-                                        if selectedImage != nil {
+                                        
+                                        if viewModel.simpleMakerConfigration.selectedImage != nil {
                                             Button("Save The Thumbnail") {
-                                                saveImageWithOverlay()
+                                                viewModel.saveImageWithOverlay(content: PreviewComponentView(
+                                                    simpleMakerConfigration: viewModel.simpleMakerConfigration,
+                                                    width: previewWidth,
+                                                    height: previewHeight
+                                                ))
                                             }
                                             .padding()
                                             .background(Color.green)
@@ -226,90 +57,40 @@ struct ContentView: View {
                                     }
                                     .padding(.horizontal)
                                 }
-                                .frame(height: controlsHeight)
-                                .padding(.bottom, 16) // Added padding to create space between controls and preview
-
-                                // Preview Section (fixed proportion of the usable height)
-                                if let selectedImage {
-                                    thumbnailContent(
-                                        width: previewWidth,
-                                        height: previewHeight,
-                                        text: overlayText,
-                                        image: selectedImage
-                                    )
-                                    .frame(maxWidth: availableWidth, maxHeight: previewHeight)
-                                    .background(Color.clear)
-                                } else {
-                                    ZStack {
-                                        Rectangle()
-                                            .fill(Color.gray.opacity(0.2))
-                                            .frame(width: previewWidth, height: previewHeight)
-                                        Text("Select an image to preview")
-                                            .foregroundColor(.gray)
-                                            .font(.headline)
-                                    }
-                                    .frame(maxWidth: availableWidth, maxHeight: previewHeight)
-                                    .padding(.top, 10)
-                                }
-
-                                // Text input (positioned directly below the preview)
-                                TextField("Enter overlay text", text: $overlayText)
+                                
+                                // Preview Section
+                                PreviewComponentView(
+                                    simpleMakerConfigration: viewModel.simpleMakerConfigration,
+                                    width: previewWidth,
+                                    height: previewHeight
+                                )
+                                .frame(maxWidth: availableWidth, maxHeight: previewHeight)
+                                
+                                // Text input
+                                TextField("Enter overlay text", text: $viewModel.simpleMakerConfigration.overlayText)
                                     .lineLimit(1)
                                     .truncationMode(.tail)
                                     .padding(8)
                                     .background(Color(uiColor: .systemGray5))
                                     .cornerRadius(8)
-                                    .frame(height: textFieldHeight)
+                                    .frame(height: viewModel.textFieldHeight)
                                     .focused($isFocused)
                                     .padding(.horizontal, 20)
                                     .padding(.top, 16)
                                     .padding(.bottom, 300)
                             }
                             .frame(maxWidth: .infinity, alignment: .top)
-                            .padding(.top, 10) // Add a bit of padding at the top
+                            .padding(.top, 10)
                         }
                         .padding(.bottom, 8)
                         
-                        Spacer() // This pushes content up and tab selector down
+                        Spacer()
                         
                         // Bottom menu bar
-                        HStack {
-                            Button(action: {
-                                withAnimation {
-                                    selectedTab = .simpleMaker
-                                }
-                            }) {
-                                VStack {
-                                    Image(systemName: "square.grid.2x2")
-                                        .font(.system(size: 24))
-                                    Text("Simple Maker")
-                                        .font(.caption)
-                                }
-                            }
-                            .foregroundColor(selectedTab == .simpleMaker ? .blue : .gray)
-                            
-                            Spacer()
-                            
-                            Button(action: {
-                                withAnimation {
-                                    selectedTab = .premium
-                                }
-                            }) {
-                                VStack {
-                                    Image(systemName: "star.circle")
-                                        .font(.system(size: 24))
-                                    Text("Premium")
-                                        .font(.caption)
-                                }
-                            }
-                            .foregroundColor(selectedTab == .premium ? .blue : .gray)
-                        }
-                        .padding(.horizontal, 50)
-                        .padding(.vertical, 8)
-                        .background(Color(uiColor: .secondarySystemBackground))
+                        TabBarView(selectedTab: $viewModel.selectedTab)
                     }
                 }
-                .navigationTitle("William JM's " + selectedTab.rawValue)
+                .navigationTitle("William JM's " + viewModel.selectedTab.rawValue)
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
                     ToolbarItem(placement: .navigationBarLeading) {
@@ -326,106 +107,9 @@ struct ContentView: View {
             }
         }
         .animation(.default, value: isSettingsPresented)
-        .onChange(of: imageSelection, initial: false) { oldValue, newValue in
+        .onChange(of: viewModel.imageSelection) { _ in
             Task {
-                if let data = try? await newValue?.loadTransferable(type: Data.self),
-                   let uiImage = UIImage(data: data) {
-                    selectedImage = uiImage
-                }
-            }
-        }
-    }
-
-    @MainActor
-    private func saveImageWithOverlay() {
-        guard let selectedImage else { return }
-        
-        let (targetWidth, targetHeight) = selectedRatio.dimensions
-        
-        let renderer = ImageRenderer(content:
-            thumbnailContent(
-                width: targetWidth,
-                height: targetHeight,
-                text: overlayText,
-                image: selectedImage
-            )
-        )
-        
-        // Configure renderer
-        renderer.scale = 2
-        renderer.colorMode = .nonLinear
-        
-        // Generate the final image
-        if let renderedImage = renderer.uiImage {
-            Task {
-                do {
-                    try await PhotosUI.PHPhotoLibrary.shared().performChanges {
-                        PHAssetChangeRequest.creationRequestForAsset(from: renderedImage)
-                    }
-                    saveError = nil
-                } catch {
-                    saveError = "Failed to save: \(error.localizedDescription)"
-                }
-                showingSaveAlert = true
-            }
-        }
-    }
-    
-    @ViewBuilder
-    private func thumbnailContent(width: CGFloat, height: CGFloat, text: String, image: UIImage) -> some View {
-        ZStack {
-            Rectangle()
-                .fill(backgroundColor)
-            
-            Image(uiImage: image)
-                .resizable()
-                .scaledToFit()
-            
-            Text(text)
-                .font(.system(size: height * textSize, weight: .bold))
-                .foregroundColor(textColor)
-                .lineLimit(1)
-                .truncationMode(.tail)
-                .shadow(color: .black, radius: 3, x: 1, y: 1)
-                .multilineTextAlignment(horizontalAlignment == .center ? .center : 
-                          horizontalAlignment == .leading ? .leading : .trailing)
-                .frame(width: width * 0.9, alignment: horizontalAlignment == .center ? .center : 
-                       horizontalAlignment == .leading ? .leading : .trailing)
-                .frame(maxHeight: .infinity, alignment: verticalAlignment == .center ? .center :
-                       verticalAlignment == .top ? .top : .bottom)
-                .padding(.horizontal, width * 0.05)
-                .padding(.vertical, height * 0.05)
-        }
-        .frame(width: width, height: height)
-        .clipped()
-    }
-}
-
-struct SettingsView: View {
-    @Environment(\.dismiss) private var dismiss
-    
-    var body: some View {
-        NavigationView {
-            List {
-                Section(header: Text("About Me")) {
-                    Text("William JM's Thumbnail Maker")
-                }
-                Section(header: Text("Upgrade")) {
-                    Text("Upgrade to Pro to enjoy premium features")
-                }
-                Section(header: Text("User Agreement")) {
-                    Text("Terms of Service")
-                    Text("Privacy Policy")
-                }
-            }
-            .navigationTitle("Settings")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") {
-                        dismiss()
-                    }
-                }
+                await viewModel.updateImage()
             }
         }
     }

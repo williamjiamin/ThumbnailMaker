@@ -8,8 +8,32 @@
 import SwiftUI
 
 struct SettingsView: View {
+    @Environment(\.dismiss) private var dismiss
+    
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        NavigationView {
+            List {
+                Section(header: Text("About Me")) {
+                    Text("William JM's Thumbnail Maker")
+                }
+                Section(header: Text("Upgrade")) {
+                    Text("Upgrade to Pro to enjoy premium features")
+                }
+                Section(header: Text("User Agreement")) {
+                    Text("Terms of Service")
+                    Text("Privacy Policy")
+                }
+            }
+            .navigationTitle("Settings")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                }
+            }
+        }
     }
 }
 

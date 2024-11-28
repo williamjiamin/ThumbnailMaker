@@ -8,11 +8,71 @@
 import SwiftUI
 
 struct CustomizationControlComponentView: View {
+    @Binding var configuration: SimpleMakerConfigurationModel
+    
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        VStack(spacing: 12) {
+            // Aspect Ratio Section
+            AspectRatioSelectorComponentView(selectedRatio: $configuration.selectedRatio)
+            
+            Divider()
+            
+            // Customize Appearance Section
+            VStack(spacing: 8) {
+                Text("Customize Appearance")
+                    .font(.headline)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal)
+                
+                HStack(spacing: 20) {
+                    // Background color picker
+                    VStack(alignment: .center, spacing: 4) {
+                        Text("Background")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        ColorPicker("", selection: $configuration.backgroundColor)
+                            .labelsHidden()
+                    }
+                    .frame(width: 100, alignment: .center)
+                    
+                    // Text color picker
+                    VStack(alignment: .center, spacing: 4) {
+                        Text("Text Color")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        ColorPicker("", selection: $configuration.textColor)
+                            .labelsHidden()
+                    }
+                    .frame(width: 100, alignment: .center)
+                    
+                    // Text size slider
+                    VStack(alignment: .center, spacing: 4) {
+                        Text("Text Size")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        Slider(value: $configuration.textSize, in: 0.1...0.3)
+                            .frame(width: 100)
+                            .tint(.blue)
+                    }
+                }
+                .padding(.horizontal)
+            }
+            
+            Divider()
+            
+            // Text Position Section
+            TextPositionSelectorView(
+                verticalAlignment: $configuration.verticalAlignment,
+                horizontalAlignment: $configuration.horizontalAlignment
+            )
+        }
+        .padding(.vertical, 8)
+        .background(Color(uiColor: .secondarySystemBackground))
+        .cornerRadius(12)
+        .padding(.horizontal)
     }
 }
 
 #Preview {
-    CustomizationControlComponentView()
+    CustomizationControlComponentView(configuration: .constant(SimpleMakerConfigurationModel()))
 }
