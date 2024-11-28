@@ -45,7 +45,7 @@ struct ContentView: View {
     @State private var selectedRatio: AspectRatio = .ratio16_9
     @State private var backgroundColor: Color = .yellow  // Default yellow as per current code
     @State private var textColor: Color = .white        // Default white as per current code
-    @State private var textSize: CGFloat = 0.1          // Default 0.1 as per current code
+    @State private var textSize: CGFloat = 0.15          // Changed from 0.1 to 0.15
     @State private var verticalAlignment: VerticalAlignment = .center
     @State private var horizontalAlignment: HorizontalAlignment = .center
     
@@ -146,7 +146,7 @@ struct ContentView: View {
                                         Text("Text Size")
                                             .font(.caption)
                                             .foregroundColor(.secondary)
-                                        Slider(value: $textSize, in: 0.05...0.2)
+                                        Slider(value: $textSize, in: 0.1...0.3)
                                             .frame(width: 100)
                                             .tint(.blue)
                                     }
@@ -249,14 +249,16 @@ struct ContentView: View {
                     
                     // Text input (positioned directly below the preview)
                     TextField("Enter overlay text", text: $overlayText)
+                        .lineLimit(1)
+                        .truncationMode(.tail)
                         .padding(8)
-                        .background(Color(uiColor: .systemGray5)) // Made the background slightly less transparent
+                        .background(Color(uiColor: .systemGray5))
                         .cornerRadius(8)
                         .frame(height: textFieldHeight)
                         .focused($isFocused)
                         .padding(.horizontal, 20)
-                        .padding(.top, 16) // Added padding to separate text field from the preview
-                        .padding(.bottom, 300) // Add more padding to allow for better scroll visibility in smaller devices
+                        .padding(.top, 16)
+                        .padding(.bottom, 300)
                 }
                 .frame(maxWidth: .infinity, alignment: .top)
                 .padding(.top, 10) // Add a bit of padding at the top
@@ -336,6 +338,8 @@ struct ContentView: View {
             Text(text)
                 .font(.system(size: height * textSize, weight: .bold))
                 .foregroundColor(textColor)
+                .lineLimit(1)
+                .truncationMode(.tail)
                 .shadow(color: .black, radius: 3, x: 1, y: 1)
                 .multilineTextAlignment(horizontalAlignment == .center ? .center : 
                           horizontalAlignment == .leading ? .leading : .trailing)
