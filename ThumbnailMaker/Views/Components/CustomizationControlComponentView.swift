@@ -11,7 +11,7 @@ struct CustomizationControlComponentView: View {
     @Binding var configuration: SimpleMakerConfigurationModel
     
     var body: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 8) {
             // Aspect Ratio Section
             AspectRatioSelectorComponentView(selectedRatio: $configuration.selectedRatio)
             
@@ -55,7 +55,7 @@ struct CustomizationControlComponentView: View {
                             .tint(.blue)
                     }
                 }
-                .padding(.horizontal)
+//                .padding(.horizontal)
             }
             
             Divider()
@@ -66,10 +66,10 @@ struct CustomizationControlComponentView: View {
                 horizontalAlignment: $configuration.horizontalAlignment
             )
         }
-        .padding(.vertical, 8)
+//        .padding(.vertical, 8)
         .background(Color(uiColor: .secondarySystemBackground))
         .cornerRadius(12)
-        .padding(.horizontal)
+//        .padding(.horizontal)
     }
 }
 
