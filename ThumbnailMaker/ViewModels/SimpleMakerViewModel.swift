@@ -17,7 +17,7 @@ class SimpleMakerViewModel: ObservableObject {
 //    i don't think it should be here
     
     // Add a constant for preview proportion
-    let controlsHeight: CGFloat = 380       // Increased to accommodate all sections
+    let controlsHeight: CGFloat = 300      // Increased to accommodate all sections
     let usableHeightProportion: CGFloat = 0.6  // Use 60% of the screen for the entire UI, leave 40% for keyboard
     let previewHeightProportion: CGFloat = 0.35  // Allocate 35% of the usable height to the preview
     let textFieldHeight: CGFloat = 50       // Fixed height for the text editor to reduce space

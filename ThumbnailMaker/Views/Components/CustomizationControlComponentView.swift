@@ -16,7 +16,7 @@ struct CustomizationControlComponentView: View {
             AspectRatioSelectorComponentView(selectedRatio: $configuration.selectedRatio)
             
             Divider()
-                .padding(.vertical, 4)
+                .padding(.vertical, 2)
             
             // Customize Appearance Section
             VStack(spacing: 8) {
@@ -60,7 +60,7 @@ struct CustomizationControlComponentView: View {
             }
             
             Divider()
-                .padding(.vertical, 4)
+                .padding(.vertical, 2)
             
             // Text Position Section
             TextPositionSelectorView(
