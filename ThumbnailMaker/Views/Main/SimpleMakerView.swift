@@ -13,6 +13,7 @@ struct SimpleMakerView: View {
     @FocusState private var isFocused: Bool
     @State private var isSettingsPresented: Bool = false
     @Namespace private var bottomID
+    @Namespace private var topID
     
     var body: some View {
         NavigationView {
@@ -26,6 +27,8 @@ struct SimpleMakerView: View {
                     ScrollView {
                         // Controls Section
                         VStack(spacing: 16) {
+                            Color.clear.frame(height: 1).id(topID)
+                            
                             CustomizationControlComponentView(configuration: $viewModel.simpleMakerConfigration)
                                 .frame(height: viewModel.controlsHeight)
                                 .padding(.bottom, 16)
@@ -81,9 +84,11 @@ struct SimpleMakerView: View {
                             .padding(.bottom, 300)
                             .id(bottomID)
                             .onChange(of: isFocused) { oldValue, newValue in
-                                if newValue {
-                                    withAnimation {
+                                withAnimation {
+                                    if newValue {
                                         proxy.scrollTo(bottomID, anchor: .bottom)
+                                    } else {
+                                        proxy.scrollTo(topID, anchor: .top)
                                     }
                                 }
                             }

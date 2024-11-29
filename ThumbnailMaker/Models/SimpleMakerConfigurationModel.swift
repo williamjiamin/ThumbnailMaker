@@ -12,7 +12,7 @@ struct SimpleMakerConfigurationModel {
     var selectedImage: UIImage?
     var overlayText: String = ""
     var selectedRatio: AspectRatio = .ratio16_9
-    var backgroundColor: Color = .yellow
+    var backgroundColor: Color = Color(uiColor: .secondarySystemBackground)
     var textColor: Color = .white
     var textSize: CGFloat = 0.15
     var verticalAlignment: VerticalAlignment = .center
