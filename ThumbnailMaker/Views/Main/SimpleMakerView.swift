@@ -31,7 +31,7 @@ struct SimpleMakerView: View {
                         // Controls Section
                         VStack(spacing: 0) {
                             CustomizationControlComponentView(configuration: $viewModel.simpleMakerConfigration)
-                                .frame(height: viewModel.controlsHeight)
+                        
                             
                             // Action buttons
                             HStack(spacing: 20) {
@@ -42,25 +42,38 @@ struct SimpleMakerView: View {
                                         .background(Color.blue)
                                         .foregroundColor(.white)
                                         .cornerRadius(8)
+                                        .padding(.horizontal, 16)
+                                        .padding(.vertical, 8) 
                                 }
                                 
                                 if viewModel.simpleMakerConfigration.selectedImage != nil {
-                                    Button("Save The Thumbnail") {
+                                    Button(action: {
                                         let (targetWidth, targetHeight) = viewModel.simpleMakerConfigration.selectedRatio.dimensions
-                                        viewModel.saveImageWithOverlay(content: PreviewComponentView(
-                                            simpleMakerConfigration: viewModel.simpleMakerConfigration,
-                                            width: targetWidth,
-                                            height: targetHeight
-                                        ))
+                                        Task {
+                                            await viewModel.saveImageWithOverlay(content: PreviewComponentView(
+                                                simpleMakerConfigration: viewModel.simpleMakerConfigration,
+                                                width: targetWidth,
+                                                height: targetHeight
+                                            ))
+                                        }
+                                    }) {
+                                        HStack {
+                                            if viewModel.isSaving {
+                                                ProgressView()
+                                                    .tint(.white)
+                                            }
+                                            Text(viewModel.isSaving ? "Saving..." : "Save The Thumbnail")
+                                        }
                                     }
+                                    .disabled(viewModel.isSaving)
                                     .padding()
                                     .background(Color.green)
                                     .foregroundColor(.white)
                                     .cornerRadius(8)
                                 }
                             }
-                            .padding(.horizontal)
-                            .padding(.vertical, 8)
+                            // .padding(.horizontal)
+                            // .padding(.vertical, 8)
                         }
                         
                         // Preview Section
@@ -113,6 +126,21 @@ struct SimpleMakerView: View {
                         Image(systemName: "gearshape")
                     }
                 }
+            }
+        }
+        .alert(isPresented: $viewModel.showingSaveAlert) {
+            if let error = viewModel.saveError {
+                Alert(
+                    title: Text("Save Failed"),
+                    message: Text(error),
+                    dismissButton: .default(Text("OK"))
+                )
+            } else {
+                Alert(
+                    title: Text("Success"),
+                    message: Text("Thumbnail saved to Photos"),
+                    dismissButton: .default(Text("OK"))
+                )
             }
         }
         .sheet(isPresented: $isSettingsPresented) {

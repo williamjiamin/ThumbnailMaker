@@ -31,7 +31,7 @@ struct PreviewComponentView: View {
                     Image(systemName: "photo.fill")
                         .font(.system(size: 40))
                         .foregroundColor(.gray)
-                    Text("Please Select an Image to Customize")
+                    Text("Select an Image")
                         .font(.headline)
                         .foregroundColor(.gray)
                         .multilineTextAlignment(.center)

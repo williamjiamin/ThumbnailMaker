@@ -13,11 +13,11 @@ class SimpleMakerViewModel: ObservableObject {
     @Published var simpleMakerConfigration = SimpleMakerConfigurationModel()
     @Published var imageSelection: PhotosPickerItem?
     @Published var saveError: String?
-    @State private var showingSaveAlert = false
+    @Published var showingSaveAlert = false
+    @Published var isSaving = false
 //    i don't think it should be here
     
     // Add a constant for preview proportion
-    let controlsHeight: CGFloat = 300      // Increased to accommodate all sections
     let usableHeightProportion: CGFloat = 0.6  // Use 60% of the screen for the entire UI, leave 40% for keyboard
     let previewHeightProportion: CGFloat = 0.35  // Allocate 35% of the usable height to the preview
     let textFieldHeight: CGFloat = 50       // Fixed height for the text editor to reduce space
@@ -32,31 +32,36 @@ class SimpleMakerViewModel: ObservableObject {
     
     
     
-    func saveImageWithOverlay(content: some View) {
+    func saveImageWithOverlay(content: some View) async {
         guard simpleMakerConfigration.selectedImage != nil else { return }
         
         let (targetWidth, targetHeight) = simpleMakerConfigration.selectedRatio.dimensions
         let renderer = ImageRenderer(content: content)
         
-        // Set the proper dimensions for the renderer
         renderer.proposedSize = ProposedViewSize(width: targetWidth, height: targetHeight)
-        
-        // Configure renderer with higher scale for better resolution
         renderer.scale = 3
         renderer.colorMode = .nonLinear
         
-        // Generate the final image
         if let renderedImage = renderer.uiImage {
-            Task {
-                do {
-                    try await PhotosUI.PHPhotoLibrary.shared().performChanges {
-                        PHAssetChangeRequest.creationRequestForAsset(from: renderedImage)
-                    }
-                    saveError = nil
-                } catch {
-                    saveError = "Failed to save: \(error.localizedDescription)"
+            withAnimation {
+                isSaving = true
+            }
+            
+            do {
+                try await PhotosUI.PHPhotoLibrary.shared().performChanges {
+                    PHAssetChangeRequest.creationRequestForAsset(from: renderedImage)
                 }
-                showingSaveAlert = true
+                withAnimation {
+                    saveError = nil
+                    showingSaveAlert = true
+                    isSaving = false
+                }
+            } catch {
+                withAnimation {
+                    saveError = "Failed to save: \(error.localizedDescription)"
+                    showingSaveAlert = true
+                    isSaving = false
+                }
             }
         }
     }
