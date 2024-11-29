@@ -11,7 +11,7 @@ struct AspectRatioSelectorComponentView: View {
     @Binding var selectedRatio: AspectRatio
     
     var body: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 4) {
             Text("Aspect Ratio")
                 .font(.headline)
                 .frame(maxWidth: .infinity, alignment: .leading)

@@ -25,13 +25,13 @@ struct SimpleMakerView: View {
                 
                 ScrollViewReader { proxy in
                     ScrollView {
+                        // Invisible anchor point for top scrolling
+                        Color.clear.frame(height: 0).id(topID)
+                        
                         // Controls Section
-                        VStack(spacing: 16) {
-                            Color.clear.frame(height: 1).id(topID)
-                            
+                        VStack(spacing: 0) {
                             CustomizationControlComponentView(configuration: $viewModel.simpleMakerConfigration)
                                 .frame(height: viewModel.controlsHeight)
-                                .padding(.bottom, 16)
                             
                             // Action buttons
                             HStack(spacing: 20) {
@@ -60,6 +60,7 @@ struct SimpleMakerView: View {
                                 }
                             }
                             .padding(.horizontal)
+                            .padding(.vertical, 8)
                         }
                         
                         // Preview Section
@@ -94,7 +95,6 @@ struct SimpleMakerView: View {
                             }
                     }
                     .frame(maxWidth: .infinity, alignment: .top)
-                    .padding(.top, 10)
                 }
                 .padding(.bottom, 8)
                 .scrollDismissesKeyboard(.immediately)

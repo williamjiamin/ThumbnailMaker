@@ -11,11 +11,12 @@ struct CustomizationControlComponentView: View {
     @Binding var configuration: SimpleMakerConfigurationModel
     
     var body: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 0) {
             // Aspect Ratio Section
             AspectRatioSelectorComponentView(selectedRatio: $configuration.selectedRatio)
             
             Divider()
+                .padding(.vertical, 4)
             
             // Customize Appearance Section
             VStack(spacing: 8) {
@@ -55,10 +56,11 @@ struct CustomizationControlComponentView: View {
                             .tint(.blue)
                     }
                 }
-//                .padding(.horizontal)
+
             }
             
             Divider()
+                .padding(.vertical, 4)
             
             // Text Position Section
             TextPositionSelectorView(
@@ -66,10 +68,10 @@ struct CustomizationControlComponentView: View {
                 horizontalAlignment: $configuration.horizontalAlignment
             )
         }
-//        .padding(.vertical, 8)
+
         .background(Color(uiColor: .secondarySystemBackground))
         .cornerRadius(12)
-//        .padding(.horizontal)
+
     }
 }
 
