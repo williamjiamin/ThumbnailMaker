@@ -21,7 +21,7 @@ struct SimpleMakerView: View {
                 let availableWidth = geometry.size.width - 40
                 let availableHeight = geometry.size.height * viewModel.usableHeightProportion
                 let previewHeight = availableHeight * viewModel.previewHeightProportion
-                let previewWidth = previewHeight * viewModel.simpleMakerConfiguration.selectedRatio.value
+                let previewWidth = previewHeight * viewModel.simpleMakerConfigration.selectedRatio.value
                 
                 ScrollViewReader { proxy in
                     ScrollView {
@@ -30,7 +30,7 @@ struct SimpleMakerView: View {
                         
                         // Controls Section
                         VStack(spacing: 0) {
-                            CustomizationControlComponentView(configuration: $viewModel.simpleMakerConfiguration)
+                            CustomizationControlComponentView(configuration: $viewModel.simpleMakerConfigration)
                         
                             
                             // Action buttons
@@ -46,12 +46,12 @@ struct SimpleMakerView: View {
                                         .padding(.vertical, 8) 
                                 }
                                 
-                                if viewModel.simpleMakerConfiguration.selectedImage != nil {
+                                if viewModel.simpleMakerConfigration.selectedImage != nil {
                                     Button(action: {
-                                        let (targetWidth, targetHeight) = viewModel.simpleMakerConfiguration.selectedRatio.dimensions
+                                        let (targetWidth, targetHeight) = viewModel.simpleMakerConfigration.selectedRatio.dimensions
                                         Task {
                                             await viewModel.saveImageWithOverlay(content: PreviewComponentView(
-                                                simpleMakerConfiguration: viewModel.simpleMakerConfiguration,
+                                                simpleMakerConfigration: viewModel.simpleMakerConfigration,
                                                 width: targetWidth,
                                                 height: targetHeight
                                             ))
@@ -78,14 +78,14 @@ struct SimpleMakerView: View {
                         
                         // Preview Section
                         PreviewComponentView(
-                            simpleMakerConfiguration: viewModel.simpleMakerConfiguration,
+                            simpleMakerConfigration: viewModel.simpleMakerConfigration,
                             width: previewWidth,
                             height: previewHeight
                         )
                         .frame(maxWidth: availableWidth, maxHeight: previewHeight)
                         
                         // Text input
-                        TextField("Enter overlay text", text: $viewModel.simpleMakerConfiguration.overlayText)
+                        TextField("Enter overlay text", text: $viewModel.simpleMakerConfigration.overlayText)
                             .lineLimit(1)
                             .truncationMode(.tail)
                             .padding(8)
