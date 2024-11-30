@@ -48,14 +48,20 @@ struct SimpleMakerView: View {
                                 
                                 if viewModel.simpleMakerConfiguration.selectedImage != nil {
                                     Button(action: {
-                                        let (targetWidth, targetHeight) = viewModel.simpleMakerConfiguration.selectedRatio.dimensions
-                                        let content = PreviewComponentView(
-                                            simpleMakerConfiguration: viewModel.simpleMakerConfiguration,
-                                            width: targetWidth,
-                                            height: targetHeight
-                                        )
-                                        Task {
-                                            await viewModel.saveImageWithOverlay(content: content)
+                                        // First unfocus the text field
+                                        isFocused = false
+                                        
+                                        // Wait briefly for the unfocus animation to complete
+                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                            let (targetWidth, targetHeight) = viewModel.simpleMakerConfiguration.selectedRatio.dimensions
+                                            let content = PreviewComponentView(
+                                                simpleMakerConfiguration: viewModel.simpleMakerConfiguration,
+                                                width: targetWidth,
+                                                height: targetHeight
+                                            )
+                                            Task {
+                                                await viewModel.saveImageWithOverlay(content: content)
+                                            }
                                         }
                                     }) {
                                         HStack {

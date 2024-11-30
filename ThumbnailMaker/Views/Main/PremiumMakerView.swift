@@ -48,13 +48,20 @@ struct PremiumMakerView: View {
                                 
                                 if viewModel.premiumMakerConfiguration.selectedImage != nil {
                                     Button(action: {
-                                        let (targetWidth, targetHeight) = viewModel.premiumMakerConfiguration.selectedRatio.dimensions
-                                        Task {
-                                            await viewModel.saveImageWithOverlay(content: PremiumPreviewComponentView(
+                                        // First unfocus the text field
+                                        isFocused = false
+                                        
+                                        // Wait briefly for the unfocus animation to complete
+                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                            let (targetWidth, targetHeight) = viewModel.premiumMakerConfiguration.selectedRatio.dimensions
+                                            let content = PremiumPreviewComponentView(
                                                 premiumMakerConfiguration: viewModel.premiumMakerConfiguration,
                                                 width: targetWidth,
                                                 height: targetHeight
-                                            ))
+                                            )
+                                            Task {
+                                                await viewModel.saveImageWithOverlay(content: content)
+                                            }
                                         }
                                     }) {
                                         HStack {
