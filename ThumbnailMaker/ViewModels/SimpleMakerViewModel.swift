@@ -10,7 +10,7 @@ import PhotosUI
 
 @MainActor
 class SimpleMakerViewModel: ObservableObject {
-    @Published var simpleMakerConfigration = SimpleMakerConfigurationModel()
+    @Published var simpleMakerConfiguration = SimpleMakerConfigurationModel()
     @Published var imageSelection: PhotosPickerItem?
     @Published var saveError: String?
     @Published var showingSaveAlert = false
@@ -26,16 +26,16 @@ class SimpleMakerViewModel: ObservableObject {
     func updateImage() async {
         if let data = try? await imageSelection?.loadTransferable(type: Data.self),
            let uiImage = UIImage(data: data) {
-            simpleMakerConfigration.selectedImage = uiImage
+            simpleMakerConfiguration.selectedImage = uiImage
         }
     }
     
     
     
     func saveImageWithOverlay(content: some View) async {
-        guard simpleMakerConfigration.selectedImage != nil else { return }
+        guard simpleMakerConfiguration.selectedImage != nil else { return }
         
-        let (targetWidth, targetHeight) = simpleMakerConfigration.selectedRatio.dimensions
+        let (targetWidth, targetHeight) = simpleMakerConfiguration.selectedRatio.dimensions
         let renderer = ImageRenderer(content: content)
         
         renderer.proposedSize = ProposedViewSize(width: targetWidth, height: targetHeight)
