@@ -35,6 +35,11 @@ class PremiumMakerViewModel: ObservableObject {
     func saveImageWithOverlay(content: some View) async {
         guard premiumMakerConfiguration.selectedImage != nil else { return }
         
+        // Set initial state
+        await MainActor.run {
+            isSaving = true
+        }
+        
         let (targetWidth, targetHeight) = premiumMakerConfiguration.selectedRatio.dimensions
         let renderer = ImageRenderer(content: content)
         
@@ -43,25 +48,29 @@ class PremiumMakerViewModel: ObservableObject {
         renderer.colorMode = .nonLinear
         
         if let renderedImage = renderer.uiImage {
-            withAnimation {
-                isSaving = true
-            }
-            
             do {
                 try await PhotosUI.PHPhotoLibrary.shared().performChanges {
                     PHAssetChangeRequest.creationRequestForAsset(from: renderedImage)
                 }
-                withAnimation {
+                
+                // Update state after success
+                await MainActor.run {
                     saveError = nil
                     showingSaveAlert = true
                     isSaving = false
                 }
             } catch {
-                withAnimation {
+                // Update state after error
+                await MainActor.run {
                     saveError = "Failed to save: \(error.localizedDescription)"
                     showingSaveAlert = true
                     isSaving = false
                 }
+            }
+        } else {
+            // Update state if rendering failed
+            await MainActor.run {
+                isSaving = false
             }
         }
     }

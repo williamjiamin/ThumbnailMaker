@@ -49,12 +49,13 @@ struct SimpleMakerView: View {
                                 if viewModel.simpleMakerConfiguration.selectedImage != nil {
                                     Button(action: {
                                         let (targetWidth, targetHeight) = viewModel.simpleMakerConfiguration.selectedRatio.dimensions
+                                        let content = PreviewComponentView(
+                                            simpleMakerConfiguration: viewModel.simpleMakerConfiguration,
+                                            width: targetWidth,
+                                            height: targetHeight
+                                        )
                                         Task {
-                                            await viewModel.saveImageWithOverlay(content: PreviewComponentView(
-                                                simpleMakerConfiguration: viewModel.simpleMakerConfiguration,
-                                                width: targetWidth,
-                                                height: targetHeight
-                                            ))
+                                            await viewModel.saveImageWithOverlay(content: content)
                                         }
                                     }) {
                                         HStack {
@@ -147,8 +148,10 @@ struct SimpleMakerView: View {
             SettingsView()
         }
         .onChange(of: viewModel.imageSelection) { oldValue, newValue in
-            Task {
-                await viewModel.updateImage()
+            if newValue != nil {
+                Task {
+                    await viewModel.updateImage()
+                }
             }
         }
     }
