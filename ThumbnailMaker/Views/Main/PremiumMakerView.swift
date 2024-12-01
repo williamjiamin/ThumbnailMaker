@@ -92,11 +92,25 @@ struct PremiumMakerView: View {
                             }
                             
                             if viewModel.premiumMakerConfiguration.circularProfile != nil {
-                                ProfilePositionControlView(
-                                    position: Binding(
+                                UnifiedPositionControlView(
+                                    textPosition: Binding(
+                                        get: { (viewModel.premiumMakerConfiguration.verticalAlignment,
+                                               viewModel.premiumMakerConfiguration.horizontalAlignment) },
+                                        set: { newValue in
+                                            viewModel.premiumMakerConfiguration.verticalAlignment = newValue.vertical
+                                            viewModel.premiumMakerConfiguration.horizontalAlignment = newValue.horizontal
+                                        }
+                                    ),
+                                    profilePosition: Binding(
                                         get: { viewModel.premiumMakerConfiguration.circularProfile?.position ?? .topRight },
                                         set: { viewModel.premiumMakerConfiguration.circularProfile?.position = $0 }
-                                    )
+                                    ),
+                                    profileSize: Binding(
+                                        get: { viewModel.premiumMakerConfiguration.circularProfile?.size ?? 0.2 },
+                                        set: { viewModel.premiumMakerConfiguration.circularProfile?.size = $0 }
+                                    ),
+                                    textSize: $viewModel.premiumMakerConfiguration.textSize,
+                                    textColor: $viewModel.premiumMakerConfiguration.textColor
                                 )
                             }
                             

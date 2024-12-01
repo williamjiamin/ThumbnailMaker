@@ -13,66 +13,51 @@ struct PremiumCustomizationControlComponentView: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            // Aspect Ratio Section
-            AspectRatioSelectorComponentView(selectedRatio: $configuration.selectedRatio)
-            
-            Divider()
-                .padding(.vertical, 2)
-            
-            // Customize Appearance Section
-            VStack(spacing: 8) {
-                Text("Customize Appearance")
-                    .font(.headline)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal)
-                
-                HStack(spacing: 20) {
-                    // Background color picker
-                    VStack(alignment: .center, spacing: 4) {
-                        Text("Background")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                        ColorPicker("", selection: $configuration.backgroundColor)
-                            .labelsHidden()
-                    }
-                    .frame(width: 100, alignment: .center)
+            // Canvas Settings Section
+            HStack(spacing: 0) {
+                VStack(spacing: 4) {
+                    Text("Canvas Settings")
+                        .font(.headline)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal)
                     
-                    // Text color picker
-                    VStack(alignment: .center, spacing: 4) {
-                        Text("Text Color")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                        ColorPicker("", selection: $configuration.textColor)
-                            .labelsHidden()
-                    }
-                    .frame(width: 100, alignment: .center)
-                    
-                    // Text size slider
-                    VStack(alignment: .center, spacing: 4) {
-                        Text("Text Size")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                        Slider(value: $configuration.textSize, in: 0.1...0.3)
-                            .frame(width: 100)
-                            .tint(.blue)
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 12) {
+                            ForEach(AspectRatio.allCases, id: \.self) { ratio in
+                                Button(action: {
+                                    configuration.selectedRatio = ratio
+                                }) {
+                                    Text(ratio.rawValue)
+                                        .padding(.horizontal, 16)
+                                        .padding(.vertical, 8)
+                                        .background(configuration.selectedRatio == ratio ? Color.blue : Color.gray.opacity(0.2))
+                                        .foregroundColor(configuration.selectedRatio == ratio ? .white : .primary)
+                                        .cornerRadius(8)
+                                }
+                            }
+                        }
+                        .padding(.horizontal)
                     }
                 }
-
+                
+                Divider()
+                    .frame(height: 40)
+                    .padding(.horizontal)
+                
+                VStack(alignment: .center, spacing: 4) {
+                    Text("Background")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    ColorPicker("", selection: $configuration.backgroundColor)
+                        .labelsHidden()
+                }
+                .frame(width: 100, alignment: .center)
+                .padding(.trailing)
             }
-            
-            Divider()
-                .padding(.vertical, 2)
-            
-            // Text Position Section
-            TextPositionSelectorView(
-                verticalAlignment: $configuration.verticalAlignment,
-                horizontalAlignment: $configuration.horizontalAlignment
-            )
+            .padding(.vertical, 8)
+            .background(Color(uiColor: .secondarySystemBackground))
+            .cornerRadius(12)
         }
-
-        .background(Color(uiColor: .secondarySystemBackground))
-        .cornerRadius(12)
-
     }
 }
 
