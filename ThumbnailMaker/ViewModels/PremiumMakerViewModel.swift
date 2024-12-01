@@ -52,26 +52,45 @@ class PremiumMakerViewModel: ObservableObject {
         
         if let renderedImage = renderer.uiImage {
             do {
+                // Check photo library authorization status first
+                let status = PHPhotoLibrary.authorizationStatus(for: .addOnly)
+                switch status {
+                case .notDetermined:
+                    let granted = await PHPhotoLibrary.requestAuthorization(for: .addOnly) == .authorized
+                    if !granted {
+                        throw NSError(domain: "PhotoPermissionError", code: 1, 
+                                    userInfo: [NSLocalizedDescriptionKey: "Photo library access denied"])
+                    }
+                case .restricted, .denied:
+                    throw NSError(domain: "PhotoPermissionError", code: 1, 
+                                userInfo: [NSLocalizedDescriptionKey: "Photo library access denied"])
+                case .authorized, .limited:
+                    break
+                @unknown default:
+                    break
+                }
+                
                 try await PhotosUI.PHPhotoLibrary.shared().performChanges {
                     PHAssetChangeRequest.creationRequestForAsset(from: renderedImage)
                 }
                 
-                // Update state after success
                 await MainActor.run {
                     saveError = nil
                     showingSaveAlert = true
                     isSaving = false
                 }
             } catch {
-                // Update state after error
                 await MainActor.run {
-                    saveError = "Failed to save: \(error.localizedDescription)"
+                    if (error as NSError).domain == "PhotoPermissionError" {
+                        saveError = error.localizedDescription
+                    } else {
+                        saveError = "Failed to save: \(error.localizedDescription)"
+                    }
                     showingSaveAlert = true
                     isSaving = false
                 }
             }
         } else {
-            // Update state if rendering failed
             await MainActor.run {
                 isSaving = false
             }
