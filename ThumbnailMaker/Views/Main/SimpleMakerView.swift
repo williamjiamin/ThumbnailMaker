@@ -140,7 +140,11 @@ struct SimpleMakerView: View {
                 Alert(
                     title: Text("Save Failed"),
                     message: Text(error),
-                    dismissButton: .default(Text("OK"))
+                    primaryButton: viewModel.isPermissionError ? 
+                        .default(Text("Open Settings"), action: {
+                            viewModel.openSettings()
+                        }) : .default(Text("OK")),
+                    secondaryButton: .cancel(Text("Cancel"))
                 )
             } else {
                 Alert(

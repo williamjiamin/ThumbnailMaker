@@ -15,6 +15,7 @@ class SimpleMakerViewModel: ObservableObject {
     @Published var saveError: String?
     @Published var showingSaveAlert = false
     @Published var isSaving = false
+    @Published var isPermissionError = false
     
     let usableHeightProportion: CGFloat = 0.6
     let previewHeightProportion: CGFloat = 0.35
@@ -75,8 +76,10 @@ class SimpleMakerViewModel: ObservableObject {
             } catch {
                 await MainActor.run {
                     if (error as NSError).domain == "PhotoPermissionError" {
-                        saveError = error.localizedDescription
+                        isPermissionError = true
+                        saveError = "This app needs permission to save photos. Please open Settings > Privacy & Security > Photos and allow access for this app."
                     } else {
+                        isPermissionError = false
                         saveError = "Failed to save: \(error.localizedDescription)"
                     }
                     showingSaveAlert = true
@@ -87,6 +90,12 @@ class SimpleMakerViewModel: ObservableObject {
             await MainActor.run {
                 isSaving = false
             }
+        }
+    }
+    
+    func openSettings() {
+        if let settingsUrl = URL(string: UIApplication.openSettingsURLString) {
+            UIApplication.shared.open(settingsUrl)
         }
     }
 }

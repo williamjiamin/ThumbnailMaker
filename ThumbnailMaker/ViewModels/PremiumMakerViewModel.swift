@@ -18,7 +18,7 @@ class PremiumMakerViewModel: ObservableObject {
     @Published var profileImageSelection: PhotosPickerItem?
     @Published var showingProfileCropper = false
     @Published var tempProfileImage: UIImage?
-//    i don't think it should be here
+    @Published var isPermissionError = false
     
     // Add a constant for preview proportion
     let usableHeightProportion: CGFloat = 0.6  // Use 60% of the screen for the entire UI, leave 40% for keyboard
@@ -82,8 +82,10 @@ class PremiumMakerViewModel: ObservableObject {
             } catch {
                 await MainActor.run {
                     if (error as NSError).domain == "PhotoPermissionError" {
-                        saveError = error.localizedDescription
+                        isPermissionError = true
+                        saveError = "This app needs permission to save photos. Please open Settings > Privacy & Security > Photos and allow access for this app."
                     } else {
+                        isPermissionError = false
                         saveError = "Failed to save: \(error.localizedDescription)"
                     }
                     showingSaveAlert = true
@@ -116,6 +118,12 @@ class PremiumMakerViewModel: ObservableObject {
             )
         } else {
             premiumMakerConfiguration.circularProfile?.image = image
+        }
+    }
+    
+    func openSettings() {
+        if let settingsUrl = URL(string: UIApplication.openSettingsURLString) {
+            UIApplication.shared.open(settingsUrl)
         }
     }
 }
