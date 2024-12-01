@@ -39,6 +39,18 @@ struct PremiumPreviewComponentView: View {
                 .padding()
             }
             
+            if let profile = premiumMakerConfiguration.circularProfile,
+               let profileImage = profile.image {
+                Image(uiImage: profileImage)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: width * profile.size)
+                    .clipShape(Circle())
+                    .frame(maxWidth: .infinity, maxHeight: .infinity,
+                           alignment: profile.position.alignment)
+                    .padding(width * 0.05)
+            }
+            
             Text(premiumMakerConfiguration.overlayText)
                 .font(.system(size: height * premiumMakerConfiguration.textSize, weight: .bold))
                 .foregroundColor(premiumMakerConfiguration.textColor)

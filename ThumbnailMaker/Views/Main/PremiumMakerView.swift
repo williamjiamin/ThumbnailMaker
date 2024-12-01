@@ -47,6 +47,17 @@ struct PremiumMakerView: View {
                                 }
                                 
                                 if viewModel.premiumMakerConfiguration.selectedImage != nil {
+                                    PhotosPicker(selection: $viewModel.profileImageSelection,
+                                               matching: .images) {
+                                        Text("Add Profile")
+                                            .padding()
+                                            .background(Color.blue)
+                                            .foregroundColor(.white)
+                                            .cornerRadius(8)
+                                            .padding(.horizontal, 16)
+                                            .padding(.vertical, 8)
+                                    }
+                                    
                                     Button(action: {
                                         // First unfocus the text field
                                         isFocused = false
@@ -79,6 +90,16 @@ struct PremiumMakerView: View {
                                     .cornerRadius(8)
                                 }
                             }
+                            
+                            if viewModel.premiumMakerConfiguration.circularProfile != nil {
+                                ProfilePositionControlView(
+                                    position: Binding(
+                                        get: { viewModel.premiumMakerConfiguration.circularProfile?.position ?? .topRight },
+                                        set: { viewModel.premiumMakerConfiguration.circularProfile?.position = $0 }
+                                    )
+                                )
+                            }
+                            
                             // .padding(.horizontal)
                             // .padding(.vertical, 8)
                         }
@@ -153,9 +174,26 @@ struct PremiumMakerView: View {
         .sheet(isPresented: $isSettingsPresented) {
             SettingsView()
         }
+        .sheet(isPresented: $viewModel.showingProfileCropper) {
+            if let image = viewModel.tempProfileImage {
+                CircularImageCropperView(
+                    isPresented: $viewModel.showingProfileCropper,
+                    originalImage: image
+                ) { croppedImage in
+                    viewModel.setProfileImage(croppedImage)
+                }
+            }
+        }
         .onChange(of: viewModel.imageSelection) { oldValue, newValue in
             Task {
                 await viewModel.updateImage()
+            }
+        }
+        .onChange(of: viewModel.profileImageSelection) { oldValue, newValue in
+            if newValue != nil {
+                Task {
+                    await viewModel.updateProfileImage()
+                }
             }
         }
     }

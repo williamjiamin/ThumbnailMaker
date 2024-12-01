@@ -15,6 +15,9 @@ class PremiumMakerViewModel: ObservableObject {
     @Published var saveError: String?
     @Published var showingSaveAlert = false
     @Published var isSaving = false
+    @Published var profileImageSelection: PhotosPickerItem?
+    @Published var showingProfileCropper = false
+    @Published var tempProfileImage: UIImage?
 //    i don't think it should be here
     
     // Add a constant for preview proportion
@@ -75,6 +78,25 @@ class PremiumMakerViewModel: ObservableObject {
         }
     }
     
+    func updateProfileImage() async {
+        if let data = try? await profileImageSelection?.loadTransferable(type: Data.self),
+           let uiImage = UIImage(data: data) {
+            await MainActor.run {
+                tempProfileImage = uiImage
+                showingProfileCropper = true
+            }
+        }
+    }
     
-    
+    func setProfileImage(_ image: UIImage) {
+        if premiumMakerConfiguration.circularProfile == nil {
+            premiumMakerConfiguration.circularProfile = CircularProfileConfig(
+                image: image,
+                position: .topRight,
+                size: 0.2
+            )
+        } else {
+            premiumMakerConfiguration.circularProfile?.image = image
+        }
+    }
 }

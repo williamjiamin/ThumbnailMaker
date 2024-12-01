@@ -17,5 +17,5 @@ struct PremiumMakerConfigurationModel {
     var textSize: CGFloat = 0.15
     var verticalAlignment: VerticalAlignment = .center
     var horizontalAlignment: HorizontalAlignment = .center
-
+    var circularProfile: CircularProfileConfig?
 }
