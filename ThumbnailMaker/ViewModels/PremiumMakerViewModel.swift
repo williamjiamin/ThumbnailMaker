@@ -29,7 +29,13 @@ class PremiumMakerViewModel: ObservableObject {
     func updateImage() async {
         if let data = try? await imageSelection?.loadTransferable(type: Data.self),
            let uiImage = UIImage(data: data) {
-            premiumMakerConfiguration.selectedImage = uiImage
+            // Create a new image from the data
+            if let newImageData = uiImage.jpegData(compressionQuality: 1.0),
+               let newImage = UIImage(data: newImageData) {
+                await MainActor.run {
+                    premiumMakerConfiguration.selectedImage = newImage
+                }
+            }
         }
     }
     
@@ -38,7 +44,6 @@ class PremiumMakerViewModel: ObservableObject {
     func saveImageWithOverlay(content: some View) async {
         guard premiumMakerConfiguration.selectedImage != nil else { return }
         
-        // Set initial state
         await MainActor.run {
             isSaving = true
         }
@@ -46,13 +51,28 @@ class PremiumMakerViewModel: ObservableObject {
         let (targetWidth, targetHeight) = premiumMakerConfiguration.selectedRatio.dimensions
         let renderer = ImageRenderer(content: content)
         
-        renderer.proposedSize = ProposedViewSize(width: targetWidth, height: targetHeight)
-        renderer.scale = 3
+        // Adjust scale based on image dimensions to prevent memory issues
+        let maxDimension: CGFloat = 4096 // Maximum reasonable dimension
+        let scale = min(maxDimension / max(targetWidth, targetHeight), UIScreen.main.scale * 2)
+        
+        renderer.scale = scale
         renderer.colorMode = .nonLinear
         
         if let renderedImage = renderer.uiImage {
             do {
-                // Check photo library authorization status first
+                // Start with PNG data which has no compression artifacts
+                guard let pngData = renderedImage.pngData() else {
+                    throw NSError(domain: "ImageError", code: 1, 
+                                userInfo: [NSLocalizedDescriptionKey: "Failed to process image."])
+                }
+                
+                // Try to create an image from PNG data
+                guard let finalImage = UIImage(data: pngData) else {
+                    throw NSError(domain: "ImageError", code: 2, 
+                                userInfo: [NSLocalizedDescriptionKey: "Failed to create final image."])
+                }
+                
+                // Check photo library authorization status
                 let status = PHPhotoLibrary.authorizationStatus(for: .addOnly)
                 switch status {
                 case .notDetermined:
@@ -71,13 +91,16 @@ class PremiumMakerViewModel: ObservableObject {
                 }
                 
                 try await PhotosUI.PHPhotoLibrary.shared().performChanges {
-                    PHAssetChangeRequest.creationRequestForAsset(from: renderedImage)
+                    PHAssetChangeRequest.creationRequestForAsset(from: finalImage)
                 }
                 
                 await MainActor.run {
                     saveError = nil
                     showingSaveAlert = true
                     isSaving = false
+                    // Clear selections after successful save
+                    imageSelection = nil
+                    profileImageSelection = nil
                 }
             } catch {
                 await MainActor.run {
@@ -86,7 +109,7 @@ class PremiumMakerViewModel: ObservableObject {
                         saveError = "This app needs permission to save photos. Please open Settings > Privacy & Security > Photos and allow access for this app."
                     } else {
                         isPermissionError = false
-                        saveError = "Failed to save: \(error.localizedDescription)"
+                        saveError = error.localizedDescription
                     }
                     showingSaveAlert = true
                     isSaving = false
@@ -94,6 +117,8 @@ class PremiumMakerViewModel: ObservableObject {
             }
         } else {
             await MainActor.run {
+                saveError = "Failed to render image"
+                showingSaveAlert = true
                 isSaving = false
             }
         }
@@ -102,9 +127,13 @@ class PremiumMakerViewModel: ObservableObject {
     func updateProfileImage() async {
         if let data = try? await profileImageSelection?.loadTransferable(type: Data.self),
            let uiImage = UIImage(data: data) {
-            await MainActor.run {
-                tempProfileImage = uiImage
-                showingProfileCropper = true
+            // Create a new image from the data
+            if let newImageData = uiImage.jpegData(compressionQuality: 1.0),
+               let newImage = UIImage(data: newImageData) {
+                await MainActor.run {
+                    tempProfileImage = newImage
+                    showingProfileCropper = true
+                }
             }
         }
     }
