@@ -123,7 +123,7 @@ struct PremiumMakerView: View {
                 isFocused = false
             }
             .ignoresSafeArea(.keyboard)
-            .navigationTitle("Simple Maker")
+            .navigationTitle("William JM's Premium Maker")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
