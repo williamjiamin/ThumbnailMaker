@@ -27,13 +27,11 @@ class PremiumMakerViewModel: ObservableObject {
     
     
     func updateImage() async {
-        if let data = try? await imageSelection?.loadTransferable(type: Data.self),
-           let uiImage = UIImage(data: data) {
-            // Create a new image from the data
-            if let newImageData = uiImage.jpegData(compressionQuality: 1.0),
-               let newImage = UIImage(data: newImageData) {
+        if let data = try? await imageSelection?.loadTransferable(type: Data.self) {
+            // Create a new image instance from data
+            if let uiImage = UIImage(data: data) {
                 await MainActor.run {
-                    premiumMakerConfiguration.selectedImage = newImage
+                    premiumMakerConfiguration.selectedImage = uiImage
                 }
             }
         }
@@ -51,73 +49,76 @@ class PremiumMakerViewModel: ObservableObject {
         let (targetWidth, targetHeight) = premiumMakerConfiguration.selectedRatio.dimensions
         let renderer = ImageRenderer(content: content)
         
-        // Set specific size like in SimpleMakerViewModel
         renderer.proposedSize = ProposedViewSize(width: targetWidth, height: targetHeight)
-        renderer.scale = 3
+        renderer.scale = 2.0
         renderer.colorMode = .nonLinear
         
         if let renderedImage = renderer.uiImage {
-            do {
-                // Check photo library authorization status first
-                let status = PHPhotoLibrary.authorizationStatus(for: .addOnly)
-                switch status {
-                case .notDetermined:
-                    let granted = await PHPhotoLibrary.requestAuthorization(for: .addOnly) == .authorized
-                    if !granted {
+            UIGraphicsBeginImageContextWithOptions(renderedImage.size, false, 2.0)
+            renderedImage.draw(in: CGRect(origin: .zero, size: renderedImage.size))
+            let optimizedImage = UIGraphicsGetImageFromCurrentImageContext()
+            UIGraphicsEndImageContext()
+            
+            if let optimizedImage = optimizedImage,
+               let imageData = optimizedImage.pngData() {
+                do {
+                    let status = PHPhotoLibrary.authorizationStatus(for: .addOnly)
+                    switch status {
+                    case .notDetermined:
+                        let granted = await PHPhotoLibrary.requestAuthorization(for: .addOnly) == .authorized
+                        if !granted {
+                            throw NSError(domain: "PhotoPermissionError", code: 1, 
+                                        userInfo: [NSLocalizedDescriptionKey: "Photo library access denied"])
+                        }
+                    case .restricted, .denied:
                         throw NSError(domain: "PhotoPermissionError", code: 1, 
                                     userInfo: [NSLocalizedDescriptionKey: "Photo library access denied"])
+                    case .authorized, .limited:
+                        break
+                    @unknown default:
+                        break
                     }
-                case .restricted, .denied:
-                    throw NSError(domain: "PhotoPermissionError", code: 1, 
-                                userInfo: [NSLocalizedDescriptionKey: "Photo library access denied"])
-                case .authorized, .limited:
-                    break
-                @unknown default:
-                    break
+                        
+                    try await PHPhotoLibrary.shared().performChanges {
+                        PHAssetChangeRequest.creationRequestForAsset(from: optimizedImage)
+                    }
+                        
+                    await MainActor.run {
+                        saveError = nil
+                        showingSaveAlert = true
+                        isSaving = false
+                        imageSelection = nil
+                        profileImageSelection = nil
+                    }
+                } catch {
+                    await MainActor.run {
+                        if (error as NSError).domain == "PhotoPermissionError" {
+                            isPermissionError = true
+                            saveError = "This app needs permission to save photos. Please open Settings > Privacy & Security > Photos and allow access for this app."
+                        } else {
+                            isPermissionError = false
+                            saveError = "Save failed: \(error.localizedDescription)"
+                        }
+                        showingSaveAlert = true
+                        isSaving = false
+                    }
                 }
-                
-                try await PhotosUI.PHPhotoLibrary.shared().performChanges {
-                    PHAssetChangeRequest.creationRequestForAsset(from: renderedImage)
-                }
-                
+            } else {
                 await MainActor.run {
-                    saveError = nil
+                    saveError = "Failed to render image"
                     showingSaveAlert = true
                     isSaving = false
-                    // Clear selections after successful save
-                    imageSelection = nil
-                    profileImageSelection = nil
                 }
-            } catch {
-                await MainActor.run {
-                    if (error as NSError).domain == "PhotoPermissionError" {
-                        isPermissionError = true
-                        saveError = "This app needs permission to save photos. Please open Settings > Privacy & Security > Photos and allow access for this app."
-                    } else {
-                        isPermissionError = false
-                        saveError = error.localizedDescription
-                    }
-                    showingSaveAlert = true
-                    isSaving = false
-                }
-            }
-        } else {
-            await MainActor.run {
-                saveError = "Failed to render image"
-                showingSaveAlert = true
-                isSaving = false
             }
         }
     }
     
     func updateProfileImage() async {
-        if let data = try? await profileImageSelection?.loadTransferable(type: Data.self),
-           let uiImage = UIImage(data: data) {
-            // Create a new image from the data
-            if let newImageData = uiImage.jpegData(compressionQuality: 1.0),
-               let newImage = UIImage(data: newImageData) {
+        if let data = try? await profileImageSelection?.loadTransferable(type: Data.self) {
+            // Create a separate image instance from data
+            if let uiImage = UIImage(data: data) {
                 await MainActor.run {
-                    tempProfileImage = newImage
+                    tempProfileImage = uiImage
                     showingProfileCropper = true
                 }
             }
