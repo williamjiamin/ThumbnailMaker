@@ -51,28 +51,14 @@ class PremiumMakerViewModel: ObservableObject {
         let (targetWidth, targetHeight) = premiumMakerConfiguration.selectedRatio.dimensions
         let renderer = ImageRenderer(content: content)
         
-        // Adjust scale based on image dimensions to prevent memory issues
-        let maxDimension: CGFloat = 4096 // Maximum reasonable dimension
-        let scale = min(maxDimension / max(targetWidth, targetHeight), UIScreen.main.scale * 2)
-        
-        renderer.scale = scale
+        // Set specific size like in SimpleMakerViewModel
+        renderer.proposedSize = ProposedViewSize(width: targetWidth, height: targetHeight)
+        renderer.scale = 3
         renderer.colorMode = .nonLinear
         
         if let renderedImage = renderer.uiImage {
             do {
-                // Start with PNG data which has no compression artifacts
-                guard let pngData = renderedImage.pngData() else {
-                    throw NSError(domain: "ImageError", code: 1, 
-                                userInfo: [NSLocalizedDescriptionKey: "Failed to process image."])
-                }
-                
-                // Try to create an image from PNG data
-                guard let finalImage = UIImage(data: pngData) else {
-                    throw NSError(domain: "ImageError", code: 2, 
-                                userInfo: [NSLocalizedDescriptionKey: "Failed to create final image."])
-                }
-                
-                // Check photo library authorization status
+                // Check photo library authorization status first
                 let status = PHPhotoLibrary.authorizationStatus(for: .addOnly)
                 switch status {
                 case .notDetermined:
@@ -91,7 +77,7 @@ class PremiumMakerViewModel: ObservableObject {
                 }
                 
                 try await PhotosUI.PHPhotoLibrary.shared().performChanges {
-                    PHAssetChangeRequest.creationRequestForAsset(from: finalImage)
+                    PHAssetChangeRequest.creationRequestForAsset(from: renderedImage)
                 }
                 
                 await MainActor.run {
