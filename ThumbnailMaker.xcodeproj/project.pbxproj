@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		3D0527982CFCA59000033ACD /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3D0527972CFCA59000033ACD /* StoreKit.framework */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		3D10633D2CF06CC000477F9E /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -24,6 +28,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		3D0527972CFCA59000033ACD /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
 		3D10632C2CF06CBD00477F9E /* ThumbnailMaker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ThumbnailMaker.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3D10633C2CF06CC000477F9E /* ThumbnailMakerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ThumbnailMakerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		3D1063462CF06CC000477F9E /* ThumbnailMakerUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ThumbnailMakerUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -65,6 +70,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3D0527982CFCA59000033ACD /* StoreKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -85,12 +91,21 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		3D0527962CFCA59000033ACD /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				3D0527972CFCA59000033ACD /* StoreKit.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		3D1063232CF06CBD00477F9E = {
 			isa = PBXGroup;
 			children = (
 				3D10632E2CF06CBD00477F9E /* ThumbnailMaker */,
 				3D10633F2CF06CC000477F9E /* ThumbnailMakerTests */,
 				3D1063492CF06CC000477F9E /* ThumbnailMakerUITests */,
+				3D0527962CFCA59000033ACD /* Frameworks */,
 				3D10632D2CF06CBD00477F9E /* Products */,
 			);
 			sourceTree = "<group>";

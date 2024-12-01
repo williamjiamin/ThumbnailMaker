@@ -10,12 +10,58 @@ import PhotosUI
 
 struct PremiumMakerView: View {
     @StateObject private var viewModel = PremiumMakerViewModel()
+    @StateObject private var purchaseManager = PurchaseManager.shared
     @FocusState private var isFocused: Bool
     @State private var isSettingsPresented: Bool = false
     @Namespace private var bottomID
     @Namespace private var topID
+    @State private var showingPurchaseAlert = false
+    @State private var showingToast = false
+    @State private var toastMessage = ""
     
     var body: some View {
+        Group {
+            if purchaseManager.canAccessPremium {
+                premiumContent
+            } else {
+                purchasePromptView
+            }
+        }
+    }
+    
+    private var purchasePromptView: some View {
+        VStack(spacing: 20) {
+            Text("Unlock Premium Features")
+                .font(.title)
+                .bold()
+            
+            Text("You've used all your free trials. Upgrade to continue creating professional thumbnails.")
+                .multilineTextAlignment(.center)
+                .padding()
+            
+            if let product = purchaseManager.products.first {
+                Button(action: {
+                    Task {
+                        try? await purchaseManager.purchase()
+                    }
+                }) {
+                    Text("Upgrade to Premium (\(product.displayPrice))")
+                        .bold()
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.blue)
+                        .cornerRadius(10)
+                }
+                .padding(.horizontal)
+            } else {
+                ProgressView()
+                    .padding()
+            }
+        }
+    }
+    
+    private var premiumContent: some View {
         NavigationView {
             GeometryReader { geometry in
                 let availableWidth = geometry.size.width - 40
@@ -62,6 +108,21 @@ struct PremiumMakerView: View {
                                         // First unfocus the text field
                                         isFocused = false
                                         
+                                        // Use free trial and show toast
+                                        if purchaseManager.purchasedProductIDs.isEmpty {
+                                            purchaseManager.useFreeTrial()
+                                            toastMessage = "\(purchaseManager.remainingFreeTries) free tries remaining"
+                                            withAnimation {
+                                                showingToast = true
+                                            }
+                                            // Hide toast after 2 seconds
+                                            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                                                withAnimation {
+                                                    showingToast = false
+                                                }
+                                            }
+                                        }
+                                        
                                         // Wait briefly for the unfocus animation to complete
                                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                                             let (targetWidth, targetHeight) = viewModel.premiumMakerConfiguration.selectedRatio.dimensions
@@ -88,6 +149,15 @@ struct PremiumMakerView: View {
                                     .background(Color.green)
                                     .foregroundColor(.white)
                                     .cornerRadius(8)
+                                    
+//                                    if purchaseManager.remainingFreeTries > 0 {
+//                                        Divider()
+//                                            .padding(.vertical, 4)
+//                                        
+//                                        Text("\(purchaseManager.remainingFreeTries) free tries remaining")
+//                                            .foregroundColor(.blue)
+//                                            .font(.subheadline)
+//                                    }
                                 }
                             }
                             
@@ -168,6 +238,11 @@ struct PremiumMakerView: View {
                         Image(systemName: "gearshape")
                     }
                 }
+            }
+        }
+        .overlay(alignment: .bottom) {
+            if showingToast {
+                ToastView(message: toastMessage)
             }
         }
         .alert(isPresented: $viewModel.showingSaveAlert) {
