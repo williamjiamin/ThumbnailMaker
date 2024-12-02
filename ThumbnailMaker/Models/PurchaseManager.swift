@@ -92,7 +92,13 @@ class PurchaseManager: ObservableObject {
         UserDefaults.standard.set(remainingFreeTries, forKey: "remainingFreeTries")
     }
     
+    #if targetEnvironment(simulator)
+    var canAccessPremium: Bool {
+        true // Always allow access in simulator
+    }
+    #else
     var canAccessPremium: Bool {
         !purchasedProductIDs.isEmpty || remainingFreeTries > 0
     }
+    #endif
 } 
