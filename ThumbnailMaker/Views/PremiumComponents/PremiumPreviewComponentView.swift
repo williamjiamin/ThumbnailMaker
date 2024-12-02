@@ -52,7 +52,7 @@ struct PremiumPreviewComponentView: View {
             }
             
             Text(premiumMakerConfiguration.overlayText)
-                .font(.system(size: height * premiumMakerConfiguration.textSize, weight: .bold))
+                .font(.system(size: max(1, height * premiumMakerConfiguration.textSize), weight: .bold))
                 .foregroundColor(premiumMakerConfiguration.textColor)
                 .lineLimit(1)
                 .truncationMode(.tail)

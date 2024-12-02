@@ -110,8 +110,12 @@ struct PremiumMakerView: View {
                                         
                                         // Use free trial and show toast
                                         if purchaseManager.purchasedProductIDs.isEmpty {
-                                            purchaseManager.useFreeTrial()
-                                            toastMessage = "\(purchaseManager.remainingFreeTries) free tries remaining"
+                                            #if targetEnvironment(simulator)
+                                                toastMessage = "Simulator Mode: Unlimited Usage"
+                                            #else
+                                                purchaseManager.useFreeTrial()
+                                                toastMessage = "\(purchaseManager.remainingFreeTries) free tries remaining"
+                                            #endif
                                             withAnimation {
                                                 showingToast = true
                                             }

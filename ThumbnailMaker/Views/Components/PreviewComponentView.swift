@@ -40,7 +40,7 @@ struct PreviewComponentView: View {
             }
             
             Text(simpleMakerConfiguration.overlayText)
-                .font(.system(size: height * simpleMakerConfiguration.textSize, weight: .bold))
+                .font(.system(size: max(1, height * simpleMakerConfiguration.textSize), weight: .bold))
                 .foregroundColor(simpleMakerConfiguration.textColor)
                 .lineLimit(1)
                 .truncationMode(.tail)
