@@ -59,8 +59,7 @@ class PremiumMakerViewModel: ObservableObject {
             let optimizedImage = UIGraphicsGetImageFromCurrentImageContext()
             UIGraphicsEndImageContext()
             
-            if let optimizedImage = optimizedImage,
-               let imageData = optimizedImage.pngData() {
+            if let optimizedImage = optimizedImage {
                 do {
                     let status = PHPhotoLibrary.authorizationStatus(for: .addOnly)
                     switch status {
