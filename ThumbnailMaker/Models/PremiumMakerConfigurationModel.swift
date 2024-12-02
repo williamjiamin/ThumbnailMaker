@@ -18,4 +18,5 @@ struct PremiumMakerConfigurationModel {
     var verticalAlignment: VerticalAlignment = .center
     var horizontalAlignment: HorizontalAlignment = .center
     var circularProfile: CircularProfileConfig?
+    var macroConfig: MacroConfig = MacroConfig()
 }

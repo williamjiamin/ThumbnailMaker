@@ -194,6 +194,39 @@ struct PremiumMakerView: View {
                         .frame(maxWidth: availableWidth, maxHeight: previewHeight)
                         
                         // Text input
+                        MacroSettingsView(macroConfig: $viewModel.premiumMakerConfiguration.macroConfig)
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 8)
+                        
+                        if viewModel.premiumMakerConfiguration.macroConfig.isEnabled {
+                            Button(action: {
+                                let (targetWidth, targetHeight) = viewModel.premiumMakerConfiguration.selectedRatio.dimensions
+                                Task {
+                                    await viewModel.generateBatchImages { text in
+                                        PremiumPreviewComponentView(
+                                            premiumMakerConfiguration: viewModel.premiumMakerConfiguration,
+                                            width: targetWidth,
+                                            height: targetHeight
+                                        )
+                                    }
+                                }
+                            }) {
+                                HStack {
+                                    if viewModel.isSaving {
+                                        ProgressView()
+                                            .tint(.white)
+                                    }
+                                    Text(viewModel.isSaving ? "Generating..." : "Generate Batch")
+                                }
+                                .padding()
+                                .background(Color.orange)
+                                .foregroundColor(.white)
+                                .cornerRadius(8)
+                            }
+                            .disabled(viewModel.isSaving)
+                            .padding(.horizontal, 20)
+                        }
+                        
                         TextField("Enter overlay text", text: $viewModel.premiumMakerConfiguration.overlayText)
                             .lineLimit(1)
                             .truncationMode(.tail)

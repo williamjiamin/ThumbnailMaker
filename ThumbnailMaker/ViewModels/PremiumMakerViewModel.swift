@@ -141,4 +141,38 @@ class PremiumMakerViewModel: ObservableObject {
             UIApplication.shared.open(settingsUrl)
         }
     }
+    
+    func generateBatchImages(content: @escaping (String) -> some View) async {
+        guard premiumMakerConfiguration.macroConfig.isEnabled else { return }
+        
+        let start = premiumMakerConfiguration.macroConfig.startNumber
+        let end = premiumMakerConfiguration.macroConfig.endNumber
+        let baseText = premiumMakerConfiguration.overlayText
+        
+        await MainActor.run {
+            isSaving = true
+        }
+        
+        for number in start...end {
+            let text = premiumMakerConfiguration.macroConfig.appendPosition == .after ?
+                "\(baseText) \(number)" : "\(number) \(baseText)"
+            
+            // Temporarily update the overlay text
+            await MainActor.run {
+                premiumMakerConfiguration.overlayText = text
+            }
+            
+            // Generate and save the image
+            await saveImageWithOverlay(content: content(text))
+            
+            // Small delay between saves to prevent overwhelming the system
+            try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+        }
+        
+        // Restore original text
+        await MainActor.run {
+            premiumMakerConfiguration.overlayText = baseText
+            isSaving = false
+        }
+    }
 }
