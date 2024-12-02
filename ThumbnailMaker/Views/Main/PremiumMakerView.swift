@@ -150,14 +150,7 @@ struct PremiumMakerView: View {
                                     .foregroundColor(.white)
                                     .cornerRadius(8)
                                     
-//                                    if purchaseManager.remainingFreeTries > 0 {
-//                                        Divider()
-//                                            .padding(.vertical, 4)
-//                                        
-//                                        Text("\(purchaseManager.remainingFreeTries) free tries remaining")
-//                                            .foregroundColor(.blue)
-//                                            .font(.subheadline)
-//                                    }
+
                                 }
                             }
                             
