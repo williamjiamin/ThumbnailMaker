@@ -71,13 +71,11 @@ struct PremiumMakerView: View {
                 
                 ScrollViewReader { proxy in
                     ScrollView {
-                        // Invisible anchor point for top scrolling
                         Color.clear.frame(height: 0).id(topID)
                         
                         // Controls Section
                         VStack(spacing: 0) {
                             PremiumCustomizationControlComponentView(configuration: $viewModel.premiumMakerConfiguration)
-                        
                             
                             // Action buttons
                             HStack(spacing: 20) {
@@ -193,7 +191,20 @@ struct PremiumMakerView: View {
                         )
                         .frame(maxWidth: availableWidth, maxHeight: previewHeight)
                         
-                        // Text input
+                        // Text input field
+                        TextField("Enter overlay text", text: $viewModel.premiumMakerConfiguration.overlayText)
+                            .lineLimit(1)
+                            .truncationMode(.tail)
+                            .padding(8)
+                            .background(Color(uiColor: .systemGray5))
+                            .cornerRadius(8)
+                            .frame(height: viewModel.textFieldHeight)
+                            .focused($isFocused)
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 16)
+                            .id(bottomID)
+                        
+                        // Macro Settings
                         MacroSettingsView(macroConfig: $viewModel.premiumMakerConfiguration.macroConfig)
                             .padding(.horizontal, 20)
                             .padding(.vertical, 8)
@@ -226,28 +237,6 @@ struct PremiumMakerView: View {
                             .disabled(viewModel.isSaving)
                             .padding(.horizontal, 20)
                         }
-                        
-                        TextField("Enter overlay text", text: $viewModel.premiumMakerConfiguration.overlayText)
-                            .lineLimit(1)
-                            .truncationMode(.tail)
-                            .padding(8)
-                            .background(Color(uiColor: .systemGray5))
-                            .cornerRadius(8)
-                            .frame(height: viewModel.textFieldHeight)
-                            .focused($isFocused)
-                            .padding(.horizontal, 20)
-                            .padding(.top, 16)
-                            .padding(.bottom, 300)
-                            .id(bottomID)
-                            .onChange(of: isFocused) { oldValue, newValue in
-                                withAnimation {
-                                    if newValue {
-                                        proxy.scrollTo(bottomID, anchor: .bottom)
-                                    } else {
-                                        proxy.scrollTo(topID, anchor: .top)
-                                    }
-                                }
-                            }
                     }
                     .frame(maxWidth: .infinity, alignment: .top)
                 }
@@ -317,6 +306,21 @@ struct PremiumMakerView: View {
                 Task {
                     await viewModel.updateProfileImage()
                 }
+            }
+        }
+        .overlay {
+            if viewModel.isBatchGenerating {
+                Color.black.opacity(0.5)
+                    .ignoresSafeArea()
+                
+                BatchProgressView(
+                    progress: viewModel.batchProgress,
+                    currentNumber: viewModel.currentBatchNumber,
+                    totalCount: viewModel.premiumMakerConfiguration.macroConfig.totalCount,
+                    onCancel: {
+                        viewModel.cancelBatchGeneration()
+                    }
+                )
             }
         }
     }

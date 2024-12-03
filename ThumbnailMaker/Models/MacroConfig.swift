@@ -10,4 +10,13 @@ struct MacroConfig {
         case before = "Before"
         case after = "After"
     }
+    
+    var isValid: Bool {
+        let difference = abs(endNumber - startNumber)
+        return difference < 100 && difference >= 0
+    }
+    
+    var totalCount: Int {
+        abs(endNumber - startNumber) + 1
+    }
 } 

@@ -19,6 +19,10 @@ class PremiumMakerViewModel: ObservableObject {
     @Published var showingProfileCropper = false
     @Published var tempProfileImage: UIImage?
     @Published var isPermissionError = false
+    @Published var batchProgress: Double = 0
+    @Published var currentBatchNumber: Int = 0
+    @Published var isBatchGenerating = false
+    private var shouldCancelBatch = false
     
     // Add a constant for preview proportion
     let usableHeightProportion: CGFloat = 0.6  // Use 60% of the screen for the entire UI, leave 40% for keyboard
@@ -39,7 +43,7 @@ class PremiumMakerViewModel: ObservableObject {
     
     
     
-    func saveImageWithOverlay(content: some View) async {
+    func saveImageWithOverlay(content: some View, showSuccessAlert: Bool = true) async {
         guard premiumMakerConfiguration.selectedImage != nil else { return }
         
         await MainActor.run {
@@ -84,7 +88,7 @@ class PremiumMakerViewModel: ObservableObject {
                         
                     await MainActor.run {
                         saveError = nil
-                        showingSaveAlert = true
+                        showingSaveAlert = showSuccessAlert
                         isSaving = false
                         imageSelection = nil
                         profileImageSelection = nil
@@ -142,37 +146,56 @@ class PremiumMakerViewModel: ObservableObject {
         }
     }
     
+    func cancelBatchGeneration() {
+        shouldCancelBatch = true
+    }
+    
     func generateBatchImages(content: @escaping (String) -> some View) async {
-        guard premiumMakerConfiguration.macroConfig.isEnabled else { return }
+        guard premiumMakerConfiguration.macroConfig.isEnabled,
+              premiumMakerConfiguration.macroConfig.isValid else { return }
         
         let start = premiumMakerConfiguration.macroConfig.startNumber
         let end = premiumMakerConfiguration.macroConfig.endNumber
         let baseText = premiumMakerConfiguration.overlayText
+        let totalCount = premiumMakerConfiguration.macroConfig.totalCount
+        shouldCancelBatch = false
         
         await MainActor.run {
             isSaving = true
+            isBatchGenerating = true
+            batchProgress = 0
+            currentBatchNumber = 0
         }
         
-        for number in start...end {
+        let range: any Sequence<Int> = start < end ? start...end : stride(from: start, through: end, by: -1)
+        
+        for number in range {
+            if shouldCancelBatch {
+                break
+            }
+            
             let text = premiumMakerConfiguration.macroConfig.appendPosition == .after ?
                 "\(baseText) \(number)" : "\(number) \(baseText)"
             
-            // Temporarily update the overlay text
             await MainActor.run {
                 premiumMakerConfiguration.overlayText = text
+                currentBatchNumber += 1
+                batchProgress = Double(currentBatchNumber) / Double(totalCount)
             }
             
-            // Generate and save the image
-            await saveImageWithOverlay(content: content(text))
+            await saveImageWithOverlay(content: content(text), showSuccessAlert: false)
             
-            // Small delay between saves to prevent overwhelming the system
-            try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+            try? await Task.sleep(nanoseconds: 500_000_000)
         }
         
-        // Restore original text
         await MainActor.run {
             premiumMakerConfiguration.overlayText = baseText
             isSaving = false
+            isBatchGenerating = false
+            batchProgress = 0
+            currentBatchNumber = 0
+            saveError = nil
+            showingSaveAlert = true
         }
     }
 }

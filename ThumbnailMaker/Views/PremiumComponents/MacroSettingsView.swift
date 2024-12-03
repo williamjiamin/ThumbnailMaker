@@ -3,6 +3,16 @@ import SwiftUI
 struct MacroSettingsView: View {
     @Binding var macroConfig: MacroConfig
     
+    var validationMessage: String? {
+        if macroConfig.isEnabled {
+            let difference = abs(macroConfig.endNumber - macroConfig.startNumber)
+            if difference >= 100 {
+                return "Maximum batch size is 100 images"
+            }
+        }
+        return nil
+    }
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Macro Settings")
@@ -39,6 +49,13 @@ struct MacroSettingsView: View {
                     }
                 }
                 .pickerStyle(.segmented)
+            }
+            
+            if let message = validationMessage {
+                Text(message)
+                    .foregroundColor(.red)
+                    .font(.caption)
+                    .padding(.top, 4)
             }
         }
         .padding()
