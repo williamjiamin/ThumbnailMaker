@@ -349,7 +349,7 @@ struct PremiumMakerView: View {
                 )
             }
         }
-        .sheet(isPresented: $showingMacroSettings) {
+        .fullScreenCover(isPresented: $showingMacroSettings) {
             MacroSettingsView(
                 macroConfig: $viewModel.premiumMakerConfiguration.macroConfig,
                 hasSelectedImage: viewModel.premiumMakerConfiguration.selectedImage != nil

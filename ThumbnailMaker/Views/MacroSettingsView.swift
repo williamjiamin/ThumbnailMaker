@@ -24,75 +24,84 @@ struct MacroSettingsView: View {
     }
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Batch Settings")
-                .font(.headline)
-            
-            Text("Generate multiple thumbnails with sequential numbers (max 100)")
-                .font(.caption)
-                .foregroundColor(.secondary)
-            
-            Toggle("Enable Batch Generation", isOn: $macroConfig.isEnabled)
-                .padding(.vertical, 4)
-                .onChange(of: macroConfig.isEnabled) { oldValue, newValue in
-                    if newValue && !hasSelectedImage {
-                        macroConfig.isEnabled = false
-                        showingAlert = true
+        NavigationView {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    // Main content section
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Generate multiple thumbnails with sequential numbers (max 100)")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        
+                        Toggle("Enable Batch Generation", isOn: $macroConfig.isEnabled)
+                            .padding(.vertical, 4)
+                            .onChange(of: macroConfig.isEnabled) { oldValue, newValue in
+                                if newValue && !hasSelectedImage {
+                                    macroConfig.isEnabled = false
+                                    showingAlert = true
+                                }
+                            }
+                        
+                        if macroConfig.isEnabled {
+                            HStack(spacing: 16) {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text("Start")
+                                        .font(.subheadline)
+                                    TextField("Start", value: $macroConfig.startNumber, format: .number)
+                                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                                        .keyboardType(.numberPad)
+                                        .frame(width: 80)
+                                        .focused($focusedField, equals: .startNumber)
+                                }
+                                
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text("End")
+                                        .font(.subheadline)
+                                    TextField("End", value: $macroConfig.endNumber, format: .number)
+                                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                                        .keyboardType(.numberPad)
+                                        .frame(width: 80)
+                                        .focused($focusedField, equals: .endNumber)
+                                }
+                            }
+                            
+                            Picker("Number Position", selection: $macroConfig.appendPosition) {
+                                ForEach(MacroConfig.AppendPosition.allCases, id: \.self) { position in
+                                    Text(position.rawValue).tag(position)
+                                }
+                            }
+                            .pickerStyle(.segmented)
+                            .padding(.top, 4)
+                        }
+                        
+                        if let message = validationMessage {
+                            Text(message)
+                                .foregroundColor(.red)
+                                .font(.caption)
+                        }
                     }
+                    .padding()
                 }
-            
-            if macroConfig.isEnabled {
-                HStack(spacing: 16) {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Start")
-                            .font(.subheadline)
-                        TextField("Start", value: $macroConfig.startNumber, format: .number)
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
-                            .keyboardType(.numberPad)
-                            .frame(width: 80)
-                            .focused($focusedField, equals: .startNumber)
-                    }
-                    
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("End")
-                            .font(.subheadline)
-                        TextField("End", value: $macroConfig.endNumber, format: .number)
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
-                            .keyboardType(.numberPad)
-                            .frame(width: 80)
-                            .focused($focusedField, equals: .endNumber)
-                    }
-                }
-                
-                Picker("Number Position", selection: $macroConfig.appendPosition) {
-                    ForEach(MacroConfig.AppendPosition.allCases, id: \.self) { position in
-                        Text(position.rawValue).tag(position)
-                    }
-                }
-                .pickerStyle(.segmented)
-                .padding(.top, 4)
             }
-            
-            if let message = validationMessage {
-                Text(message)
-                    .foregroundColor(.red)
-                    .font(.caption)
+            .navigationTitle("Batch Settings")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                }
             }
-            
-            Spacer()
-        }
-        .padding()
-        .presentationDetents([.height(macroConfig.isEnabled ? 280 : 160)])
-        .presentationDragIndicator(.visible)
-        .background(Color.clear)
-        .onTapGesture {
-            focusedField = nil
-        }
-        .toolbar {
-            ToolbarItemGroup(placement: .keyboard) {
-                Spacer()
-                Button("Done") {
-                    focusedField = nil
+            .safeAreaInset(edge: .bottom) {
+                if focusedField != nil {
+                    HStack {
+                        Spacer()
+                        Button("Done") {
+                            focusedField = nil
+                        }
+                        .padding()
+                    }
+                    .background(.bar)
                 }
             }
         }
