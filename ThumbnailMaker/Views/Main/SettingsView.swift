@@ -10,6 +10,11 @@ import SwiftUI
 struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var purchaseManager = PurchaseManager.shared
+    @Environment(\.openURL) private var openURL
+    
+    // Use your actual website URLs
+    private let termsURL = URL(string: "https://yourapp.com/terms")!
+    private let privacyURL = URL(string: "https://yourapp.com/privacy")!
     
     var body: some View {
         NavigationView {
@@ -49,9 +54,24 @@ struct SettingsView: View {
                     }
                 }
                 
-                Section(header: Text("User Agreement")) {
-                    Text("Terms of Service")
-                    Text("Privacy Policy")
+                Section(header: Text("Legal")) {
+                    // In-app versions
+                    NavigationLink("Terms of Service") {
+                        LegalDocumentView(title: "Terms of Service", documentName: "terms_of_service")
+                    }
+                    
+                    NavigationLink("Privacy Policy") {
+                        LegalDocumentView(title: "Privacy Policy", documentName: "privacy_policy")
+                    }
+                    
+                    // Web versions
+                    Button("Terms of Service (Web)") {
+                        openURL(termsURL)
+                    }
+                    
+                    Button("Privacy Policy (Web)") {
+                        openURL(privacyURL)
+                    }
                 }
             }
             .navigationTitle("Settings")

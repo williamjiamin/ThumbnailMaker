@@ -1,0 +1,62 @@
+Privacy Policy for William JM's Thumbnail Maker
+
+Last Updated: [Current Date]
+
+1. Information We Access
+1.1. Photo Library Access
+- We request access to your device's photo library
+- This access is used solely to:
+  * Save created thumbnails
+  * Select images for thumbnail creation
+- We do not upload or store your images on any servers
+
+2. How We Use Information
+2.1. Photo Library
+- Only accessed when you explicitly choose to:
+  * Save a thumbnail
+  * Select an image for editing
+- All image processing is done locally on your device
+
+2.2. Purchase Information
+- Premium feature purchase status is stored locally
+- Purchase records are managed by Apple's App Store
+
+3. Data Collection
+3.1. We Do Not Collect:
+- Personal information
+- Usage statistics
+- Images or thumbnails
+- Location data
+- Device information
+
+3.2. App Store Data
+- Standard App Store analytics may be collected by Apple
+
+4. Data Storage
+- All app data is stored locally on your device
+- No cloud storage or external servers are used
+- Your images remain on your device
+
+5. Third-Party Services
+- Apple App Store for app distribution and purchases
+- No other third-party services are used
+
+6. Children's Privacy
+- Our app does not collect information from children
+- No age-restricted features
+
+7. Your Rights
+You have the right to:
+- Control photo library access through device settings
+- Request premium purchase refunds through Apple
+- Delete the app and all local data
+
+8. Changes to Privacy Policy
+- We will notify users of any privacy policy changes
+- Continued use constitutes acceptance of changes
+
+9. Contact Information
+For privacy concerns, contact: [Your Contact Information]
+
+10. California Privacy Rights
+California residents have additional rights regarding personal information, though we do not collect such information. 

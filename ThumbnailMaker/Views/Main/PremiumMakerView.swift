@@ -352,7 +352,8 @@ struct PremiumMakerView: View {
         .fullScreenCover(isPresented: $showingMacroSettings) {
             MacroSettingsView(
                 macroConfig: $viewModel.premiumMakerConfiguration.macroConfig,
-                hasSelectedImage: viewModel.premiumMakerConfiguration.selectedImage != nil
+                hasSelectedImage: viewModel.premiumMakerConfiguration.selectedImage != nil,
+                baseText: viewModel.premiumMakerConfiguration.overlayText
             )
         }
     }
