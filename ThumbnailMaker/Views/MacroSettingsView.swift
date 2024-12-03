@@ -1,6 +1,6 @@
 import SwiftUI
 
-enum TextFieldFocus {
+enum TextFieldFocus: Hashable {
     case overlayText
     case startNumber
     case endNumber
@@ -24,23 +24,16 @@ struct MacroSettingsView: View {
     }
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Macro Settings (Experimental)")
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Batch Settings")
                 .font(.headline)
-                .padding(.bottom, 4)
             
-            Text("Batch generation allows you to create multiple thumbnails with sequential numbers. For stability, generation is limited to 100 images per batch.")
+            Text("Generate multiple thumbnails with sequential numbers (max 100)")
                 .font(.caption)
                 .foregroundColor(.secondary)
-                .padding(.bottom, 8)
-            
-            Text("Tip: Start with a small batch (5-10 images) to test layout consistency. Consider using smaller text size to accommodate number changes.")
-                .font(.caption)
-                .foregroundColor(.blue)
-                .padding(.bottom, 8)
             
             Toggle("Enable Batch Generation", isOn: $macroConfig.isEnabled)
-                .padding(.bottom, 8)
+                .padding(.vertical, 4)
                 .onChange(of: macroConfig.isEnabled) { oldValue, newValue in
                     if newValue && !hasSelectedImage {
                         macroConfig.isEnabled = false
@@ -49,24 +42,24 @@ struct MacroSettingsView: View {
                 }
             
             if macroConfig.isEnabled {
-                HStack(spacing: 20) {
-                    VStack(alignment: .leading) {
-                        Text("Start Number")
+                HStack(spacing: 16) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Start")
                             .font(.subheadline)
                         TextField("Start", value: $macroConfig.startNumber, format: .number)
                             .textFieldStyle(RoundedBorderTextFieldStyle())
                             .keyboardType(.numberPad)
-                            .frame(width: 100)
+                            .frame(width: 80)
                             .focused($focusedField, equals: .startNumber)
                     }
                     
-                    VStack(alignment: .leading) {
-                        Text("End Number")
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("End")
                             .font(.subheadline)
                         TextField("End", value: $macroConfig.endNumber, format: .number)
                             .textFieldStyle(RoundedBorderTextFieldStyle())
                             .keyboardType(.numberPad)
-                            .frame(width: 100)
+                            .frame(width: 80)
                             .focused($focusedField, equals: .endNumber)
                     }
                 }
@@ -77,16 +70,20 @@ struct MacroSettingsView: View {
                     }
                 }
                 .pickerStyle(.segmented)
+                .padding(.top, 4)
             }
             
             if let message = validationMessage {
                 Text(message)
                     .foregroundColor(.red)
                     .font(.caption)
-                    .padding(.top, 4)
             }
+            
+            Spacer()
         }
         .padding()
+        .presentationDetents([.height(macroConfig.isEnabled ? 280 : 160)])
+        .presentationDragIndicator(.visible)
         .background(Color.clear)
         .onTapGesture {
             focusedField = nil
@@ -105,4 +102,4 @@ struct MacroSettingsView: View {
             Text("Please select an image first to enable batch generation.")
         }
     }
-} 
+}

@@ -135,30 +135,34 @@ struct PremiumMakerView: View {
                         }
                         
                         // 4. Action Buttons
-                        VStack(spacing: 12) {
-                            HStack(spacing: 20) {
-                                PhotosPicker(selection: $viewModel.imageSelection,
-                                           matching: .images) {
-                                    Text("Select Image")
-                                        .padding()
-                                        .background(Color.blue)
-                                        .foregroundColor(.white)
-                                        .cornerRadius(8)
+                        HStack(spacing: 12) {
+                            PhotosPicker(selection: $viewModel.imageSelection,
+                                       matching: .images) {
+                                HStack {
+                                    Image(systemName: "photo")
+                                    Text("Image")
                                 }
-                                
-                                if viewModel.premiumMakerConfiguration.selectedImage != nil {
-                                    PhotosPicker(selection: $viewModel.profileImageSelection,
-                                               matching: .images) {
-                                        Text("Add Profile")
-                                            .padding()
-                                            .background(Color.blue)
-                                            .foregroundColor(.white)
-                                            .cornerRadius(8)
-                                    }
-                                }
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 8)
+                                .background(Color.blue)
+                                .foregroundColor(.white)
+                                .cornerRadius(8)
                             }
                             
                             if viewModel.premiumMakerConfiguration.selectedImage != nil {
+                                PhotosPicker(selection: $viewModel.profileImageSelection,
+                                           matching: .images) {
+                                    HStack {
+                                        Image(systemName: "person.crop.circle")
+                                        Text("Profile")
+                                    }
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 8)
+                                    .background(Color.blue)
+                                    .foregroundColor(.white)
+                                    .cornerRadius(8)
+                                }
+                                
                                 Button(action: {
                                     focusedField = nil
                                     let (targetWidth, targetHeight) = viewModel.premiumMakerConfiguration.selectedRatio.dimensions
@@ -172,18 +176,21 @@ struct PremiumMakerView: View {
                                     }
                                 }) {
                                     HStack {
+                                        Image(systemName: "square.and.arrow.down")
                                         if viewModel.isSaving {
                                             ProgressView()
                                                 .tint(.white)
+                                        } else {
+                                            Text("Save")
                                         }
-                                        Text(viewModel.isSaving ? "Saving..." : "Save The Thumbnail")
                                     }
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 8)
+                                    .background(Color.green)
+                                    .foregroundColor(.white)
+                                    .cornerRadius(8)
                                 }
                                 .disabled(viewModel.isSaving)
-                                .padding()
-                                .background(Color.green)
-                                .foregroundColor(.white)
-                                .cornerRadius(8)
                             }
                         }
                         .padding(.vertical, 16)
