@@ -1,8 +1,16 @@
 import SwiftUI
 
+enum TextFieldFocus {
+    case overlayText
+    case startNumber
+    case endNumber
+}
+
 struct MacroSettingsView: View {
     @Binding var macroConfig: MacroConfig
     let hasSelectedImage: Bool
+    @FocusState var focusedField: TextFieldFocus?
+    @Environment(\.dismiss) private var dismiss
     @State private var showingAlert = false
     
     var validationMessage: String? {
@@ -49,6 +57,7 @@ struct MacroSettingsView: View {
                             .textFieldStyle(RoundedBorderTextFieldStyle())
                             .keyboardType(.numberPad)
                             .frame(width: 100)
+                            .focused($focusedField, equals: .startNumber)
                     }
                     
                     VStack(alignment: .leading) {
@@ -58,6 +67,7 @@ struct MacroSettingsView: View {
                             .textFieldStyle(RoundedBorderTextFieldStyle())
                             .keyboardType(.numberPad)
                             .frame(width: 100)
+                            .focused($focusedField, equals: .endNumber)
                     }
                 }
                 
@@ -77,8 +87,7 @@ struct MacroSettingsView: View {
             }
         }
         .padding()
-        .background(Color(uiColor: .secondarySystemBackground))
-        .cornerRadius(12)
+        .background(Color.clear)
         .alert("Image Required", isPresented: $showingAlert) {
             Button("OK", role: .cancel) { }
         } message: {

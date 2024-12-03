@@ -11,13 +11,14 @@ import PhotosUI
 struct PremiumMakerView: View {
     @StateObject private var viewModel = PremiumMakerViewModel()
     @StateObject private var purchaseManager = PurchaseManager.shared
-    @FocusState private var isFocused: Bool
+    @FocusState private var focusedField: TextFieldFocus?
     @State private var isSettingsPresented: Bool = false
     @Namespace private var bottomID
     @Namespace private var topID
     @State private var showingPurchaseAlert = false
     @State private var showingToast = false
     @State private var toastMessage = ""
+    @State private var showingMacroSettings = false
     
     var body: some View {
         Group {
@@ -104,7 +105,7 @@ struct PremiumMakerView: View {
                                     
                                     Button(action: {
                                         // First unfocus the text field
-                                        isFocused = false
+                                        focusedField = nil
                                         
                                         // Use free trial and show toast
                                         if purchaseManager.purchasedProductIDs.isEmpty {
@@ -199,19 +200,48 @@ struct PremiumMakerView: View {
                             .background(Color(uiColor: .systemGray5))
                             .cornerRadius(8)
                             .frame(height: viewModel.textFieldHeight)
-                            .focused($isFocused)
+                            .focused($focusedField, equals: .overlayText)
                             .padding(.horizontal, 20)
                             .padding(.vertical, 16)
                             .id(bottomID)
                         
-                        // Macro Settings
-                        MacroSettingsView(
-                            macroConfig: $viewModel.premiumMakerConfiguration.macroConfig,
-                            hasSelectedImage: viewModel.premiumMakerConfiguration.selectedImage != nil
-                        )
-                            .padding(.horizontal, 20)
-                            .padding(.vertical, 8)
+                        // Macro Settings Button
+                        Button(action: {
+                            showingMacroSettings = true
+                        }) {
+                            HStack {
+                                Image(systemName: "gearshape.2")
+                                Text("Batch Settings")
+                            }
+                            .padding()
+                            .background(Color(uiColor: .secondarySystemBackground))
+                            .cornerRadius(8)
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 8)
                         
+                        // Add the sheet presentation
+                        .sheet(isPresented: $showingMacroSettings) {
+                            NavigationView {
+                                MacroSettingsView(
+                                    macroConfig: $viewModel.premiumMakerConfiguration.macroConfig,
+                                    hasSelectedImage: viewModel.premiumMakerConfiguration.selectedImage != nil,
+                                    focusedField: _focusedField
+                                )
+                                .navigationTitle("Batch Generation Settings")
+                                .navigationBarTitleDisplayMode(.inline)
+                                .toolbar {
+                                    ToolbarItem(placement: .navigationBarTrailing) {
+                                        Button("Done") {
+                                            showingMacroSettings = false
+                                        }
+                                    }
+                                }
+                            }
+                            .presentationDetents([.medium])
+                        }
+                        
+                        // Move the generate batch button here if macro is enabled
                         if viewModel.premiumMakerConfiguration.macroConfig.isEnabled {
                             Button(action: {
                                 let (targetWidth, targetHeight) = viewModel.premiumMakerConfiguration.selectedRatio.dimensions
@@ -239,6 +269,19 @@ struct PremiumMakerView: View {
                             }
                             .disabled(viewModel.isSaving || viewModel.premiumMakerConfiguration.selectedImage == nil)
                             .padding(.horizontal, 20)
+                            .padding(.bottom, 300)
+                        }
+                        
+                        // Add padding at the bottom for keyboard
+                        Color.clear.frame(height: 300)
+                    }
+                    .onChange(of: focusedField) { oldValue, newValue in
+                        withAnimation {
+                            if newValue != nil {
+                                proxy.scrollTo(bottomID, anchor: .bottom)
+                            } else {
+                                proxy.scrollTo(topID, anchor: .top)
+                            }
                         }
                     }
                     .frame(maxWidth: .infinity, alignment: .top)
@@ -247,7 +290,7 @@ struct PremiumMakerView: View {
                 .scrollDismissesKeyboard(.immediately)
             }
             .onTapGesture {
-                isFocused = false
+                focusedField = nil
             }
             .ignoresSafeArea(.keyboard)
             .navigationTitle("William JM's Premium Maker")
