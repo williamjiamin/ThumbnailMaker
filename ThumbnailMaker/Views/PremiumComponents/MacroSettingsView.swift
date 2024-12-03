@@ -17,9 +17,19 @@ struct MacroSettingsView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Macro Settings")
+            Text("Macro Settings (Experimental)")
                 .font(.headline)
                 .padding(.bottom, 4)
+            
+            Text("Batch generation allows you to create multiple thumbnails with sequential numbers. For stability, generation is limited to 100 images per batch.")
+                .font(.caption)
+                .foregroundColor(.secondary)
+                .padding(.bottom, 8)
+            
+            Text("Tip: Start with a small batch (5-10 images) to test layout consistency. Consider using smaller text size to accommodate number changes.")
+                .font(.caption)
+                .foregroundColor(.blue)
+                .padding(.bottom, 8)
             
             Toggle("Enable Batch Generation", isOn: $macroConfig.isEnabled)
                 .padding(.bottom, 8)
