@@ -2,6 +2,8 @@ import SwiftUI
 
 struct MacroSettingsView: View {
     @Binding var macroConfig: MacroConfig
+    let hasSelectedImage: Bool
+    @State private var showingAlert = false
     
     var validationMessage: String? {
         if macroConfig.isEnabled {
@@ -21,6 +23,12 @@ struct MacroSettingsView: View {
             
             Toggle("Enable Batch Generation", isOn: $macroConfig.isEnabled)
                 .padding(.bottom, 8)
+                .onChange(of: macroConfig.isEnabled) { oldValue, newValue in
+                    if newValue && !hasSelectedImage {
+                        macroConfig.isEnabled = false
+                        showingAlert = true
+                    }
+                }
             
             if macroConfig.isEnabled {
                 HStack(spacing: 20) {
@@ -61,5 +69,10 @@ struct MacroSettingsView: View {
         .padding()
         .background(Color(uiColor: .secondarySystemBackground))
         .cornerRadius(12)
+        .alert("Image Required", isPresented: $showingAlert) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text("Please select an image first to enable batch generation.")
+        }
     }
 } 

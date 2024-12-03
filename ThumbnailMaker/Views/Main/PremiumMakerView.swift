@@ -205,7 +205,10 @@ struct PremiumMakerView: View {
                             .id(bottomID)
                         
                         // Macro Settings
-                        MacroSettingsView(macroConfig: $viewModel.premiumMakerConfiguration.macroConfig)
+                        MacroSettingsView(
+                            macroConfig: $viewModel.premiumMakerConfiguration.macroConfig,
+                            hasSelectedImage: viewModel.premiumMakerConfiguration.selectedImage != nil
+                        )
                             .padding(.horizontal, 20)
                             .padding(.vertical, 8)
                         
@@ -234,7 +237,7 @@ struct PremiumMakerView: View {
                                 .foregroundColor(.white)
                                 .cornerRadius(8)
                             }
-                            .disabled(viewModel.isSaving)
+                            .disabled(viewModel.isSaving || viewModel.premiumMakerConfiguration.selectedImage == nil)
                             .padding(.horizontal, 20)
                         }
                     }
