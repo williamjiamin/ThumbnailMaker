@@ -205,20 +205,53 @@ struct PremiumMakerView: View {
                             .padding(.vertical, 16)
                             .id(bottomID)
                         
-                        // Macro Settings Button
-                        Button(action: {
-                            showingMacroSettings = true
-                        }) {
-                            HStack {
-                                Image(systemName: "gearshape.2")
-                                Text("Batch Settings")
+                        HStack(spacing: 12) {
+                            // Batch Settings Button
+                            Button(action: {
+                                showingMacroSettings = true
+                            }) {
+                                HStack {
+                                    Image(systemName: "gearshape.2")
+                                    Text("Batch Settings")
+                                }
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 12)
+                                .background(Color(uiColor: .secondarySystemBackground))
+                                .cornerRadius(8)
                             }
-                            .padding()
-                            .background(Color(uiColor: .secondarySystemBackground))
-                            .cornerRadius(8)
+                            
+                            if viewModel.premiumMakerConfiguration.macroConfig.isEnabled {
+                                Button(action: {
+                                    let (targetWidth, targetHeight) = viewModel.premiumMakerConfiguration.selectedRatio.dimensions
+                                    Task {
+                                        await viewModel.generateBatchImages { text in
+                                            PremiumPreviewComponentView(
+                                                premiumMakerConfiguration: viewModel.premiumMakerConfiguration,
+                                                width: targetWidth,
+                                                height: targetHeight
+                                            )
+                                        }
+                                    }
+                                }) {
+                                    HStack {
+                                        if viewModel.isSaving {
+                                            ProgressView()
+                                                .tint(.white)
+                                        }
+                                        Text(viewModel.isSaving ? "Generating..." : "Generate Batch")
+                                    }
+                                    .padding(.horizontal, 16)
+                                    .padding(.vertical, 12)
+                                    .background(Color.orange)
+                                    .foregroundColor(.white)
+                                    .cornerRadius(8)
+                                }
+                                .disabled(viewModel.isSaving || viewModel.premiumMakerConfiguration.selectedImage == nil)
+                            }
                         }
                         .padding(.horizontal, 20)
                         .padding(.vertical, 8)
+                        .padding(.bottom, 300)
                         
                         // Add the sheet presentation
                         .sheet(isPresented: $showingMacroSettings) {
@@ -239,37 +272,6 @@ struct PremiumMakerView: View {
                                 }
                             }
                             .presentationDetents([.medium])
-                        }
-                        
-                        // Move the generate batch button here if macro is enabled
-                        if viewModel.premiumMakerConfiguration.macroConfig.isEnabled {
-                            Button(action: {
-                                let (targetWidth, targetHeight) = viewModel.premiumMakerConfiguration.selectedRatio.dimensions
-                                Task {
-                                    await viewModel.generateBatchImages { text in
-                                        PremiumPreviewComponentView(
-                                            premiumMakerConfiguration: viewModel.premiumMakerConfiguration,
-                                            width: targetWidth,
-                                            height: targetHeight
-                                        )
-                                    }
-                                }
-                            }) {
-                                HStack {
-                                    if viewModel.isSaving {
-                                        ProgressView()
-                                            .tint(.white)
-                                    }
-                                    Text(viewModel.isSaving ? "Generating..." : "Generate Batch")
-                                }
-                                .padding()
-                                .background(Color.orange)
-                                .foregroundColor(.white)
-                                .cornerRadius(8)
-                            }
-                            .disabled(viewModel.isSaving || viewModel.premiumMakerConfiguration.selectedImage == nil)
-                            .padding(.horizontal, 20)
-                            .padding(.bottom, 300)
                         }
                         
                         // Add padding at the bottom for keyboard

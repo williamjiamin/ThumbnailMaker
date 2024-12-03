@@ -88,6 +88,17 @@ struct MacroSettingsView: View {
         }
         .padding()
         .background(Color.clear)
+        .onTapGesture {
+            focusedField = nil
+        }
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button("Done") {
+                    focusedField = nil
+                }
+            }
+        }
         .alert("Image Required", isPresented: $showingAlert) {
             Button("OK", role: .cancel) { }
         } message: {
