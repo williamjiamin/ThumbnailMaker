@@ -74,89 +74,35 @@ struct PremiumMakerView: View {
                     ScrollView {
                         Color.clear.frame(height: 0).id(topID)
                         
-                        // Controls Section
-                        VStack(spacing: 0) {
+                        // 1. Preview Section at top
+                        PremiumPreviewComponentView(
+                            premiumMakerConfiguration: viewModel.premiumMakerConfiguration,
+                            width: previewWidth,
+                            height: previewHeight
+                        )
+                        .frame(maxWidth: availableWidth, maxHeight: previewHeight)
+                        .padding(.bottom, 16)
+                        
+                        // 2. Text Input Field
+                        TextField("Enter overlay text", text: $viewModel.premiumMakerConfiguration.overlayText)
+                            .lineLimit(1)
+                            .truncationMode(.tail)
+                            .padding(12)
+                            .background(Color(uiColor: .systemGray5))
+                            .cornerRadius(8)
+                            .frame(height: viewModel.textFieldHeight)
+                            .focused($focusedField, equals: .overlayText)
+                            .padding(.horizontal, 20)
+                            .padding(.bottom, 16)
+                            .id(bottomID)
+                        
+                        // 3. Core Controls Section
+                        VStack(spacing: 16) {
+                            // Canvas Settings
                             PremiumCustomizationControlComponentView(configuration: $viewModel.premiumMakerConfiguration)
+                                .padding(.horizontal, 20)
                             
-                            // Action buttons
-                            HStack(spacing: 20) {
-                                PhotosPicker(selection: $viewModel.imageSelection,
-                                           matching: .images) {
-                                    Text("Select Image")
-                                        .padding()
-                                        .background(Color.blue)
-                                        .foregroundColor(.white)
-                                        .cornerRadius(8)
-                                        .padding(.horizontal, 16)
-                                        .padding(.vertical, 8)
-                                }
-                                
-                                if viewModel.premiumMakerConfiguration.selectedImage != nil {
-                                    PhotosPicker(selection: $viewModel.profileImageSelection,
-                                               matching: .images) {
-                                        Text("Add Profile")
-                                            .padding()
-                                            .background(Color.blue)
-                                            .foregroundColor(.white)
-                                            .cornerRadius(8)
-                                            .padding(.horizontal, 16)
-                                            .padding(.vertical, 8)
-                                    }
-                                    
-                                    Button(action: {
-                                        // First unfocus the text field
-                                        focusedField = nil
-                                        
-                                        // Use free trial and show toast
-                                        if purchaseManager.purchasedProductIDs.isEmpty {
-                                            #if targetEnvironment(simulator)
-                                                toastMessage = "Simulator Mode: Unlimited Usage"
-                                            #else
-                                                purchaseManager.useFreeTrial()
-                                                toastMessage = "\(purchaseManager.remainingFreeTries) free tries remaining"
-                                            #endif
-                                            withAnimation {
-                                                showingToast = true
-                                            }
-                                            // Hide toast after 2 seconds
-                                            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                                                withAnimation {
-                                                    showingToast = false
-                                                }
-                                            }
-                                        }
-                                        
-                                        // Wait briefly for the unfocus animation to complete
-                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                                            let (targetWidth, targetHeight) = viewModel.premiumMakerConfiguration.selectedRatio.dimensions
-                                            let content = PremiumPreviewComponentView(
-                                                premiumMakerConfiguration: viewModel.premiumMakerConfiguration,
-                                                width: targetWidth,
-                                                height: targetHeight
-                                            )
-                                            Task {
-                                                await viewModel.saveImageWithOverlay(content: content)
-                                            }
-                                        }
-                                    }) {
-                                        HStack {
-                                            if viewModel.isSaving {
-                                                ProgressView()
-                                                    .tint(.white)
-                                            }
-                                            Text(viewModel.isSaving ? "Saving..." : "Save The Thumbnail")
-                                        }
-                                    }
-                                    .disabled(viewModel.isSaving)
-                                    .padding()
-                                    .background(Color.green)
-                                    .foregroundColor(.white)
-                                    .cornerRadius(8)
-                                    
-
-                                }
-                            }
-                            
+                            // Position and Size Controls
                             UnifiedPositionControlView(
                                 textPosition: Binding(
                                     get: { (viewModel.premiumMakerConfiguration.verticalAlignment,
@@ -185,34 +131,66 @@ struct PremiumMakerView: View {
                                 textSize: $viewModel.premiumMakerConfiguration.textSize,
                                 textColor: $viewModel.premiumMakerConfiguration.textColor
                             )
-                            
-                            // .padding(.horizontal)
-                            // .padding(.vertical, 8)
+                            .padding(.horizontal, 20)
                         }
                         
-                        // Preview Section
-                        PremiumPreviewComponentView(
-                            premiumMakerConfiguration: viewModel.premiumMakerConfiguration,
-                            width: previewWidth,
-                            height: previewHeight
-                        )
-                        .frame(maxWidth: availableWidth, maxHeight: previewHeight)
+                        // 4. Action Buttons
+                        VStack(spacing: 12) {
+                            HStack(spacing: 20) {
+                                PhotosPicker(selection: $viewModel.imageSelection,
+                                           matching: .images) {
+                                    Text("Select Image")
+                                        .padding()
+                                        .background(Color.blue)
+                                        .foregroundColor(.white)
+                                        .cornerRadius(8)
+                                }
+                                
+                                if viewModel.premiumMakerConfiguration.selectedImage != nil {
+                                    PhotosPicker(selection: $viewModel.profileImageSelection,
+                                               matching: .images) {
+                                        Text("Add Profile")
+                                            .padding()
+                                            .background(Color.blue)
+                                            .foregroundColor(.white)
+                                            .cornerRadius(8)
+                                    }
+                                }
+                            }
+                            
+                            if viewModel.premiumMakerConfiguration.selectedImage != nil {
+                                Button(action: {
+                                    focusedField = nil
+                                    let (targetWidth, targetHeight) = viewModel.premiumMakerConfiguration.selectedRatio.dimensions
+                                    let content = PremiumPreviewComponentView(
+                                        premiumMakerConfiguration: viewModel.premiumMakerConfiguration,
+                                        width: targetWidth,
+                                        height: targetHeight
+                                    )
+                                    Task {
+                                        await viewModel.saveImageWithOverlay(content: content)
+                                    }
+                                }) {
+                                    HStack {
+                                        if viewModel.isSaving {
+                                            ProgressView()
+                                                .tint(.white)
+                                        }
+                                        Text(viewModel.isSaving ? "Saving..." : "Save The Thumbnail")
+                                    }
+                                }
+                                .disabled(viewModel.isSaving)
+                                .padding()
+                                .background(Color.green)
+                                .foregroundColor(.white)
+                                .cornerRadius(8)
+                            }
+                        }
+                        .padding(.vertical, 16)
+                        .padding(.horizontal, 20)
                         
-                        // Text input field
-                        TextField("Enter overlay text", text: $viewModel.premiumMakerConfiguration.overlayText)
-                            .lineLimit(1)
-                            .truncationMode(.tail)
-                            .padding(8)
-                            .background(Color(uiColor: .systemGray5))
-                            .cornerRadius(8)
-                            .frame(height: viewModel.textFieldHeight)
-                            .focused($focusedField, equals: .overlayText)
-                            .padding(.horizontal, 20)
-                            .padding(.vertical, 16)
-                            .id(bottomID)
-                        
+                        // 5. Batch Settings
                         HStack(spacing: 12) {
-                            // Batch Settings Button
                             Button(action: {
                                 showingMacroSettings = true
                             }) {
@@ -228,11 +206,23 @@ struct PremiumMakerView: View {
                             
                             if viewModel.premiumMakerConfiguration.macroConfig.isEnabled {
                                 Button(action: {
-                                    let (targetWidth, targetHeight) = viewModel.premiumMakerConfiguration.selectedRatio.dimensions
+                                    focusedField = nil
                                     Task {
                                         await viewModel.generateBatchImages { text in
-                                            PremiumPreviewComponentView(
-                                                premiumMakerConfiguration: viewModel.premiumMakerConfiguration,
+                                            let (targetWidth, targetHeight) = viewModel.premiumMakerConfiguration.selectedRatio.dimensions
+                                            return PremiumPreviewComponentView(
+                                                premiumMakerConfiguration: PremiumMakerConfigurationModel(
+                                                    selectedImage: viewModel.premiumMakerConfiguration.selectedImage,
+                                                    overlayText: text,
+                                                    selectedRatio: viewModel.premiumMakerConfiguration.selectedRatio,
+                                                    backgroundColor: viewModel.premiumMakerConfiguration.backgroundColor,
+                                                    textColor: viewModel.premiumMakerConfiguration.textColor,
+                                                    textSize: viewModel.premiumMakerConfiguration.textSize,
+                                                    verticalAlignment: viewModel.premiumMakerConfiguration.verticalAlignment,
+                                                    horizontalAlignment: viewModel.premiumMakerConfiguration.horizontalAlignment,
+                                                    circularProfile: viewModel.premiumMakerConfiguration.circularProfile,
+                                                    macroConfig: viewModel.premiumMakerConfiguration.macroConfig
+                                                ),
                                                 width: targetWidth,
                                                 height: targetHeight
                                             )
@@ -256,32 +246,7 @@ struct PremiumMakerView: View {
                             }
                         }
                         .padding(.horizontal, 20)
-                        .padding(.vertical, 8)
                         .padding(.bottom, 300)
-                        
-                        // Add the sheet presentation
-                        .sheet(isPresented: $showingMacroSettings) {
-                            NavigationView {
-                                MacroSettingsView(
-                                    macroConfig: $viewModel.premiumMakerConfiguration.macroConfig,
-                                    hasSelectedImage: viewModel.premiumMakerConfiguration.selectedImage != nil,
-                                    focusedField: _focusedField
-                                )
-                                .navigationTitle("Batch Generation Settings")
-                                .navigationBarTitleDisplayMode(.inline)
-                                .toolbar {
-                                    ToolbarItem(placement: .navigationBarTrailing) {
-                                        Button("Done") {
-                                            showingMacroSettings = false
-                                        }
-                                    }
-                                }
-                            }
-                            .presentationDetents([.medium])
-                        }
-                        
-                        // Add padding at the bottom for keyboard
-                        Color.clear.frame(height: 300)
                     }
                     .onChange(of: focusedField) { oldValue, newValue in
                         withAnimation {
@@ -376,6 +341,12 @@ struct PremiumMakerView: View {
                     }
                 )
             }
+        }
+        .sheet(isPresented: $showingMacroSettings) {
+            MacroSettingsView(
+                macroConfig: $viewModel.premiumMakerConfiguration.macroConfig,
+                hasSelectedImage: viewModel.premiumMakerConfiguration.selectedImage != nil
+            )
         }
     }
 }
