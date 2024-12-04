@@ -273,7 +273,7 @@ struct PremiumMakerView: View {
                 focusedField = nil
             }
             .ignoresSafeArea(.keyboard)
-            .navigationTitle("William JM's Premium Maker")
+            .navigationTitle("Premium Maker")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {

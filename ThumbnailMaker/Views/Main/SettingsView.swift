@@ -20,7 +20,7 @@ struct SettingsView: View {
         NavigationView {
             List {
                 Section(header: Text("About Me")) {
-                    Text("William JM's Thumbnail Maker")
+                    Text("Simple Thumbnail Maker")
                 }
                 
                 Section(header: Text("Premium Status")) {
