@@ -31,7 +31,7 @@ struct SettingsView: View {
                             .font(.subheadline)
                             .foregroundColor(.blue)
                         
-                        Text("As a content creator and indie developer, I built this app to solve the frustrating challenges of creating thumbnails for different platforms. It helps you:")
+                        Text("As a content creator myself, I built this app to solve the frustrating challenges of creating thumbnails for different platforms. It helps you:")
                             .font(.caption)
                             .foregroundColor(.secondary)
                         
