@@ -13,14 +13,38 @@ struct SettingsView: View {
     @Environment(\.openURL) private var openURL
     
     // Use your actual website URLs
-    private let termsURL = URL(string: "https://yourapp.com/terms")!
-    private let privacyURL = URL(string: "https://yourapp.com/privacy")!
+    private let termsURL = URL(string: "https://learn-it-free.com/terms-of-service-for-simple-thumbnail-maker/")!
+    private let privacyURL = URL(string: "https://learn-it-free.com/privacy-policy-for-simple-thumbnail-maker/")!
     
     var body: some View {
         NavigationView {
             List {
-                Section(header: Text("About Me")) {
-                    Text("Simple Thumbnail Maker")
+                Section(header: Text("About")) {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Simple Thumbnail Maker")
+                            .font(.headline)
+                        
+                        Text("Version 1.0.0")
+                            .foregroundColor(.secondary)
+                        
+                        Text("Created by a content creator for content creators")
+                            .font(.subheadline)
+                            .foregroundColor(.blue)
+                        
+                        Text("As a content creator and indie developer, I built this app to solve the frustrating challenges of creating thumbnails for different platforms. It helps you:")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        
+                        VStack(alignment: .leading, spacing: 8) {
+                            bulletPoint("Avoid copyright issues by using your own photos")
+                            bulletPoint("Batch generate thumbnails for video series")
+                            bulletPoint("Create thumbnails in different aspect ratios")
+                            bulletPoint("Work completely offline with your local photos")
+                        }
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    }
+                    .padding(.vertical, 4)
                 }
                 
                 Section(header: Text("Premium Status")) {
@@ -55,22 +79,12 @@ struct SettingsView: View {
                 }
                 
                 Section(header: Text("Legal")) {
-                    // In-app versions
                     NavigationLink("Terms of Service") {
                         LegalDocumentView(title: "Terms of Service", documentName: "terms_of_service")
                     }
                     
                     NavigationLink("Privacy Policy") {
                         LegalDocumentView(title: "Privacy Policy", documentName: "privacy_policy")
-                    }
-                    
-                    // Web versions
-                    Button("Terms of Service (Web)") {
-                        openURL(termsURL)
-                    }
-                    
-                    Button("Privacy Policy (Web)") {
-                        openURL(privacyURL)
                     }
                 }
             }
@@ -84,6 +98,14 @@ struct SettingsView: View {
                 }
             }
         }
+    }
+}
+
+// Helper view for bullet points
+private func bulletPoint(_ text: String) -> some View {
+    HStack(alignment: .top, spacing: 4) {
+        Text("•")
+        Text(text)
     }
 }
 
