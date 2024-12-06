@@ -46,6 +46,10 @@ class PremiumMakerViewModel: ObservableObject {
     func saveImageWithOverlay(content: some View, showSuccessAlert: Bool = true) async {
         guard premiumMakerConfiguration.selectedImage != nil else { return }
         
+        if PurchaseManager.shared.purchasedProductIDs.isEmpty {
+            PurchaseManager.shared.useFreeTrial()
+        }
+        
         await MainActor.run {
             isSaving = true
         }
@@ -151,6 +155,10 @@ class PremiumMakerViewModel: ObservableObject {
     }
     
     func generateBatchImages(content: @escaping (String) -> some View) async {
+        if PurchaseManager.shared.purchasedProductIDs.isEmpty {
+            PurchaseManager.shared.useFreeTrial()
+        }
+        
         guard premiumMakerConfiguration.macroConfig.isEnabled,
               premiumMakerConfiguration.macroConfig.isValid else { return }
         
