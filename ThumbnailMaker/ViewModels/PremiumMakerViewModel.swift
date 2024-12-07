@@ -25,7 +25,7 @@ class PremiumMakerViewModel: ObservableObject {
     private var shouldCancelBatch = false
     
     // Add a constant for preview proportion
-    let usableHeightProportion: CGFloat = 1.0  // Use full screen height instead of 0.6
+    let usableHeightProportion: CGFloat = 0.8  
     let previewHeightProportion: CGFloat = 0.35  // Match the simple maker's preview proportion
     let textFieldHeight: CGFloat = 50
     
