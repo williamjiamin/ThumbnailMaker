@@ -46,45 +46,92 @@ struct SettingsView: View {
                 }
                 
                 Section(header: Text("Premium Status")) {
-                    VStack(alignment: .leading, spacing: 8) {
-                        if purchaseManager.purchasedProductIDs.isEmpty {
-                            Text("Free Version")
-                                .foregroundColor(.secondary)
-                            if purchaseManager.remainingFreeTries > 0 {
-                                Text("\(purchaseManager.remainingFreeTries) free premium tries remaining")
-                                    .foregroundColor(.blue)
+                    VStack(alignment: .leading, spacing: 12) {
+                        // Status Information Group
+                        VStack(alignment: .leading, spacing: 8) {
+                            if purchaseManager.purchasedProductIDs.isEmpty {
+                                HStack {
+                                    Image(systemName: "star")
+                                        .foregroundColor(.secondary)
+                                    Text("Free Version")
+                                        .foregroundColor(.secondary)
+                                }
+                                
+                                if purchaseManager.remainingFreeTries > 0 {
+                                    HStack {
+                                        Image(systemName: "gift")
+                                            .foregroundColor(.secondary)
+                                        Text("\(purchaseManager.remainingFreeTries) free premium tries remaining")
+                                            .foregroundColor(.secondary)
+                                    }
+                                } else {
+                                    HStack {
+                                        Image(systemName: "xmark.circle")
+                                            .foregroundColor(.secondary)
+                                        Text("No free tries remaining")
+                                            .foregroundColor(.secondary)
+                                    }
+                                }
                             } else {
-                                Text("No free tries remaining")
-                                    .foregroundColor(.secondary)
+                                HStack {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .foregroundColor(.green)
+                                    Text("Premium Version")
+                                        .foregroundColor(.green)
+                                }
+                            }
+                        }
+                        .padding(.vertical, 4)
+                        
+                        // Divider between info and actions
+                        Divider()
+                            .padding(.vertical, 4)
+                        
+                        // Action Buttons Group
+                        VStack(alignment: .leading, spacing: 12) {
+                            if purchaseManager.purchasedProductIDs.isEmpty {
+                                if let product = purchaseManager.products.first {
+                                    Button(action: {
+                                        Task {
+                                            try? await purchaseManager.purchase()
+                                        }
+                                    }) {
+                                        HStack {
+                                            Image(systemName: "crown")
+                                            Text("Upgrade to Premium (\(product.displayPrice))")
+                                        }
+                                        .foregroundColor(.white)
+                                        .frame(maxWidth: .infinity, alignment: .center)
+                                        .padding(.vertical, 8)
+                                        .background(Color.blue)
+                                        .cornerRadius(8)
+                                    }
+                                    .buttonStyle(PlainButtonStyle())
+                                }
                             }
                             
-                            if let product = purchaseManager.products.first {
-                                Button(action: {
-                                    Task {
-                                        try? await purchaseManager.purchase()
-                                    }
-                                }) {
-                                    Text("Upgrade to Premium (\(product.displayPrice))")
-                                        .foregroundColor(.blue)
+                            // Separate restore button
+                            Button(action: {
+                                Task {
+                                    await purchaseManager.restorePurchases()
                                 }
-                                .padding(.top, 4)
-                            }
-                        } else {
-                            Text("Premium Version")
-                                .foregroundColor(.green)
-                        }
-                        
-                        // Restore button always visible
-                        Button(action: {
-                            Task {
-                                await purchaseManager.restorePurchases()
-                            }
-                        }) {
-                            Text("Restore Purchases")
+                            }) {
+                                HStack {
+                                    Image(systemName: "arrow.clockwise")
+                                    Text("Restore Purchases")
+                                }
                                 .foregroundColor(.blue)
+                                .frame(maxWidth: .infinity, alignment: .center)
+                                .padding(.vertical, 8)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .stroke(Color.blue, lineWidth: 1)
+                                )
+                            }
+                            .buttonStyle(PlainButtonStyle())
                         }
-                        .padding(.top, 4)
                     }
+                    .padding(.vertical, 4)
                 }
                 
                 Section(header: Text("Legal")) {
