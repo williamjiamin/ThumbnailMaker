@@ -25,9 +25,9 @@ class PremiumMakerViewModel: ObservableObject {
     private var shouldCancelBatch = false
     
     // Add a constant for preview proportion
-    let usableHeightProportion: CGFloat = 0.6  // Use 60% of the screen for the entire UI, leave 40% for keyboard
-    let previewHeightProportion: CGFloat = 0.35  // Allocate 35% of the usable height to the preview
-    let textFieldHeight: CGFloat = 50       // Fixed height for the text editor to reduce space
+    let usableHeightProportion: CGFloat = 1.0  // Use full screen height instead of 0.6
+    let previewHeightProportion: CGFloat = 0.35  // Match the simple maker's preview proportion
+    let textFieldHeight: CGFloat = 50
     
     
     func updateImage() async {

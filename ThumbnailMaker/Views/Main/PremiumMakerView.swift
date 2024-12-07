@@ -89,115 +89,102 @@ struct PremiumMakerView: View {
                 let previewHeight = availableHeight * viewModel.previewHeightProportion
                 let previewWidth = previewHeight * viewModel.premiumMakerConfiguration.selectedRatio.value
                 
-                ScrollViewReader { proxy in
-                    ScrollView {
-                        Color.clear.frame(height: 0).id(topID)
-                        
-                        // Premium Badge
-                        HStack {
-                            Image(systemName: "star.circle.fill")
-                                .foregroundStyle(.linearGradient(colors: [.blue, .purple], startPoint: .leading, endPoint: .trailing))
-                            Text("Premium Studio")
-                                .foregroundStyle(.linearGradient(colors: [.blue, .purple], startPoint: .leading, endPoint: .trailing))
-                                .font(.headline)
-                        }
-                        .padding(.top, 8)
-                        
-                        // 1. Preview Section at top
-                        PremiumPreviewComponentView(
-                            premiumMakerConfiguration: viewModel.premiumMakerConfiguration,
-                            width: previewWidth,
-                            height: previewHeight
+                ScrollView {
+                    // 1. Preview Section at top
+                    PremiumPreviewComponentView(
+                        premiumMakerConfiguration: viewModel.premiumMakerConfiguration,
+                        width: previewWidth,
+                        height: previewHeight
+                    )
+                    .frame(maxWidth: availableWidth, maxHeight: previewHeight)
+                    .padding(.horizontal, 20)
+                    
+                    // 2. Text Input Field
+                    TextField("Enter overlay text", text: $viewModel.premiumMakerConfiguration.overlayText)
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                        .padding(12)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(Color(uiColor: .systemGray6))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .stroke(
+                                            LinearGradient(colors: [.blue.opacity(0.3), .purple.opacity(0.3)],
+                                                         startPoint: .leading,
+                                                         endPoint: .trailing)
+                                        )
+                                )
                         )
-                        .frame(maxWidth: availableWidth, maxHeight: previewHeight)
-                        .padding(.vertical, 16)
-                        
-                        // 2. Text Input Field
-                        TextField("Enter overlay text", text: $viewModel.premiumMakerConfiguration.overlayText)
-                            .lineLimit(1)
-                            .truncationMode(.tail)
-                            .padding(12)
-                            .background(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .fill(Color(uiColor: .systemGray6))
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 12)
-                                            .stroke(
-                                                LinearGradient(colors: [.blue.opacity(0.3), .purple.opacity(0.3)],
-                                                             startPoint: .leading,
-                                                             endPoint: .trailing)
-                                            )
-                                    )
-                            )
-                            .focused($focusedField, equals: .overlayText)
+                        .focused($focusedField, equals: .overlayText)
+                        .padding(.horizontal, 20)
+                        .padding(.top, 16)
+                    
+                    // 3. Core Controls Section
+                    VStack(spacing: 16) {
+                        // Canvas Settings
+                        PremiumCustomizationControlComponentView(configuration: $viewModel.premiumMakerConfiguration)
                             .padding(.horizontal, 20)
-                            .id(bottomID)
                         
-                        // 3. Core Controls Section
-                        VStack(spacing: 16) {
-                            // Canvas Settings
-                            PremiumCustomizationControlComponentView(configuration: $viewModel.premiumMakerConfiguration)
-                                .padding(.horizontal, 20)
-                            
-                            // Position and Size Controls
-                            UnifiedPositionControlView(
-                                textPosition: Binding(
-                                    get: { (viewModel.premiumMakerConfiguration.verticalAlignment,
-                                           viewModel.premiumMakerConfiguration.horizontalAlignment) },
-                                    set: { newValue in
-                                        viewModel.premiumMakerConfiguration.verticalAlignment = newValue.vertical
-                                        viewModel.premiumMakerConfiguration.horizontalAlignment = newValue.horizontal
+                        // Position and Size Controls
+                        UnifiedPositionControlView(
+                            textPosition: Binding(
+                                get: { (viewModel.premiumMakerConfiguration.verticalAlignment,
+                                       viewModel.premiumMakerConfiguration.horizontalAlignment) },
+                                set: { newValue in
+                                    viewModel.premiumMakerConfiguration.verticalAlignment = newValue.vertical
+                                    viewModel.premiumMakerConfiguration.horizontalAlignment = newValue.horizontal
+                                }
+                            ),
+                            profilePosition: Binding(
+                                get: { viewModel.premiumMakerConfiguration.circularProfile?.position ?? .topRight },
+                                set: { 
+                                    if viewModel.premiumMakerConfiguration.circularProfile != nil {
+                                        viewModel.premiumMakerConfiguration.circularProfile?.position = $0
                                     }
-                                ),
-                                profilePosition: Binding(
-                                    get: { viewModel.premiumMakerConfiguration.circularProfile?.position ?? .topRight },
-                                    set: { 
-                                        if viewModel.premiumMakerConfiguration.circularProfile != nil {
-                                            viewModel.premiumMakerConfiguration.circularProfile?.position = $0
-                                        }
+                                }
+                            ),
+                            profileSize: Binding(
+                                get: { viewModel.premiumMakerConfiguration.circularProfile?.size ?? 0.2 },
+                                set: { 
+                                    if viewModel.premiumMakerConfiguration.circularProfile != nil {
+                                        viewModel.premiumMakerConfiguration.circularProfile?.size = $0
                                     }
-                                ),
-                                profileSize: Binding(
-                                    get: { viewModel.premiumMakerConfiguration.circularProfile?.size ?? 0.2 },
-                                    set: { 
-                                        if viewModel.premiumMakerConfiguration.circularProfile != nil {
-                                            viewModel.premiumMakerConfiguration.circularProfile?.size = $0
-                                        }
-                                    }
-                                ),
-                                textSize: $viewModel.premiumMakerConfiguration.textSize,
-                                textColor: $viewModel.premiumMakerConfiguration.textColor
-                            )
-                            .padding(.horizontal, 20)
-                        }
-                        
-                        // 4. Action Buttons
-                        actionButtonsSection
-                        
-                        // 5. Batch Settings
-                        batchSettingsSection
+                                }
+                            ),
+                            textSize: $viewModel.premiumMakerConfiguration.textSize,
+                            textColor: $viewModel.premiumMakerConfiguration.textColor
+                        )
+                        .padding(.horizontal, 20)
                     }
-                    .onChange(of: focusedField) { oldValue, newValue in
-                        withAnimation {
-                            if newValue != nil {
-                                proxy.scrollTo(bottomID, anchor: .bottom)
-                            } else {
-                                proxy.scrollTo(topID, anchor: .top)
-                            }
-                        }
-                    }
-                    .frame(maxWidth: .infinity, alignment: .top)
+                    
+                    // 4. Action Buttons
+                    actionButtonsSection
+                    
+                    // 5. Batch Settings
+                    batchSettingsSection
                 }
-                .padding(.bottom, 8)
-                .scrollDismissesKeyboard(.immediately)
+                .frame(maxWidth: .infinity, alignment: .top)
             }
             .onTapGesture {
                 focusedField = nil
             }
             .ignoresSafeArea(.keyboard)
-            .navigationTitle("Premium Studio")
-            .navigationBarTitleDisplayMode(.inline)
+            .navigationTitle("")
             .toolbar {
+                ToolbarItem(placement: .principal) {
+                    HStack {
+                        Image(systemName: "star.circle.fill")
+                            .foregroundStyle(.linearGradient(colors: [.blue, .purple], 
+                                                           startPoint: .leading, 
+                                                           endPoint: .trailing))
+                        Text("Premium Maker")
+                            .foregroundStyle(.linearGradient(colors: [.blue, .purple], 
+                                                           startPoint: .leading, 
+                                                           endPoint: .trailing))
+                            .font(.headline)
+                    }
+                }
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button(action: {
                         isSettingsPresented.toggle()
