@@ -89,28 +89,28 @@ struct SettingsView: View {
                         
                         // Action Buttons Group
                         VStack(alignment: .leading, spacing: 12) {
-                            if purchaseManager.purchasedProductIDs.isEmpty {
-                                if let product = purchaseManager.products.first {
-                                    Button(action: {
-                                        Task {
-                                            try? await purchaseManager.purchase()
-                                        }
-                                    }) {
-                                        HStack {
-                                            Image(systemName: "crown")
-                                            Text("Upgrade to Premium (\(product.displayPrice))")
-                                        }
-                                        .foregroundColor(.white)
-                                        .frame(maxWidth: .infinity, alignment: .center)
-                                        .padding(.vertical, 8)
-                                        .background(Color.blue)
-                                        .cornerRadius(8)
+                            // Upgrade button - show only if not premium
+                            if purchaseManager.purchasedProductIDs.isEmpty,
+                               let product = purchaseManager.products.first {
+                                Button(action: {
+                                    Task {
+                                        try? await purchaseManager.purchase()
                                     }
-                                    .buttonStyle(PlainButtonStyle())
+                                }) {
+                                    HStack {
+                                        Image(systemName: "crown")
+                                        Text("Upgrade to Premium (\(product.displayPrice))")
+                                    }
+                                    .foregroundColor(.white)
+                                    .frame(maxWidth: .infinity, alignment: .center)
+                                    .padding(.vertical, 8)
+                                    .background(Color.blue)
+                                    .cornerRadius(8)
                                 }
+                                .buttonStyle(PlainButtonStyle())
                             }
                             
-                            // Separate restore button
+                            // Restore button - always show
                             Button(action: {
                                 Task {
                                     await purchaseManager.restorePurchases()
