@@ -31,14 +31,31 @@ struct PremiumMakerView: View {
     }
     
     private var purchasePromptView: some View {
-        VStack(spacing: 20) {
-            Text("Unlock Premium Features")
-                .font(.title)
-                .bold()
+        VStack(spacing: 24) {
+            // Premium Header
+            VStack(spacing: 12) {
+                Image(systemName: "star.circle.fill")
+                    .font(.system(size: 60))
+                    .foregroundStyle(.linearGradient(colors: [.blue, .purple], startPoint: .topLeading, endPoint: .bottomTrailing))
+                
+                Text("Premium Studio")
+                    .font(.title)
+                    .bold()
+                
+                Text("Create Professional Thumbnails")
+                    .font(.title3)
+                    .foregroundColor(.secondary)
+            }
+            .padding(.top, 40)
             
-            Text("You've used all your free trials. Upgrade to continue creating professional thumbnails.")
-                .multilineTextAlignment(.center)
-                .padding()
+            // Feature List
+            VStack(alignment: .leading, spacing: 16) {
+                premiumFeatureRow(icon: "sparkles", text: "Professional Templates")
+                premiumFeatureRow(icon: "person.crop.circle", text: "Profile Image Overlay")
+                premiumFeatureRow(icon: "rectangle.stack", text: "Batch Generation")
+                premiumFeatureRow(icon: "slider.horizontal.3", text: "Advanced Controls")
+            }
+            .padding(.horizontal, 32)
             
             if let product = purchaseManager.products.first {
                 Button(action: {
@@ -51,13 +68,15 @@ struct PremiumMakerView: View {
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(Color.blue)
-                        .cornerRadius(10)
+                        .background(
+                            LinearGradient(colors: [.blue, .purple],
+                                         startPoint: .leading,
+                                         endPoint: .trailing)
+                        )
+                        .cornerRadius(16)
                 }
-                .padding(.horizontal)
-            } else {
-                ProgressView()
-                    .padding()
+                .padding(.horizontal, 32)
+                .padding(.top, 24)
             }
         }
     }
@@ -74,6 +93,16 @@ struct PremiumMakerView: View {
                     ScrollView {
                         Color.clear.frame(height: 0).id(topID)
                         
+                        // Premium Badge
+                        HStack {
+                            Image(systemName: "star.circle.fill")
+                                .foregroundStyle(.linearGradient(colors: [.blue, .purple], startPoint: .leading, endPoint: .trailing))
+                            Text("Premium Studio")
+                                .foregroundStyle(.linearGradient(colors: [.blue, .purple], startPoint: .leading, endPoint: .trailing))
+                                .font(.headline)
+                        }
+                        .padding(.top, 8)
+                        
                         // 1. Preview Section at top
                         PremiumPreviewComponentView(
                             premiumMakerConfiguration: viewModel.premiumMakerConfiguration,
@@ -81,19 +110,27 @@ struct PremiumMakerView: View {
                             height: previewHeight
                         )
                         .frame(maxWidth: availableWidth, maxHeight: previewHeight)
-                        .padding(.bottom, 16)
+                        .padding(.vertical, 16)
                         
                         // 2. Text Input Field
                         TextField("Enter overlay text", text: $viewModel.premiumMakerConfiguration.overlayText)
                             .lineLimit(1)
                             .truncationMode(.tail)
                             .padding(12)
-                            .background(Color(uiColor: .systemGray5))
-                            .cornerRadius(8)
-                            .frame(height: viewModel.textFieldHeight)
+                            .background(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(Color(uiColor: .systemGray6))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 12)
+                                            .stroke(
+                                                LinearGradient(colors: [.blue.opacity(0.3), .purple.opacity(0.3)],
+                                                             startPoint: .leading,
+                                                             endPoint: .trailing)
+                                            )
+                                    )
+                            )
                             .focused($focusedField, equals: .overlayText)
                             .padding(.horizontal, 20)
-                            .padding(.bottom, 16)
                             .id(bottomID)
                         
                         // 3. Core Controls Section
@@ -135,125 +172,10 @@ struct PremiumMakerView: View {
                         }
                         
                         // 4. Action Buttons
-                        HStack(spacing: 12) {
-                            PhotosPicker(selection: $viewModel.imageSelection,
-                                       matching: .images) {
-                                HStack {
-                                    Image(systemName: "photo")
-                                    Text("Image")
-                                }
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 8)
-                                .background(Color.blue)
-                                .foregroundColor(.white)
-                                .cornerRadius(8)
-                            }
-                            
-                            if viewModel.premiumMakerConfiguration.selectedImage != nil {
-                                PhotosPicker(selection: $viewModel.profileImageSelection,
-                                           matching: .images) {
-                                    HStack {
-                                        Image(systemName: "person.crop.circle")
-                                        Text("Profile")
-                                    }
-                                    .padding(.horizontal, 12)
-                                    .padding(.vertical, 8)
-                                    .background(Color.blue)
-                                    .foregroundColor(.white)
-                                    .cornerRadius(8)
-                                }
-                                
-                                Button(action: {
-                                    focusedField = nil
-                                    let (targetWidth, targetHeight) = viewModel.premiumMakerConfiguration.selectedRatio.dimensions
-                                    let content = PremiumPreviewComponentView(
-                                        premiumMakerConfiguration: viewModel.premiumMakerConfiguration,
-                                        width: targetWidth,
-                                        height: targetHeight
-                                    )
-                                    Task {
-                                        await viewModel.saveImageWithOverlay(content: content)
-                                    }
-                                }) {
-                                    HStack {
-                                        Image(systemName: "square.and.arrow.down")
-                                        if viewModel.isSaving {
-                                            ProgressView()
-                                                .tint(.white)
-                                        } else {
-                                            Text("Save")
-                                        }
-                                    }
-                                    .padding(.horizontal, 12)
-                                    .padding(.vertical, 8)
-                                    .background(Color.green)
-                                    .foregroundColor(.white)
-                                    .cornerRadius(8)
-                                }
-                                .disabled(viewModel.isSaving)
-                            }
-                        }
-                        .padding(.vertical, 16)
-                        .padding(.horizontal, 20)
+                        actionButtonsSection
                         
                         // 5. Batch Settings
-                        HStack(spacing: 12) {
-                            Button(action: {
-                                showingMacroSettings = true
-                            }) {
-                                HStack {
-                                    Image(systemName: "gearshape.2")
-                                    Text("Batch Settings")
-                                }
-                                .padding(.horizontal, 16)
-                                .padding(.vertical, 12)
-                                .background(Color(uiColor: .secondarySystemBackground))
-                                .cornerRadius(8)
-                            }
-                            
-                            if viewModel.premiumMakerConfiguration.macroConfig.isEnabled {
-                                Button(action: {
-                                    focusedField = nil
-                                    Task {
-                                        await viewModel.generateBatchImages { text in
-                                            let (targetWidth, targetHeight) = viewModel.premiumMakerConfiguration.selectedRatio.dimensions
-                                            return PremiumPreviewComponentView(
-                                                premiumMakerConfiguration: PremiumMakerConfigurationModel(
-                                                    selectedImage: viewModel.premiumMakerConfiguration.selectedImage,
-                                                    overlayText: text,
-                                                    selectedRatio: viewModel.premiumMakerConfiguration.selectedRatio,
-                                                    backgroundColor: viewModel.premiumMakerConfiguration.backgroundColor,
-                                                    textColor: viewModel.premiumMakerConfiguration.textColor,
-                                                    textSize: viewModel.premiumMakerConfiguration.textSize,
-                                                    verticalAlignment: viewModel.premiumMakerConfiguration.verticalAlignment,
-                                                    horizontalAlignment: viewModel.premiumMakerConfiguration.horizontalAlignment,
-                                                    circularProfile: viewModel.premiumMakerConfiguration.circularProfile,
-                                                    macroConfig: viewModel.premiumMakerConfiguration.macroConfig
-                                                ),
-                                                width: targetWidth,
-                                                height: targetHeight
-                                            )
-                                        }
-                                    }
-                                }) {
-                                    HStack {
-                                        if viewModel.isSaving {
-                                            ProgressView()
-                                                .tint(.white)
-                                        }
-                                        Text(viewModel.isSaving ? "Generating..." : "Generate Batch")
-                                    }
-                                    .padding(.horizontal, 16)
-                                    .padding(.vertical, 12)
-                                    .background(Color.orange)
-                                    .foregroundColor(.white)
-                                    .cornerRadius(8)
-                                }
-                                .disabled(viewModel.isSaving || viewModel.premiumMakerConfiguration.selectedImage == nil)
-                            }
-                        }
-                        .padding(.horizontal, 20)
-                        .padding(.bottom, 300)
+                        batchSettingsSection
                     }
                     .onChange(of: focusedField) { oldValue, newValue in
                         withAnimation {
@@ -273,7 +195,7 @@ struct PremiumMakerView: View {
                 focusedField = nil
             }
             .ignoresSafeArea(.keyboard)
-            .navigationTitle("Premium Maker")
+            .navigationTitle("Premium Studio")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
@@ -355,6 +277,167 @@ struct PremiumMakerView: View {
                 hasSelectedImage: viewModel.premiumMakerConfiguration.selectedImage != nil,
                 baseText: viewModel.premiumMakerConfiguration.overlayText
             )
+        }
+    }
+    
+    private var actionButtonsSection: some View {
+        HStack(spacing: 12) {
+            PhotosPicker(selection: $viewModel.imageSelection,
+                       matching: .images) {
+                HStack {
+                    Image(systemName: "photo")
+                    Text("Image")
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(
+                    LinearGradient(colors: [.blue, .blue.opacity(0.8)],
+                                 startPoint: .leading,
+                                 endPoint: .trailing)
+                )
+                .foregroundColor(.white)
+                .cornerRadius(10)
+            }
+            
+            if viewModel.premiumMakerConfiguration.selectedImage != nil {
+                PhotosPicker(selection: $viewModel.profileImageSelection,
+                           matching: .images) {
+                    HStack {
+                        Image(systemName: "person.crop.circle")
+                        Text("Profile")
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(
+                        LinearGradient(colors: [.blue, .blue.opacity(0.8)],
+                                     startPoint: .leading,
+                                     endPoint: .trailing)
+                    )
+                    .foregroundColor(.white)
+                    .cornerRadius(10)
+                }
+                
+                Button(action: {
+                    focusedField = nil
+                    let (targetWidth, targetHeight) = viewModel.premiumMakerConfiguration.selectedRatio.dimensions
+                    let content = PremiumPreviewComponentView(
+                        premiumMakerConfiguration: viewModel.premiumMakerConfiguration,
+                        width: targetWidth,
+                        height: targetHeight
+                    )
+                    Task {
+                        await viewModel.saveImageWithOverlay(content: content)
+                    }
+                }) {
+                    HStack {
+                        Image(systemName: "square.and.arrow.down")
+                        if viewModel.isSaving {
+                            ProgressView()
+                                .tint(.white)
+                        } else {
+                            Text("Save")
+                        }
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(
+                        LinearGradient(colors: [.green, .green.opacity(0.8)],
+                                     startPoint: .leading,
+                                     endPoint: .trailing)
+                    )
+                    .foregroundColor(.white)
+                    .cornerRadius(10)
+                }
+                .disabled(viewModel.isSaving)
+            }
+        }
+        .padding(.vertical, 16)
+        .padding(.horizontal, 20)
+    }
+    
+    private var batchSettingsSection: some View {
+        HStack(spacing: 12) {
+            Button(action: {
+                showingMacroSettings = true
+            }) {
+                HStack {
+                    Image(systemName: "gearshape.2")
+                    Text("Batch Settings")
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
+                .background(
+                    LinearGradient(colors: [Color(uiColor: .secondarySystemBackground), 
+                                          Color(uiColor: .secondarySystemBackground).opacity(0.8)],
+                                 startPoint: .leading,
+                                 endPoint: .trailing)
+                )
+                .cornerRadius(8)
+            }
+            
+            if viewModel.premiumMakerConfiguration.macroConfig.isEnabled {
+                Button(action: {
+                    focusedField = nil
+                    Task {
+                        await viewModel.generateBatchImages { text in
+                            let (targetWidth, targetHeight) = viewModel.premiumMakerConfiguration.selectedRatio.dimensions
+                            return PremiumPreviewComponentView(
+                                premiumMakerConfiguration: PremiumMakerConfigurationModel(
+                                    selectedImage: viewModel.premiumMakerConfiguration.selectedImage,
+                                    overlayText: text,
+                                    selectedRatio: viewModel.premiumMakerConfiguration.selectedRatio,
+                                    backgroundColor: viewModel.premiumMakerConfiguration.backgroundColor,
+                                    textColor: viewModel.premiumMakerConfiguration.textColor,
+                                    textSize: viewModel.premiumMakerConfiguration.textSize,
+                                    verticalAlignment: viewModel.premiumMakerConfiguration.verticalAlignment,
+                                    horizontalAlignment: viewModel.premiumMakerConfiguration.horizontalAlignment,
+                                    circularProfile: viewModel.premiumMakerConfiguration.circularProfile,
+                                    macroConfig: viewModel.premiumMakerConfiguration.macroConfig
+                                ),
+                                width: targetWidth,
+                                height: targetHeight
+                            )
+                        }
+                    }
+                }) {
+                    HStack {
+                        if viewModel.isSaving {
+                            ProgressView()
+                                .tint(.white)
+                        }
+                        Text(viewModel.isSaving ? "Generating..." : "Generate Batch")
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
+                    .background(
+                        LinearGradient(colors: [.orange, .orange.opacity(0.8)],
+                                     startPoint: .leading,
+                                     endPoint: .trailing)
+                    )
+                    .foregroundColor(.white)
+                    .cornerRadius(8)
+                }
+                .disabled(viewModel.isSaving || viewModel.premiumMakerConfiguration.selectedImage == nil)
+            }
+        }
+        .padding(.horizontal, 20)
+        .padding(.bottom, 300)
+    }
+    
+    private func premiumFeatureRow(icon: String, text: String) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: icon)
+                .font(.system(size: 24))
+                .foregroundStyle(.linearGradient(colors: [.blue, .purple], startPoint: .topLeading, endPoint: .bottomTrailing))
+                .frame(width: 32)
+            
+            Text(text)
+                .font(.body)
+            
+            Spacer()
+            
+            Image(systemName: "checkmark.circle.fill")
+                .foregroundColor(.green)
         }
     }
 }
