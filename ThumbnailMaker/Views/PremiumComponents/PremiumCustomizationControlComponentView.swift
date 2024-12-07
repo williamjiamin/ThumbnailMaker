@@ -10,40 +10,41 @@ import SwiftUI
 
 struct PremiumCustomizationControlComponentView: View {
     @Binding var configuration: PremiumMakerConfigurationModel
+   @State private var showingRatioDrawer = false
     
     var body: some View {
         VStack(spacing: 0) {
             // Canvas Settings Section
             HStack(spacing: 0) {
-                VStack(spacing: 4) {
-                    Text("Canvas Settings")
-                        .font(.headline)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.horizontal)
-                    
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 12) {
-                            ForEach(AspectRatio.allCases, id: \.self) { ratio in
-                                Button(action: {
-                                    configuration.selectedRatio = ratio
-                                }) {
-                                    Text(ratio.rawValue)
-                                        .padding(.horizontal, 16)
-                                        .padding(.vertical, 8)
-                                        .background(configuration.selectedRatio == ratio ? Color.blue : Color.gray.opacity(0.2))
-                                        .foregroundColor(configuration.selectedRatio == ratio ? .white : .primary)
-                                        .cornerRadius(8)
-                                }
-                            }
-                        }
-                        .padding(.horizontal)
+                // Left side - Aspect Ratio Button
+                Button(action: {
+                    withAnimation {
+                        showingRatioDrawer = true
                     }
+                }) {
+                    HStack {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Aspect Ratio")
+                                .font(.headline)
+                            Text(configuration.selectedRatio.rawValue)
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                        }
+                        
+                        Spacer()
+                        
+                        Image(systemName: "chevron.up.chevron.down")
+                            .foregroundColor(.blue)
+                    }
+                    .padding(.horizontal)
                 }
+                .frame(maxWidth: .infinity)
                 
                 Divider()
                     .frame(height: 40)
                     .padding(.horizontal)
                 
+                // Right side - Background Color
                 VStack(alignment: .center, spacing: 4) {
                     Text("Background")
                         .font(.caption)
@@ -57,6 +58,17 @@ struct PremiumCustomizationControlComponentView: View {
             .padding(.vertical, 8)
             .background(Color(uiColor: .secondarySystemBackground))
             .cornerRadius(12)
+        }
+        .sheet(isPresented: $showingRatioDrawer) {
+            AspectRatioDrawerView(
+                selectedRatio: $configuration.selectedRatio,
+                isPresented: $showingRatioDrawer,
+                onDismiss: {
+                    showingRatioDrawer = false
+                }
+            )
+            .presentationDetents([.height(300)])
+            .presentationDragIndicator(.visible)
         }
     }
 }

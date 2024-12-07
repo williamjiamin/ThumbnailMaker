@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct UnifiedPositionControlView: View {
-    enum ControlTarget: String {
+    enum ControlTarget: String,CaseIterable {
         case text = "Text"
         case profile = "Profile"
     }
@@ -14,80 +14,79 @@ struct UnifiedPositionControlView: View {
     @State private var selectedTarget: ControlTarget = .text
     
     var body: some View {
-        HStack(spacing: 20) {
-            // Left side - Radio buttons
-            VStack(alignment: .leading, spacing: 12) {
-                Text("Control Target")
-                    .font(.headline)
-                
-                VStack(alignment: .leading, spacing: 8) {
-                    RadioButton(title: "Text", 
-                              isSelected: selectedTarget == .text) {
+        VStack(spacing: 12) {
+            // Tab Selection Row
+            HStack(spacing: 0) {
+                ForEach(ControlTarget.allCases, id: \.self) { target in
+                    Button(action: {
                         withAnimation {
-                            selectedTarget = .text
+                            selectedTarget = target
                         }
-                    }
-                    
-                    RadioButton(title: "Profile", 
-                              isSelected: selectedTarget == .profile) {
-                        withAnimation {
-                            selectedTarget = .profile
-                        }
+                    }) {
+                        Text(target.rawValue)
+                            .padding(.vertical, 8)
+                            .frame(maxWidth: .infinity)
+                            .background(selectedTarget == target ? Color.blue : Color.clear)
+                            .foregroundColor(selectedTarget == target ? .white : .primary)
                     }
                 }
             }
-            .frame(width: 100)
+            .background(Color(uiColor: .systemGray5))
+            .cornerRadius(8)
+            .padding(.horizontal)
             
-            // Center - Position Matrix
-            VStack {
-                Text("Position")
-                    .font(.headline)
-                
-                Grid(horizontalSpacing: 8, verticalSpacing: 8) {
-                    ForEach(0..<3) { row in
-                        GridRow {
-                            ForEach(0..<3) { col in
-                                Button(action: {
-                                    updatePosition(row: row, col: col)
-                                }) {
-                                    Circle()
-                                        .stroke(isSelected(row: row, col: col) ? Color.blue : Color.gray)
-                                        .frame(width: 30, height: 30)
-                                        .overlay(
-                                            Circle()
-                                                .fill(isSelected(row: row, col: col) ? Color.blue : Color.clear)
-                                                .frame(width: 15, height: 15)
-                                        )
+            HStack(spacing: 20) {
+                // Center - Position Matrix
+                VStack {
+                    Text("Position")
+                        .font(.headline)
+                    
+                    Grid(horizontalSpacing: 8, verticalSpacing: 8) {
+                        ForEach(0..<3) { row in
+                            GridRow {
+                                ForEach(0..<3) { col in
+                                    Button(action: {
+                                        updatePosition(row: row, col: col)
+                                    }) {
+                                        Circle()
+                                            .stroke(isSelected(row: row, col: col) ? Color.blue : Color.gray)
+                                            .frame(width: 30, height: 30)
+                                            .overlay(
+                                                Circle()
+                                                    .fill(isSelected(row: row, col: col) ? Color.blue : Color.clear)
+                                                    .frame(width: 15, height: 15)
+                                            )
+                                    }
                                 }
                             }
                         }
                     }
                 }
-            }
-            
-            // Right side - Size Controls
-            VStack(alignment: .leading, spacing: 8) {
-                if selectedTarget == .text {
-                    Text("Text Size")
-                        .font(.headline)
-                    
-                    Slider(value: $textSize, in: 0.1...0.3)
-                        .frame(width: 120)
-                        .tint(.blue)
-                    
-                    ColorPicker("Text Color", selection: $textColor)
-                        .labelsHidden()
-                        .padding(.top, 8)
-                } else {
-                    Text("Profile Size")
-                        .font(.headline)
-                    
-                    Slider(value: $profileSize, in: 0.1...0.3)
-                        .frame(width: 120)
-                        .tint(.blue)
+                
+                // Right side - Size Controls
+                VStack(alignment: .leading, spacing: 8) {
+                    if selectedTarget == .text {
+                        Text("Text Size")
+                            .font(.headline)
+                        
+                        Slider(value: $textSize, in: 0.1...0.3)
+                            .frame(width: 120)
+                            .tint(.blue)
+                        
+                        ColorPicker("Text Color", selection: $textColor)
+                            .labelsHidden()
+                            .padding(.top, 8)
+                    } else {
+                        Text("Profile Size")
+                            .font(.headline)
+                        
+                        Slider(value: $profileSize, in: 0.1...0.3)
+                            .frame(width: 120)
+                            .tint(.blue)
+                    }
                 }
+                .frame(width: 120)
             }
-            .frame(width: 120)
         }
         .padding()
         .background(Color(uiColor: .secondarySystemBackground))
