@@ -25,33 +25,54 @@ struct SimpleMakerView: View {
                 
                 ScrollViewReader { proxy in
                     ScrollView {
-                        // Invisible anchor point for top scrolling
                         Color.clear.frame(height: 0).id(topID)
                         
-                        // Controls Section
-                        VStack(spacing: 0) {
-                            CustomizationControlComponentView(configuration: $viewModel.simpleMakerConfiguration)
+                        // 1. Preview Section at top
+                        PreviewComponentView(
+                            simpleMakerConfiguration: viewModel.simpleMakerConfiguration,
+                            width: previewWidth,
+                            height: previewHeight
+                        )
+                        .frame(maxWidth: availableWidth, maxHeight: previewHeight)
+                        .padding(.bottom, 16)
                         
+                        // 2. Text Input Field
+                        TextField("Enter overlay text", text: $viewModel.simpleMakerConfiguration.overlayText)
+                            .lineLimit(1)
+                            .truncationMode(.tail)
+                            .padding(12)
+                            .background(Color(uiColor: .systemGray5))
+                            .cornerRadius(8)
+                            .frame(height: viewModel.textFieldHeight)
+                            .focused($isFocused)
+                            .padding(.horizontal, 20)
+                            .padding(.bottom, 16)
+                            .id(bottomID)
+                        
+                        // 3. Core Controls Section
+                        VStack(spacing: 16) {
+                            // Canvas Settings
+                            CustomizationControlComponentView(configuration: $viewModel.simpleMakerConfiguration)
+                                .padding(.horizontal, 20)
                             
-                            // Action buttons
-                            HStack(spacing: 20) {
+                            // Action Buttons
+                            HStack(spacing: 16) {
                                 PhotosPicker(selection: $viewModel.imageSelection,
                                            matching: .images) {
-                                    Text("Select Image")
-                                        .padding()
-                                        .background(Color.blue)
-                                        .foregroundColor(.white)
-                                        .cornerRadius(8)
-                                        .padding(.horizontal, 16)
-                                        .padding(.vertical, 8) 
+                                    HStack {
+                                        Image(systemName: "photo")
+                                        Text("Select Image")
+                                    }
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 12)
+                                    .background(Color.blue)
+                                    .foregroundColor(.white)
+                                    .cornerRadius(10)
                                 }
                                 
                                 if viewModel.simpleMakerConfiguration.selectedImage != nil {
                                     Button(action: {
-                                        // First unfocus the text field
                                         isFocused = false
-                                        
-                                        // Wait briefly for the unfocus animation to complete
                                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                                             let (targetWidth, targetHeight) = viewModel.simpleMakerConfiguration.selectedRatio.dimensions
                                             let content = PreviewComponentView(
@@ -69,54 +90,25 @@ struct SimpleMakerView: View {
                                                 ProgressView()
                                                     .tint(.white)
                                             }
-                                            Text(viewModel.isSaving ? "Saving..." : "Save The Thumbnail")
+                                            Text(viewModel.isSaving ? "Saving..." : "Save")
+                                            Image(systemName: "square.and.arrow.down")
                                         }
+                                        .frame(maxWidth: .infinity)
+                                        .padding(.vertical, 12)
+                                        .background(Color.green)
+                                        .foregroundColor(.white)
+                                        .cornerRadius(10)
                                     }
                                     .disabled(viewModel.isSaving)
-                                    .padding()
-                                    .background(Color.green)
-                                    .foregroundColor(.white)
-                                    .cornerRadius(8)
                                 }
                             }
-                            // .padding(.horizontal)
-                            // .padding(.vertical, 8)
-                        }
-                        
-                        // Preview Section
-                        PreviewComponentView(
-                            simpleMakerConfiguration: viewModel.simpleMakerConfiguration,
-                            width: previewWidth,
-                            height: previewHeight
-                        )
-                        .frame(maxWidth: availableWidth, maxHeight: previewHeight)
-                        
-                        // Text input
-                        TextField("Enter overlay text", text: $viewModel.simpleMakerConfiguration.overlayText)
-                            .lineLimit(1)
-                            .truncationMode(.tail)
-                            .padding(8)
-                            .background(Color(uiColor: .systemGray5))
-                            .cornerRadius(8)
-                            .frame(height: viewModel.textFieldHeight)
-                            .focused($isFocused)
                             .padding(.horizontal, 20)
-                            .padding(.top, 16)
-                            .padding(.bottom, 300)
-                            .id(bottomID)
-                            .onChange(of: isFocused) { oldValue, newValue in
-                                withAnimation {
-                                    if newValue {
-                                        proxy.scrollTo(bottomID, anchor: .bottom)
-                                    } else {
-                                        proxy.scrollTo(topID, anchor: .top)
-                                    }
-                                }
-                            }
+                            .padding(.bottom, 20)
+                        }
+                        .padding(.bottom, 300) // Extra padding for keyboard
                     }
                     .frame(maxWidth: .infinity, alignment: .top)
                 }
-                .padding(.bottom, 8)
                 .scrollDismissesKeyboard(.immediately)
             }
             .onTapGesture {
