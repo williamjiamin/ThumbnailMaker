@@ -92,6 +92,15 @@ class PurchaseManager: ObservableObject {
         UserDefaults.standard.set(remainingFreeTries, forKey: "remainingFreeTries")
     }
     
+    func restorePurchases() async {
+        do {
+            try await AppStore.sync()
+            await updatePurchasedProducts()
+        } catch {
+            print("Failed to restore purchases:", error)
+        }
+    }
+    
     #if targetEnvironment(simulator)
     var canAccessPremium: Bool {
         true // Always allow access in simulator

@@ -12,9 +12,7 @@ struct SettingsView: View {
     @StateObject private var purchaseManager = PurchaseManager.shared
     @Environment(\.openURL) private var openURL
     
-    // Use your actual website URLs
-    private let termsURL = URL(string: "https://learn-it-free.com/terms-of-service-for-simple-thumbnail-maker/")!
-    private let privacyURL = URL(string: "https://learn-it-free.com/privacy-policy-for-simple-thumbnail-maker/")!
+   
     
     var body: some View {
         NavigationView {
@@ -48,8 +46,8 @@ struct SettingsView: View {
                 }
                 
                 Section(header: Text("Premium Status")) {
-                    if purchaseManager.purchasedProductIDs.isEmpty {
-                        VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        if purchaseManager.purchasedProductIDs.isEmpty {
                             Text("Free Version")
                                 .foregroundColor(.secondary)
                             if purchaseManager.remainingFreeTries > 0 {
@@ -71,10 +69,21 @@ struct SettingsView: View {
                                 }
                                 .padding(.top, 4)
                             }
+                        } else {
+                            Text("Premium Version")
+                                .foregroundColor(.green)
                         }
-                    } else {
-                        Text("Premium Version")
-                            .foregroundColor(.green)
+                        
+                        // Restore button always visible
+                        Button(action: {
+                            Task {
+                                await purchaseManager.restorePurchases()
+                            }
+                        }) {
+                            Text("Restore Purchases")
+                                .foregroundColor(.blue)
+                        }
+                        .padding(.top, 4)
                     }
                 }
                 
