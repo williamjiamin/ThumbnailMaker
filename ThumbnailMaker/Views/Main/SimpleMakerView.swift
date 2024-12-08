@@ -14,6 +14,7 @@ struct SimpleMakerView: View {
     @State private var isSettingsPresented: Bool = false
     @Namespace private var bottomID
     @Namespace private var topID
+    @State private var keyboardHeight: CGFloat = 0
     
     var body: some View {
         NavigationView {
@@ -118,7 +119,7 @@ struct SimpleMakerView: View {
                     }
                     .padding(.vertical, 16)
                     .padding(.horizontal, 20)
-                    .padding(.bottom, 300)
+                    .padding(.bottom, keyboardHeight)
                 }
                 .frame(maxWidth: .infinity, alignment: .top)
             }
@@ -135,6 +136,25 @@ struct SimpleMakerView: View {
                     }) {
                         Image(systemName: "gearshape")
                     }
+                }
+            }
+            .onAppear {
+                NotificationCenter.default.addObserver(
+                    forName: UIResponder.keyboardWillShowNotification,
+                    object: nil,
+                    queue: .main
+                ) { notification in
+                    if let keyboardFrame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect {
+                        keyboardHeight = keyboardFrame.height
+                    }
+                }
+                
+                NotificationCenter.default.addObserver(
+                    forName: UIResponder.keyboardWillHideNotification,
+                    object: nil,
+                    queue: .main
+                ) { _ in
+                    keyboardHeight = 0
                 }
             }
         }
