@@ -22,7 +22,7 @@ struct SettingsView: View {
                         Text("Simple Thumbnail Maker")
                             .font(.headline)
                         
-                        Text("Version 1.0.0")
+                        Text("Version 1.0.2")
                             .foregroundColor(.secondary)
                         
                         Text("Created by a content creator for content creators")
