@@ -19,6 +19,8 @@ struct PremiumMakerView: View {
     @State private var showingToast = false
     @State private var toastMessage = ""
     @State private var showingMacroSettings = false
+    @State private var purchaseMessage: String?
+    @State private var showingPurchaseMessage = false
     
     var body: some View {
         Group {
@@ -57,27 +59,57 @@ struct PremiumMakerView: View {
             }
             .padding(.horizontal, 32)
             
-            if let product = purchaseManager.products.first {
+            // Purchase and Restore Buttons
+            VStack(spacing: 12) {
+                if let product = purchaseManager.products.first {
+                    Button(action: {
+                        Task {
+                            try? await purchaseManager.purchase()
+                        }
+                    }) {
+                        Text("Upgrade to Premium (\(product.displayPrice))")
+                            .bold()
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(
+                                LinearGradient(colors: [.blue, .purple],
+                                             startPoint: .leading,
+                                             endPoint: .trailing)
+                            )
+                            .cornerRadius(16)
+                    }
+                }
+                
                 Button(action: {
                     Task {
-                        try? await purchaseManager.purchase()
+                        await purchaseManager.restorePurchases()
                     }
                 }) {
-                    Text("Upgrade to Premium (\(product.displayPrice))")
-                        .bold()
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(
-                            LinearGradient(colors: [.blue, .purple],
-                                         startPoint: .leading,
-                                         endPoint: .trailing)
-                        )
-                        .cornerRadius(16)
+                    HStack {
+                        if purchaseManager.isRestoringPurchases {
+                            ProgressView()
+                                .tint(.secondary)
+                        } else {
+                            Image(systemName: "arrow.clockwise")
+                            Text("Restore Purchases")
+                        }
+                    }
+                    .foregroundColor(.secondary)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
                 }
-                .padding(.horizontal, 32)
-                .padding(.top, 24)
+                .disabled(purchaseManager.isRestoringPurchases)
             }
+            .padding(.horizontal, 32)
+            .padding(.top, 24)
+            
+            Spacer()
+        }
+        .alert("Purchase Status", isPresented: $showingPurchaseMessage, presenting: purchaseMessage) { message in
+            Button("OK", role: .cancel) { }
+        } message: { message in
+            Text(message)
         }
     }
     
