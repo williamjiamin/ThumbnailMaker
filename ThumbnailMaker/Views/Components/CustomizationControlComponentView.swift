@@ -55,48 +55,6 @@ struct CustomizationControlComponentView: View {
                 .padding(.trailing)
             }
             .padding(.vertical, 8)
-            
-            Divider()
-                .padding(.vertical, 2)
-            
-            // Customize Appearance Section
-            VStack(spacing: 8) {
-                Text("Customize Appearance")
-                    .font(.headline)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal)
-                
-                HStack(spacing: 20) {
-                    // Text color picker
-                    VStack(alignment: .center, spacing: 4) {
-                        Text("Text Color")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                        ColorPicker("", selection: $configuration.textColor)
-                            .labelsHidden()
-                    }
-                    .frame(width: 100, alignment: .center)
-                    
-                    // Text size slider
-                    VStack(alignment: .center, spacing: 4) {
-                        Text("Text Size")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                        Slider(value: $configuration.textSize, in: 0.1...0.3)
-                            .frame(width: 100)
-                            .tint(.blue)
-                    }
-                }
-            }
-            
-            Divider()
-                .padding(.vertical, 2)
-            
-            // Text Position Section
-            TextPositionSelectorView(
-                verticalAlignment: $configuration.verticalAlignment,
-                horizontalAlignment: $configuration.horizontalAlignment
-            )
         }
         .background(Color(uiColor: .secondarySystemBackground))
         .cornerRadius(12)
