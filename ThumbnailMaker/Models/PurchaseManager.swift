@@ -8,6 +8,7 @@ class PurchaseManager: ObservableObject {
     @Published private(set) var purchasedProductIDs = Set<String>()
     @Published var remainingFreeTries: Int
     @Published private(set) var hasUsedFreeTrial: Bool
+    @Published private(set) var isRestoringPurchases = false
     
     private let maxFreeTries = 3
     private let productIDs = ["com.williamjiamin.ThumbnailMaker.premium"]
@@ -93,11 +94,33 @@ class PurchaseManager: ObservableObject {
     }
     
     func restorePurchases() async {
+        await MainActor.run {
+            isRestoringPurchases = true
+        }
+        
         do {
             try await AppStore.sync()
             await updatePurchasedProducts()
+            
+            await MainActor.run {
+                isRestoringPurchases = false
+                // Show success message
+                NotificationCenter.default.post(
+                    name: NSNotification.Name("ShowPurchaseMessage"),
+                    object: nil,
+                    userInfo: ["message": "Purchases restored successfully"]
+                )
+            }
         } catch {
-            print("Failed to restore purchases:", error)
+            await MainActor.run {
+                isRestoringPurchases = false
+                // Show error message
+                NotificationCenter.default.post(
+                    name: NSNotification.Name("ShowPurchaseMessage"),
+                    object: nil,
+                    userInfo: ["message": "Failed to restore purchases. Please try again."]
+                )
+            }
         }
     }
     

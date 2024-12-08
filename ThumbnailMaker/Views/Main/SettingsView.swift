@@ -11,8 +11,8 @@ struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var purchaseManager = PurchaseManager.shared
     @Environment(\.openURL) private var openURL
-    
-   
+    @State private var purchaseMessage: String?
+    @State private var showingPurchaseMessage = false
     
     var body: some View {
         NavigationView {
@@ -117,8 +117,13 @@ struct SettingsView: View {
                                 }
                             }) {
                                 HStack {
-                                    Image(systemName: "arrow.clockwise")
-                                    Text("Restore Purchases")
+                                    if purchaseManager.isRestoringPurchases {
+                                        ProgressView()
+                                            .tint(.blue)
+                                    } else {
+                                        Image(systemName: "arrow.clockwise")
+                                        Text("Restore Purchases")
+                                    }
                                 }
                                 .foregroundColor(.blue)
                                 .frame(maxWidth: .infinity, alignment: .center)
@@ -129,6 +134,7 @@ struct SettingsView: View {
                                 )
                             }
                             .buttonStyle(PlainButtonStyle())
+                            .disabled(purchaseManager.isRestoringPurchases)
                         }
                     }
                     .padding(.vertical, 4)
@@ -152,6 +158,17 @@ struct SettingsView: View {
                         dismiss()
                     }
                 }
+            }
+            .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("ShowPurchaseMessage"))) { notification in
+                if let message = notification.userInfo?["message"] as? String {
+                    purchaseMessage = message
+                    showingPurchaseMessage = true
+                }
+            }
+            .alert("Purchase Status", isPresented: $showingPurchaseMessage, presenting: purchaseMessage) { message in
+                Button("OK", role: .cancel) { }
+            } message: { message in
+                Text(message)
             }
         }
     }
