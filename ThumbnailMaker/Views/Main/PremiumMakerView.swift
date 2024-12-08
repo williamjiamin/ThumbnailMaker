@@ -13,14 +13,14 @@ struct PremiumMakerView: View {
     @StateObject private var purchaseManager = PurchaseManager.shared
     @FocusState private var focusedField: TextFieldFocus?
     @State private var isSettingsPresented: Bool = false
+    @State private var showingPurchaseMessage = false
+    @State private var purchaseMessage: String?
     @Namespace private var bottomID
     @Namespace private var topID
     @State private var showingPurchaseAlert = false
     @State private var showingToast = false
     @State private var toastMessage = ""
     @State private var showingMacroSettings = false
-    @State private var purchaseMessage: String?
-    @State private var showingPurchaseMessage = false
     
     var body: some View {
         Group {
@@ -33,34 +33,43 @@ struct PremiumMakerView: View {
     }
     
     private var purchasePromptView: some View {
-        VStack(spacing: 24) {
-            // Premium Header
-            VStack(spacing: 12) {
-                Image(systemName: "star.circle.fill")
-                    .font(.system(size: 60))
-                    .foregroundStyle(.linearGradient(colors: [.blue, .purple], startPoint: .topLeading, endPoint: .bottomTrailing))
-                
-                Text("Premium Maker")
-                    .font(.title)
-                    .bold()
-                
-                Text("Create Professional Thumbnails")
-                    .font(.title3)
-                    .foregroundColor(.secondary)
+        VStack {
+            ScrollView {
+                VStack(spacing: 32) {
+                    // Premium Header
+                    VStack(spacing: 12) {
+                        Image(systemName: "star.circle.fill")
+                            .font(.system(size: 60))
+                            .foregroundStyle(.linearGradient(colors: [.blue, .purple], 
+                                                           startPoint: .topLeading, 
+                                                           endPoint: .bottomTrailing))
+                        
+                        Text("Premium Maker")
+                            .font(.title)
+                            .bold()
+                        
+                        Text("Create Professional Thumbnails")
+                            .font(.title3)
+                            .foregroundColor(.secondary)
+                    }
+                    .padding(.top, 60)
+                    
+                    // Feature List
+                    VStack(alignment: .leading, spacing: 16) {
+                        premiumFeatureRow(icon: "photo.circle", text: "Profile Image Overlay")
+                        premiumFeatureRow(icon: "rectangle.stack", text: "Batch Generation")
+                        premiumFeatureRow(icon: "slider.horizontal.3", text: "Advanced Controls")
+                        premiumFeatureRow(icon: "square.and.arrow.down", text: "Unlimited Exports")
+                    }
+                    .padding(.horizontal, 32)
+                    
+                    Spacer()
+                        .frame(height: 20)
+                }
             }
-            .padding(.top, 40)
             
-            // Feature List
-            VStack(alignment: .leading, spacing: 16) {
-                premiumFeatureRow(icon: "photo.circle", text: "Profile Image Overlay")
-                premiumFeatureRow(icon: "rectangle.stack", text: "Batch Generation")
-                premiumFeatureRow(icon: "slider.horizontal.3", text: "Advanced Controls")
-                premiumFeatureRow(icon: "square.and.arrow.down", text: "Unlimited Exports")
-            }
-            .padding(.horizontal, 32)
-            
-            // Purchase and Restore Buttons
-            VStack(spacing: 12) {
+            // Purchase and Restore Buttons in a footer
+            VStack(spacing: 16) {
                 if let product = purchaseManager.products.first {
                     Button(action: {
                         Task {
@@ -89,27 +98,34 @@ struct PremiumMakerView: View {
                     HStack {
                         if purchaseManager.isRestoringPurchases {
                             ProgressView()
-                                .tint(.secondary)
+                                .tint(.blue)
                         } else {
-                            Image(systemName: "arrow.clockwise")
-                            Text("Restore Purchases")
+                            Text("Already purchased? Restore")
+                                .font(.subheadline)
                         }
                     }
-                    .foregroundColor(.secondary)
-                    .frame(maxWidth: .infinity)
+                    .foregroundColor(.blue)
                     .padding(.vertical, 12)
                 }
                 .disabled(purchaseManager.isRestoringPurchases)
             }
             .padding(.horizontal, 32)
-            .padding(.top, 24)
-            
-            Spacer()
+            .padding(.bottom, 32)
+            .background(
+                Color(uiColor: .systemBackground)
+                    .shadow(color: .black.opacity(0.05), radius: 8, y: -4)
+            )
         }
         .alert("Purchase Status", isPresented: $showingPurchaseMessage, presenting: purchaseMessage) { message in
             Button("OK", role: .cancel) { }
         } message: { message in
             Text(message)
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("ShowPurchaseMessage"))) { notification in
+            if let message = notification.userInfo?["message"] as? String {
+                purchaseMessage = message
+                showingPurchaseMessage = true
+            }
         }
     }
     
