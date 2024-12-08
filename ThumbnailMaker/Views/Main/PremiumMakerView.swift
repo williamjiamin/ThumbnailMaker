@@ -38,7 +38,7 @@ struct PremiumMakerView: View {
                     .font(.system(size: 60))
                     .foregroundStyle(.linearGradient(colors: [.blue, .purple], startPoint: .topLeading, endPoint: .bottomTrailing))
                 
-                Text("Premium Studio")
+                Text("Premium Maker")
                     .font(.title)
                     .bold()
                 
@@ -50,10 +50,10 @@ struct PremiumMakerView: View {
             
             // Feature List
             VStack(alignment: .leading, spacing: 16) {
-                premiumFeatureRow(icon: "sparkles", text: "Professional Templates")
-                premiumFeatureRow(icon: "person.crop.circle", text: "Profile Image Overlay")
+                premiumFeatureRow(icon: "photo.circle", text: "Profile Image Overlay")
                 premiumFeatureRow(icon: "rectangle.stack", text: "Batch Generation")
                 premiumFeatureRow(icon: "slider.horizontal.3", text: "Advanced Controls")
+                premiumFeatureRow(icon: "square.and.arrow.down", text: "Unlimited Exports")
             }
             .padding(.horizontal, 32)
             
