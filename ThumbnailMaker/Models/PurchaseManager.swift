@@ -11,7 +11,7 @@ class PurchaseManager: ObservableObject {
     @Published private(set) var isRestoringPurchases = false
     
     private let maxFreeTries = 3
-    private let productIDs = ["com.williamjiamin.ThumbnailMaker.premiumupgrade"]
+    private let productIDs = ["com.williamjiamin.ThumbnailMaker.premium2024"]
     private var productsLoaded = false
     
     private init() {

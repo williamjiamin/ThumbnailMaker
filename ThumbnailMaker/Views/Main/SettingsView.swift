@@ -44,8 +44,8 @@ struct SettingsView: View {
                 }
                 
                 Section(header: Text("Premium Status")) {
-                    VStack(alignment: .leading, spacing: 12) {
-                        // Status Information Group
+                    VStack(alignment: .leading, spacing: 16) {
+                        // Current Status Group
                         VStack(alignment: .leading, spacing: 8) {
                             if purchaseManager.purchasedProductIDs.isEmpty {
                                 HStack {
@@ -57,14 +57,19 @@ struct SettingsView: View {
                                 
                                 if purchaseManager.remainingFreeTries > 0 {
                                     HStack {
-                                        Image(systemName: "gift")
-                                            .foregroundColor(.secondary)
-                                        Text("\(purchaseManager.remainingFreeTries) free premium tries remaining")
-                                            .foregroundColor(.secondary)
+                                        Image(systemName: "gift.fill")
+                                            .foregroundColor(.blue)
+                                        Text("\(purchaseManager.remainingFreeTries) Premium Tries Available")
+                                            .fontWeight(.medium)
+                                            .foregroundColor(.blue)
                                     }
+                                    .padding(.vertical, 4)
+                                    .padding(.horizontal, 8)
+                                    .background(Color.blue.opacity(0.1))
+                                    .cornerRadius(6)
                                 } else {
                                     HStack {
-                                        Image(systemName: "xmark.circle")
+                                        Image(systemName: "gift")
                                             .foregroundColor(.secondary)
                                         Text("No free tries remaining")
                                             .foregroundColor(.secondary)
@@ -74,20 +79,24 @@ struct SettingsView: View {
                                 HStack {
                                     Image(systemName: "checkmark.circle.fill")
                                         .foregroundColor(.green)
-                                    Text("Premium Version")
+                                    Text("Premium Version Active")
                                         .foregroundColor(.green)
                                 }
                             }
                         }
-                        .padding(.vertical, 4)
                         
-                        // Divider between info and actions
-                        Divider()
-                            .padding(.vertical, 4)
+                        // Apple ID Info - Simplified
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Premium is linked to your Apple ID")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                            Text("Use 'Restore Purchases' when switching devices")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
                         
                         // Action Buttons Group
-                        VStack(alignment: .leading, spacing: 12) {
-                            // Upgrade button - show only if not premium
+                        VStack(spacing: 12) {
                             if purchaseManager.purchasedProductIDs.isEmpty,
                                let product = purchaseManager.products.first {
                                 Button(action: {
@@ -108,7 +117,7 @@ struct SettingsView: View {
                                 .buttonStyle(PlainButtonStyle())
                             }
                             
-                            // Restore button - always show
+                            // Restore button
                             Button(action: {
                                 Task {
                                     await purchaseManager.restorePurchases()
