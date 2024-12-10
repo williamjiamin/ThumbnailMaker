@@ -21,9 +21,7 @@ struct SettingsView: View {
                     VStack(alignment: .leading, spacing: 12) {
                         Text("Simple Thumbnail Maker")
                             .font(.headline)
-                        
-                        Text("Version 1.0.2")
-                            .foregroundColor(.secondary)
+                    
                         
                         Text("Created by a content creator for content creators")
                             .font(.subheadline)
