@@ -124,13 +124,7 @@ class PurchaseManager: ObservableObject {
         }
     }
     
-    #if targetEnvironment(simulator)
-    var canAccessPremium: Bool {
-        true // Always allow access in simulator
-    }
-    #else
     var canAccessPremium: Bool {
         !purchasedProductIDs.isEmpty || remainingFreeTries > 0
     }
-    #endif
 } 
