@@ -9,12 +9,15 @@ class PurchaseManager: ObservableObject {
     @Published var remainingFreeTries: Int
     @Published private(set) var hasUsedFreeTrial: Bool
     @Published private(set) var isRestoringPurchases = false
+    @Published private(set) var verificationInProgress = false
     
     private let maxFreeTries = 3
-    private let productIDs = ["com.williamjiamin.ThumbnailMaker.premium2024"]
+    private let productIDs = ["com.williamjiamin.ThumbnailMaker.premiumlifetime"]
     private var productsLoaded = false
     
     private var verificationResult: VerificationResult<Transaction>?
+    private var lastVerificationDate: Date?
+    private let verificationInterval: TimeInterval = 3600 // 1 hour
     
     private init() {
         // Load saved remaining tries
@@ -147,14 +150,58 @@ class PurchaseManager: ObservableObject {
     }
     
     var canAccessPremium: Bool {
-        // More secure premium access check
-        if !purchasedProductIDs.isEmpty {
-            return true
+        // Always verify if enough time has passed
+        if let lastVerification = lastVerificationDate,
+           Date().timeIntervalSince(lastVerification) > verificationInterval {
+            Task {
+                await verifyPurchases()
+            }
         }
-        if remainingFreeTries > 0 {
-            return true
+        
+        if verificationInProgress {
+            return false
         }
-        return false
+        
+        // Check for either purchased products or remaining free trials
+        return !purchasedProductIDs.isEmpty || remainingFreeTries > 0
+    }
+    
+    func verifyPurchases() async {
+        guard !verificationInProgress else { return }
+        
+        await MainActor.run {
+            verificationInProgress = true
+        }
+        
+        do {
+            try await verifyReceipt()
+        } catch {
+            await MainActor.run {
+                verificationInProgress = false
+            }
+        }
+    }
+    
+    private func verifyReceipt() async throws {
+        // Verify with App Store
+        try await AppStore.sync()
+        
+        var verifiedProducts = Set<String>()
+        for await result in Transaction.currentEntitlements {
+            if case .verified(let transaction) = result {
+                // Only accept non-revoked, valid transactions
+                if transaction.revocationDate == nil && 
+                   transaction.revocationReason == nil {
+                    verifiedProducts.insert(transaction.productID)
+                }
+            }
+        }
+        
+        await MainActor.run {
+            purchasedProductIDs = verifiedProducts
+            lastVerificationDate = Date()
+            verificationInProgress = false
+        }
     }
 }
 
