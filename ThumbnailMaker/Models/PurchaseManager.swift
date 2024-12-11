@@ -14,6 +14,8 @@ class PurchaseManager: ObservableObject {
     private let productIDs = ["com.williamjiamin.ThumbnailMaker.premium2024"]
     private var productsLoaded = false
     
+    private var verificationResult: VerificationResult<Transaction>?
+    
     private init() {
         // Load saved remaining tries
         remainingFreeTries = UserDefaults.standard.integer(forKey: "remainingFreeTries")
@@ -59,38 +61,58 @@ class PurchaseManager: ObservableObject {
     }
     
     private func handleTransactionResult(_ result: VerificationResult<Transaction>) async {
+        // Store verification result
+        verificationResult = result
+        
         guard case .verified(let transaction) = result else {
+            // Invalid transaction, remove access
+            await MainActor.run {
+                purchasedProductIDs.removeAll()
+            }
             return
         }
         
-        if transaction.revocationDate == nil {
-            purchasedProductIDs.insert(transaction.productID)
-        } else {
-            purchasedProductIDs.remove(transaction.productID)
+        await MainActor.run {
+            if transaction.revocationDate == nil {
+                purchasedProductIDs.insert(transaction.productID)
+            } else {
+                purchasedProductIDs.remove(transaction.productID)
+            }
         }
+        
+        // Always finish the transaction
+        await transaction.finish()
     }
     
     func purchase() async throws {
-        guard let product = products.first else { return }
+        guard let product = products.first else {
+            throw PurchaseError.productNotFound
+        }
         
+        // Start transaction
         let result = try await product.purchase()
         
         switch result {
         case .success(let verification):
             await handleTransactionResult(verification)
         case .userCancelled:
-            break
+            throw PurchaseError.userCancelled
         case .pending:
-            break
+            throw PurchaseError.pending
         @unknown default:
-            break
+            throw PurchaseError.unknown
         }
     }
     
     func useFreeTrial() {
         guard remainingFreeTries > 0 else { return }
+        
         remainingFreeTries -= 1
         UserDefaults.standard.set(remainingFreeTries, forKey: "remainingFreeTries")
+        UserDefaults.standard.set(true, forKey: "hasUsedFreeTrial")
+        
+        // Synchronize to ensure the value is saved immediately
+        UserDefaults.standard.synchronize()
     }
     
     func restorePurchases() async {
@@ -125,6 +147,20 @@ class PurchaseManager: ObservableObject {
     }
     
     var canAccessPremium: Bool {
-        !purchasedProductIDs.isEmpty || remainingFreeTries > 0
+        // More secure premium access check
+        if !purchasedProductIDs.isEmpty {
+            return true
+        }
+        if remainingFreeTries > 0 {
+            return true
+        }
+        return false
     }
+}
+
+enum PurchaseError: Error {
+    case productNotFound
+    case userCancelled
+    case pending
+    case unknown
 } 
