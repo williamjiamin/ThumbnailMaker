@@ -281,8 +281,11 @@ struct PremiumMakerView: View {
             }
         }
         .sheet(isPresented: $showingYouTubeInput) {
-            YouTubeURLInputView { image in
+            YouTubeURLInputView { image, title in
                 viewModel.premiumMakerConfiguration.selectedImage = image
+                if !title.isEmpty {
+                    viewModel.premiumMakerConfiguration.overlayText = title
+                }
             }
         }
         .onChange(of: viewModel.imageSelection) { oldValue, newValue in

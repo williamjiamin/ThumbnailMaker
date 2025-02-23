@@ -5,57 +5,156 @@ struct YouTubeURLInputView: View {
     @State private var youtubeURL = ""
     @State private var isLoading = false
     @State private var errorMessage: String?
-    let onImageSelected: (UIImage) -> Void
+    @State private var videoInfo: YouTubeVideoInfo?
+    let onSelection: (UIImage, String) -> Void
     
     var body: some View {
         NavigationView {
-            VStack(spacing: 20) {
-                // YouTube URL Input
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Enter YouTube Video URL")
-                        .font(.headline)
-                    
-                    TextField("https://youtube.com/watch?v=...", text: $youtubeURL)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                        .autocapitalization(.none)
-                        .disableAutocorrection(true)
-                        .textContentType(.URL)
-                }
-                .padding(.horizontal)
-                
-                // Use Button
-                Button(action: {
-                    Task {
-                        await fetchThumbnail()
-                    }
-                }) {
-                    HStack {
-                        if isLoading {
-                            ProgressView()
-                                .tint(.white)
+            ScrollView {
+                VStack(spacing: 24) {
+                    // Guide Section
+                    VStack(spacing: 16) {
+                        Text("How to Import from YouTube")
+                            .font(.headline)
+                        
+                        VStack(alignment: .leading, spacing: 12) {
+                            guideRow(number: "1", text: "Copy a YouTube video URL")
+                            guideRow(number: "2", text: "Paste the URL below")
+                            guideRow(number: "3", text: "Tap 'Fetch Video Info'")
+                            guideRow(number: "4", text: "Choose how to use the content")
                         }
-                        Text("Use Thumbnail")
+                        .padding()
+                        .background(Color.blue.opacity(0.1))
+                        .cornerRadius(12)
                     }
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(youtubeURL.isEmpty ? Color.gray : Color.blue)
-                    .foregroundColor(.white)
-                    .cornerRadius(10)
-                }
-                .disabled(youtubeURL.isEmpty || isLoading)
-                .padding(.horizontal)
-                
-                if let errorMessage = errorMessage {
-                    Text(errorMessage)
-                        .foregroundColor(.red)
-                        .font(.caption)
+                    .padding(.horizontal)
+                    
+                    // URL Input Section
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Enter YouTube Video URL")
+                            .font(.headline)
+                        
+                        TextField("https://youtube.com/watch?v=...", text: $youtubeURL)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .autocapitalization(.none)
+                            .disableAutocorrection(true)
+                            .textContentType(.URL)
+                    }
+                    .padding(.horizontal)
+                    
+                    // Preview Section
+                    if let videoInfo = videoInfo {
+                        VStack(spacing: 16) {
+                            Text("Preview")
+                                .font(.headline)
+                            
+                            videoInfo.thumbnail
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(maxHeight: 200)
+                                .cornerRadius(8)
+                            
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("Title:")
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                                
+                                Text(videoInfo.title)
+                                    .font(.body)
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding()
+                            .background(Color.gray.opacity(0.1))
+                            .cornerRadius(8)
+                            
+                            // Action Buttons
+                            VStack(spacing: 12) {
+                                Button(action: {
+                                    if let uiImage = videoInfo.thumbnail.asUIImage() {
+                                        onSelection(uiImage, "")
+                                        dismiss()
+                                    }
+                                }) {
+                                    Label("Use Thumbnail Only", systemImage: "photo")
+                                        .frame(maxWidth: .infinity)
+                                        .padding()
+                                        .background(Color.blue)
+                                        .foregroundColor(.white)
+                                        .cornerRadius(10)
+                                }
+                                
+                                Button(action: {
+                                    if let uiImage = videoInfo.thumbnail.asUIImage() {
+                                        onSelection(uiImage, videoInfo.title)
+                                        dismiss()
+                                    }
+                                }) {
+                                    Label("Use Title Only", systemImage: "text.alignleft")
+                                        .frame(maxWidth: .infinity)
+                                        .padding()
+                                        .background(Color.blue)
+                                        .foregroundColor(.white)
+                                        .cornerRadius(10)
+                                }
+                                
+                                Button(action: {
+                                    if let uiImage = videoInfo.thumbnail.asUIImage() {
+                                        onSelection(uiImage, videoInfo.title)
+                                        dismiss()
+                                    }
+                                }) {
+                                    Label("Use Both", systemImage: "text.below.photo")
+                                        .frame(maxWidth: .infinity)
+                                        .padding()
+                                        .background(Color.blue)
+                                        .foregroundColor(.white)
+                                        .cornerRadius(10)
+                                }
+                            }
+                            .padding(.horizontal)
+                        }
+                        .padding()
+                        .background(Color.gray.opacity(0.05))
+                        .cornerRadius(12)
+                        .padding()
+                    }
+                    
+                    // Fetch Button
+                    if videoInfo == nil {
+                        Button(action: {
+                            Task {
+                                await fetchVideoInfo()
+                            }
+                        }) {
+                            HStack {
+                                if isLoading {
+                                    ProgressView()
+                                        .tint(.white)
+                                }
+                                Text("Fetch Video Info")
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(youtubeURL.isEmpty ? Color.gray : Color.blue)
+                            .foregroundColor(.white)
+                            .cornerRadius(10)
+                        }
+                        .disabled(youtubeURL.isEmpty || isLoading)
                         .padding(.horizontal)
+                    }
+                    
+                    if let errorMessage = errorMessage {
+                        Text(errorMessage)
+                            .foregroundColor(.red)
+                            .font(.caption)
+                            .padding(.horizontal)
+                    }
+                    
+                    Spacer()
                 }
-                
-                Spacer()
+                .padding(.top)
             }
-            .padding(.top)
-            .navigationTitle("YouTube Thumbnail")
+            .navigationTitle("YouTube Import")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
@@ -67,24 +166,35 @@ struct YouTubeURLInputView: View {
         }
     }
     
-    private func fetchThumbnail() async {
+    private func guideRow(number: String, text: String) -> some View {
+        HStack(spacing: 12) {
+            Text(number)
+                .font(.headline)
+                .foregroundColor(.blue)
+                .frame(width: 24, height: 24)
+                .background(Circle().stroke(Color.blue, lineWidth: 2))
+            
+            Text(text)
+                .font(.subheadline)
+            
+            Spacer()
+        }
+    }
+    
+    private func fetchVideoInfo() async {
         isLoading = true
         errorMessage = nil
         
         do {
-            let image = try await YouTubeService.fetchThumbnail(videoURL: youtubeURL)
-            if let uiImage = image.asUIImage() {
-                onImageSelected(uiImage)
-                dismiss()
-            } else {
-                errorMessage = "Failed to process thumbnail"
-            }
+            videoInfo = try await YouTubeService.fetchVideoInfo(videoURL: youtubeURL)
         } catch YouTubeError.invalidVideoID {
             errorMessage = "Invalid YouTube URL"
         } catch YouTubeError.noThumbnailFound {
             errorMessage = "Could not find thumbnail"
+        } catch YouTubeError.noTitleFound {
+            errorMessage = "Could not fetch video title"
         } catch {
-            errorMessage = "Failed to fetch thumbnail"
+            errorMessage = "Failed to fetch video info"
         }
         
         isLoading = false

@@ -1,11 +1,17 @@
 import Foundation
 import SwiftUI
 
+struct YouTubeVideoInfo {
+    let thumbnail: Image
+    let title: String
+}
+
 enum YouTubeError: Error {
     case invalidURL
     case invalidVideoID
     case networkError(Error)
     case noThumbnailFound
+    case noTitleFound
 }
 
 class YouTubeService {
@@ -21,7 +27,7 @@ class YouTubeService {
         return nil
     }
     
-    static func fetchThumbnail(videoURL: String) async throws -> Image {
+    static func fetchVideoInfo(videoURL: String) async throws -> YouTubeVideoInfo {
         guard let videoID = extractVideoID(from: videoURL) else {
             throw YouTubeError.invalidVideoID
         }
@@ -42,17 +48,24 @@ class YouTubeService {
             throw YouTubeError.noThumbnailFound
         }
         
+        guard let title = response.items.first?.snippet.title else {
+            throw YouTubeError.noTitleFound
+        }
+        
         let (imageData, _) = try await URLSession.shared.data(from: url)
         
         guard let uiImage = UIImage(data: imageData) else {
             throw YouTubeError.noThumbnailFound
         }
         
-        return Image(uiImage: uiImage)
+        return YouTubeVideoInfo(
+            thumbnail: Image(uiImage: uiImage),
+            title: title
+        )
     }
 }
 
-// Response models
+// Update Response models
 struct YouTubeResponse: Codable {
     let items: [VideoItem]
 }
@@ -62,6 +75,7 @@ struct VideoItem: Codable {
 }
 
 struct VideoSnippet: Codable {
+    let title: String
     let thumbnails: ThumbnailCollection
 }
 
