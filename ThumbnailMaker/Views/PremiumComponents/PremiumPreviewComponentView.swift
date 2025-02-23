@@ -54,7 +54,7 @@ struct PremiumPreviewComponentView: View {
             Text(premiumMakerConfiguration.overlayText)
                 .font(.system(size: max(1, height * premiumMakerConfiguration.textSize), weight: .bold))
                 .foregroundColor(premiumMakerConfiguration.textColor)
-                .lineLimit(1)
+                .lineLimit(3)
                 .truncationMode(.tail)
                 .shadow(color: .black, radius: 3, x: 1, y: 1)
                 .multilineTextAlignment(premiumMakerConfiguration.horizontalAlignment == .center ? .center :

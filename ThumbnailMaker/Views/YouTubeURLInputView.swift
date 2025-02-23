@@ -61,6 +61,8 @@ struct YouTubeURLInputView: View {
                                 
                                 Text(videoInfo.title)
                                     .font(.body)
+                                    .lineLimit(3)
+                                    .fixedSize(horizontal: false, vertical: true)
                             }
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .padding()
@@ -85,7 +87,11 @@ struct YouTubeURLInputView: View {
                                 
                                 Button(action: {
                                     if let uiImage = videoInfo.thumbnail.asUIImage() {
-                                        onSelection(uiImage, videoInfo.title)
+                                        // Format title for better display
+                                        let formattedTitle = videoInfo.title
+                                            .replacingOccurrences(of: " - YouTube", with: "")
+                                            .trimmingCharacters(in: .whitespacesAndNewlines)
+                                        onSelection(uiImage, formattedTitle)
                                         dismiss()
                                     }
                                 }) {
