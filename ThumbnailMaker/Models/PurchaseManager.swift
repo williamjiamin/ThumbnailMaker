@@ -12,7 +12,7 @@ class PurchaseManager: ObservableObject {
     @Published private(set) var verificationInProgress = false
     
     private let maxFreeTries = 3
-    private let productIDs = ["com.williamjiamin.ThumbnailMaker.premiumlifetime"]
+    private let productIDs = ["com.williamjiamin.ThumbnailMaker.premiumlifetime2024"]
     private var productsLoaded = false
     
     private var verificationResult: VerificationResult<Transaction>?
