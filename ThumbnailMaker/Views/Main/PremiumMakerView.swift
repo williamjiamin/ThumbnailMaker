@@ -21,6 +21,7 @@ struct PremiumMakerView: View {
     @State private var showingToast = false
     @State private var toastMessage = ""
     @State private var showingMacroSettings = false
+    @State private var showingYouTubeInput = false
     
     var body: some View {
         Group {
@@ -279,6 +280,11 @@ struct PremiumMakerView: View {
                 }
             }
         }
+        .sheet(isPresented: $showingYouTubeInput) {
+            YouTubeURLInputView { image in
+                viewModel.premiumMakerConfiguration.selectedImage = image
+            }
+        }
         .onChange(of: viewModel.imageSelection) { oldValue, newValue in
             Task {
                 await viewModel.updateImage()
@@ -317,11 +323,22 @@ struct PremiumMakerView: View {
     
     private var actionButtonsSection: some View {
         HStack(spacing: 12) {
-            PhotosPicker(selection: $viewModel.imageSelection,
-                       matching: .images) {
+            Menu {
+                Button(action: {
+                    viewModel.showPhotoPicker = true
+                }) {
+                    Label("Import from Library", systemImage: "photo.on.rectangle")
+                }
+                
+                Button(action: {
+                    showingYouTubeInput = true
+                }) {
+                    Label("Import from YouTube", systemImage: "play.rectangle.fill")
+                }
+            } label: {
                 HStack {
                     Image(systemName: "photo")
-                    Text("Image")
+                    Text("Select Image")
                 }
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
@@ -388,6 +405,9 @@ struct PremiumMakerView: View {
         }
         .padding(.vertical, 16)
         .padding(.horizontal, 20)
+        .photosPicker(isPresented: $viewModel.showPhotoPicker,
+                     selection: $viewModel.imageSelection,
+                     matching: .images)
     }
     
     private var batchSettingsSection: some View {

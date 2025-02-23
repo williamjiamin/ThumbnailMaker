@@ -23,6 +23,7 @@ class PremiumMakerViewModel: ObservableObject {
     @Published var currentBatchNumber: Int = 0
     @Published var isBatchGenerating = false
     private var shouldCancelBatch = false
+    @Published var showPhotoPicker = false
     
     // Add a constant for preview proportion
     let usableHeightProportion: CGFloat = 0.8  
