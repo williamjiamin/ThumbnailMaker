@@ -10,10 +10,26 @@
 	<string>This app needs access to save your created thumbnails to the Photos app.</string>
 	<key>UIAppFonts</key>
 	<array>
+		<string>Borel-Regular.ttf</string>
+		<string>CherryBombOne-Regular.ttf</string>
+		<string>DeliciousHandrawn-Regular.ttf</string>
+		<string>EastSeaDokdo-Regular.ttf</string>
 		<string>GoNotoCurrent-Regular.ttf</string>
-		<string>Roboto-Regular.ttf</string>
+		<string>HachiMaruPop-Regular.ttf</string>
+		<string>HennyPenny-Regular.ttf</string>
+		<string>Lato-Regular.ttf</string>
+		<string>LongCang-Regular.ttf</string>
+		<string>LXGWWenKaiMonoTC-Regular.ttf</string>
+		<string>MeowScript-Regular.ttf</string>
+		<string>Montserrat-Regular.ttf</string>
+		<string>MysteryQuest-Regular.ttf</string>
 		<string>OpenSans-Regular.ttf</string>
+		<string>Oswald-Regular.ttf</string>
+		<string>PixelifySans-VariableFont_wght.ttf</string>
 		<string>Poppins-Regular.ttf</string>
+		<string>Roboto-Regular.ttf</string>
+		<string>YujiBoku-Regular.ttf</string>
+		<string>ZhiMangXing-Regular.ttf</string>
 	</array>
 </dict>
 </plist>

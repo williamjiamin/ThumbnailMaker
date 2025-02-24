@@ -27,11 +27,11 @@ struct FontPickerView: View {
                         Image(systemName: "exclamationmark.triangle.fill")
                             .foregroundColor(.orange)
                             .font(.system(size: 12))
-                        Text("Some text using default font")
+                        Text("Using Go Noto for some text")
                             .font(.caption2)
                             .foregroundColor(.orange)
                     }
-                    .help("Some characters in your text cannot be displayed with this font and will use Go Noto instead")
+                    .help("Some characters in your text are using Go Noto font because the selected font doesn't support them")
                 }
                 
                 Image(systemName: "chevron.up.chevron.down")
@@ -104,15 +104,21 @@ struct FontRow: View {
         Button(action: {
             selectedFont = font
         }) {
-            HStack {
-                Text(previewText.isEmpty ? "Sample Text" : previewText)
-                    .font(.custom(font.rawValue, size: 17))
-                    .lineLimit(1)
-                Spacer()
-                if selectedFont == font {
-                    Image(systemName: "checkmark")
-                        .foregroundColor(.blue)
+            VStack(alignment: .leading, spacing: 4) {
+                HStack {
+                    Text(previewText.isEmpty ? "Sample Text" : previewText)
+                        .font(.custom(font.rawValue, size: 17))
+                        .lineLimit(1)
+                    Spacer()
+                    if selectedFont == font {
+                        Image(systemName: "checkmark")
+                            .foregroundColor(.blue)
+                    }
                 }
+                
+                Text(font.supportDescription)
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
             }
         }
         .foregroundColor(.primary)

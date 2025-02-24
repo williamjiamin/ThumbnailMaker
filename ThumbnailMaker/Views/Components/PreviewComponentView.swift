@@ -9,6 +9,7 @@ import SwiftUI
 
 struct PreviewComponentView: View {
     @Binding var simpleMakerConfiguration: SimpleMakerConfigurationModel
+    @Environment(\.colorScheme) private var colorScheme
     let width: CGFloat
     let height: CGFloat
     
@@ -20,12 +21,15 @@ struct PreviewComponentView: View {
     private var thumbnailContent: some View {
         ZStack {
             Rectangle()
-                .fill(simpleMakerConfiguration.backgroundColor)
+                .fill(simpleMakerConfiguration.backgroundColor == Color(uiColor: .secondarySystemBackground) 
+                    ? (colorScheme == .dark ? Color(uiColor: .secondarySystemBackground) : .white)
+                    : simpleMakerConfiguration.backgroundColor)
             
             if let image = simpleMakerConfiguration.selectedImage {
                 Image(uiImage: image)
                     .resizable()
                     .scaledToFit()
+                    .accessibilityLabel("Selected thumbnail image")
             } else {
                 VStack(spacing: 12) {
                     Image(systemName: "photo.fill")
@@ -37,6 +41,7 @@ struct PreviewComponentView: View {
                         .multilineTextAlignment(.center)
                 }
                 .padding()
+                .accessibilityLabel("Image selection placeholder")
             }
             
             textWithFont
@@ -46,20 +51,26 @@ struct PreviewComponentView: View {
     }
     
     private var textWithFont: some View {
-        let (font, needsFallback) = FontManager.shared.getFontForText(
-            simpleMakerConfiguration.overlayText,
-            selectedFont: simpleMakerConfiguration.selectedFont
+        let text = simpleMakerConfiguration.overlayText
+        let fontSize = max(1, height * simpleMakerConfiguration.textSize)
+        
+        let attributedText = FontManager.shared.getAttributedText(
+            text,
+            selectedFont: simpleMakerConfiguration.selectedFont,
+            size: fontSize,
+            color: simpleMakerConfiguration.textColor
         )
         
-        return Text(simpleMakerConfiguration.overlayText)
-            .font(.custom(
-                font.rawValue,
-                size: max(1, height * simpleMakerConfiguration.textSize)
-            ))
+        // Check if any character uses fallback font
+        let needsFallback = text.unicodeScalars.contains { scalar in
+            let script = FontManager.shared.getScript(for: scalar)
+            return !simpleMakerConfiguration.selectedFont.supportedScripts.contains(script)
+        }
+        
+        return Text(attributedText)
             .onChange(of: needsFallback) { oldValue, newValue in
                 simpleMakerConfiguration.usesFallbackFont = newValue
             }
-            .foregroundColor(simpleMakerConfiguration.textColor)
             .truncationMode(.tail)
             .shadow(color: .black, radius: 3, x: 1, y: 1)
             .multilineTextAlignment(simpleMakerConfiguration.horizontalAlignment == .center ? .center :
