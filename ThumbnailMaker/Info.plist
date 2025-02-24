@@ -8,5 +8,12 @@
 	<string>This app needs access to save created thumbnails and select images for editing.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>This app needs access to save your created thumbnails to the Photos app.</string>
+	<key>UIAppFonts</key>
+	<array>
+		<string>GoNotoCurrent-Regular.ttf</string>
+		<string>Roboto-Regular.ttf</string>
+		<string>OpenSans-Regular.ttf</string>
+		<string>Poppins-Regular.ttf</string>
+	</array>
 </dict>
 </plist>

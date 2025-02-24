@@ -10,9 +10,10 @@ import SwiftUI
 struct CustomizationControlComponentView: View {
     @Binding var configuration: SimpleMakerConfigurationModel
     @State private var showingRatioDrawer = false
+    let isPremium: Bool
     
     var body: some View {
-        VStack(spacing: 0) {
+        VStack(spacing: 16) {
             // Canvas Settings Section
             HStack(spacing: 0) {
                 // Left side - Aspect Ratio Button
@@ -73,5 +74,8 @@ struct CustomizationControlComponentView: View {
 }
 
 #Preview {
-    CustomizationControlComponentView(configuration: .constant(SimpleMakerConfigurationModel()))
+    CustomizationControlComponentView(
+        configuration: .constant(SimpleMakerConfigurationModel()),
+        isPremium: false
+    )
 }

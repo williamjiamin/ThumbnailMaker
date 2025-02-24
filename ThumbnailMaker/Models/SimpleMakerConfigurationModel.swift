@@ -17,5 +17,6 @@ struct SimpleMakerConfigurationModel {
     var textSize: CGFloat = 0.15
     var verticalAlignment: VerticalAlignment = .center
     var horizontalAlignment: HorizontalAlignment = .center
-
+    var selectedFont: CustomFont = .goNoto
+    var usesFallbackFont: Bool = false
 }

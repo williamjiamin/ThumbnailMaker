@@ -10,11 +10,11 @@ import PhotosUI
 
 struct SimpleMakerView: View {
     @StateObject private var viewModel = SimpleMakerViewModel()
+    @StateObject private var purchaseManager = PurchaseManager.shared
     @FocusState private var isFocused: Bool
     @State private var isSettingsPresented: Bool = false
     @Namespace private var bottomID
     @Namespace private var topID
-    @State private var keyboardHeight: CGFloat = 0
     
     var body: some View {
         NavigationView {
@@ -25,108 +25,121 @@ struct SimpleMakerView: View {
                 let previewWidth = previewHeight * viewModel.simpleMakerConfiguration.selectedRatio.value
                 
                 ScrollView {
-                    // 1. Preview Section at top
-                    PreviewComponentView(
-                        simpleMakerConfiguration: viewModel.simpleMakerConfiguration,
-                        width: previewWidth,
-                        height: previewHeight
-                    )
-                    .frame(maxWidth: availableWidth, maxHeight: previewHeight)
-                    .padding(.horizontal, 20)
-                    
-                    // 2. Text Input Field
-                    TextField("Enter overlay text", text: $viewModel.simpleMakerConfiguration.overlayText)
-                        .lineLimit(1)
-                        .truncationMode(.tail)
-                        .padding(10)
-                        .background(
-                            RoundedRectangle(cornerRadius: 8)
-                                .fill(Color(uiColor: .systemGray5))
+                    VStack {
+                        // 1. Preview Section at top
+                        PreviewComponentView(
+                            simpleMakerConfiguration: $viewModel.simpleMakerConfiguration,
+                            width: previewWidth,
+                            height: previewHeight
                         )
-                        .focused($isFocused)
+                        .frame(maxWidth: availableWidth, maxHeight: previewHeight)
                         .padding(.horizontal, 20)
-                        .padding(.top, 16)
-                    
-                    // 3. Core Controls Section
-                    VStack(spacing: 16) {
-                        // Canvas Settings
-                        CustomizationControlComponentView(configuration: $viewModel.simpleMakerConfiguration)
-                            .padding(.horizontal, 20)
                         
-                        // Text Position Controls
-                        TextPositionControlView(
-                            verticalAlignment: $viewModel.simpleMakerConfiguration.verticalAlignment,
-                            horizontalAlignment: $viewModel.simpleMakerConfiguration.horizontalAlignment,
-                            textSize: $viewModel.simpleMakerConfiguration.textSize,
-                            textColor: $viewModel.simpleMakerConfiguration.textColor
-                        )
-                        .padding(.horizontal, 20)
-                    }
-                    
-                    // 4. Action Buttons
-                    HStack(spacing: 12) {
-                        PhotosPicker(selection: $viewModel.imageSelection,
-                                   matching: .images) {
-                            HStack {
-                                Image(systemName: "photo")
-                                Text("Select Image")
-                            }
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 8)
+                        // 2. Text Input Field
+                        TextField("Enter overlay text", text: $viewModel.simpleMakerConfiguration.overlayText)
+                            .lineLimit(1)
+                            .truncationMode(.tail)
+                            .focused($isFocused)
+                            .padding(12)
                             .background(
-                                LinearGradient(colors: [.blue, .blue.opacity(0.8)],
-                                             startPoint: .leading,
-                                             endPoint: .trailing)
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(Color(uiColor: .systemGray6))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 12)
+                                            .stroke(Color.gray.opacity(0.3))
+                                    )
                             )
-                            .foregroundColor(.white)
-                            .cornerRadius(10)
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 8)
+                        
+                        // 3. Core Controls Section
+                        VStack(spacing: 16) {
+                            // Canvas Settings
+                            CustomizationControlComponentView(
+                                configuration: $viewModel.simpleMakerConfiguration,
+                                isPremium: purchaseManager.canAccessPremium
+                            )
+                            .padding(.horizontal, 20)
+                            
+                            // Text Controls
+                            TextControlView(
+                                verticalAlignment: $viewModel.simpleMakerConfiguration.verticalAlignment,
+                                horizontalAlignment: $viewModel.simpleMakerConfiguration.horizontalAlignment,
+                                textSize: $viewModel.simpleMakerConfiguration.textSize,
+                                textColor: $viewModel.simpleMakerConfiguration.textColor,
+                                selectedFont: $viewModel.simpleMakerConfiguration.selectedFont,
+                                usesFallbackFont: $viewModel.simpleMakerConfiguration.usesFallbackFont,
+                                previewText: $viewModel.simpleMakerConfiguration.overlayText,
+                                isPremium: purchaseManager.canAccessPremium
+                            )
+                            .padding(.horizontal, 20)
                         }
                         
-                        if viewModel.simpleMakerConfiguration.selectedImage != nil {
-                            Button(action: {
-                                isFocused = false
-                                let (targetWidth, targetHeight) = viewModel.simpleMakerConfiguration.selectedRatio.dimensions
-                                let content = PreviewComponentView(
-                                    simpleMakerConfiguration: viewModel.simpleMakerConfiguration,
-                                    width: targetWidth,
-                                    height: targetHeight
-                                )
-                                Task {
-                                    await viewModel.saveImageWithOverlay(content: content)
-                                }
-                            }) {
+                        // 4. Action Buttons
+                        HStack(spacing: 12) {
+                            PhotosPicker(selection: $viewModel.imageSelection,
+                                       matching: .images) {
                                 HStack {
-                                    Image(systemName: "square.and.arrow.down")
-                                    if viewModel.isSaving {
-                                        ProgressView()
-                                            .tint(.white)
-                                    } else {
-                                        Text("Save")
-                                    }
+                                    Image(systemName: "photo")
+                                    Text("Select Image")
                                 }
                                 .padding(.horizontal, 12)
                                 .padding(.vertical, 8)
                                 .background(
-                                    LinearGradient(colors: [.green, .green.opacity(0.8)],
+                                    LinearGradient(colors: [.blue, .blue.opacity(0.8)],
                                                  startPoint: .leading,
                                                  endPoint: .trailing)
                                 )
                                 .foregroundColor(.white)
                                 .cornerRadius(10)
                             }
-                            .disabled(viewModel.isSaving)
+                            
+                            if viewModel.simpleMakerConfiguration.selectedImage != nil {
+                                Button(action: {
+                                    isFocused = false
+                                    let (targetWidth, targetHeight) = viewModel.simpleMakerConfiguration.selectedRatio.dimensions
+                                    let content = PreviewComponentView(
+                                        simpleMakerConfiguration: $viewModel.simpleMakerConfiguration,
+                                        width: targetWidth,
+                                        height: targetHeight
+                                    )
+                                    Task {
+                                        await viewModel.saveImageWithOverlay(content: content)
+                                    }
+                                }) {
+                                    HStack {
+                                        Image(systemName: "square.and.arrow.down")
+                                        if viewModel.isSaving {
+                                            ProgressView()
+                                                .tint(.white)
+                                        } else {
+                                            Text("Save")
+                                        }
+                                    }
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 8)
+                                    .background(
+                                        LinearGradient(colors: [.green, .green.opacity(0.8)],
+                                                     startPoint: .leading,
+                                                     endPoint: .trailing)
+                                    )
+                                    .foregroundColor(.white)
+                                    .cornerRadius(10)
+                                }
+                                .disabled(viewModel.isSaving)
+                            }
                         }
+                        .padding(.vertical, 16)
+                        .padding(.horizontal, 20)
                     }
-                    .padding(.vertical, 16)
-                    .padding(.horizontal, 20)
-                    .padding(.bottom, keyboardHeight)
                 }
-                .frame(maxWidth: .infinity, alignment: .top)
+                .scrollDismissesKeyboard(.immediately)
+                .simultaneousGesture(
+                    TapGesture().onEnded { _ in
+                        isFocused = false
+                    }
+                )
             }
-            .onTapGesture {
-                isFocused = false
-            }
-            .ignoresSafeArea(.keyboard)
             .navigationTitle("Simple Maker")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -136,25 +149,6 @@ struct SimpleMakerView: View {
                     }) {
                         Image(systemName: "gearshape")
                     }
-                }
-            }
-            .onAppear {
-                NotificationCenter.default.addObserver(
-                    forName: UIResponder.keyboardWillShowNotification,
-                    object: nil,
-                    queue: .main
-                ) { notification in
-                    if let keyboardFrame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect {
-                        keyboardHeight = keyboardFrame.height
-                    }
-                }
-                
-                NotificationCenter.default.addObserver(
-                    forName: UIResponder.keyboardWillHideNotification,
-                    object: nil,
-                    queue: .main
-                ) { _ in
-                    keyboardHeight = 0
                 }
             }
         }

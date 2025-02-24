@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct PreviewComponentView: View {
-    let simpleMakerConfiguration: SimpleMakerConfigurationModel
+    @Binding var simpleMakerConfiguration: SimpleMakerConfigurationModel
     let width: CGFloat
     let height: CGFloat
     
@@ -39,23 +39,37 @@ struct PreviewComponentView: View {
                 .padding()
             }
             
-            Text(simpleMakerConfiguration.overlayText)
-                .font(.system(size: max(1, height * simpleMakerConfiguration.textSize), weight: .bold))
-                .foregroundColor(simpleMakerConfiguration.textColor)
-                .lineLimit(1)
-                .truncationMode(.tail)
-                .shadow(color: .black, radius: 3, x: 1, y: 1)
-                .multilineTextAlignment(simpleMakerConfiguration.horizontalAlignment == .center ? .center :
-                    simpleMakerConfiguration.horizontalAlignment == .leading ? .leading : .trailing)
-                .frame(width: width * 0.9, alignment: simpleMakerConfiguration.horizontalAlignment == .center ? .center :
-                    simpleMakerConfiguration.horizontalAlignment == .leading ? .leading : .trailing)
-                .frame(maxHeight: .infinity, alignment: simpleMakerConfiguration.verticalAlignment == .center ? .center :
-                    simpleMakerConfiguration.verticalAlignment == .top ? .top : .bottom)
-                .padding(.horizontal, width * 0.05)
-                .padding(.vertical, height * 0.05)
+            textWithFont
         }
         .frame(width: width, height: height)
         .clipped()
+    }
+    
+    private var textWithFont: some View {
+        let (font, needsFallback) = FontManager.shared.getFontForText(
+            simpleMakerConfiguration.overlayText,
+            selectedFont: simpleMakerConfiguration.selectedFont
+        )
+        
+        return Text(simpleMakerConfiguration.overlayText)
+            .font(.custom(
+                font.rawValue,
+                size: max(1, height * simpleMakerConfiguration.textSize)
+            ))
+            .onChange(of: needsFallback) { oldValue, newValue in
+                simpleMakerConfiguration.usesFallbackFont = newValue
+            }
+            .foregroundColor(simpleMakerConfiguration.textColor)
+            .truncationMode(.tail)
+            .shadow(color: .black, radius: 3, x: 1, y: 1)
+            .multilineTextAlignment(simpleMakerConfiguration.horizontalAlignment == .center ? .center :
+                simpleMakerConfiguration.horizontalAlignment == .leading ? .leading : .trailing)
+            .frame(width: width * 0.9, alignment: simpleMakerConfiguration.horizontalAlignment == .center ? .center :
+                simpleMakerConfiguration.horizontalAlignment == .leading ? .leading : .trailing)
+            .frame(maxHeight: height * 0.9, alignment: simpleMakerConfiguration.verticalAlignment == .center ? .center :
+                simpleMakerConfiguration.verticalAlignment == .top ? .top : .bottom)
+            .padding(.horizontal, width * 0.05)
+            .padding(.vertical, height * 0.05)
     }
 }
 

@@ -1,23 +1,55 @@
 import SwiftUI
 
-struct TextPositionControlView: View {
+struct TextControlView: View {
     @Binding var verticalAlignment: VerticalAlignment
     @Binding var horizontalAlignment: HorizontalAlignment
     @Binding var textSize: CGFloat
     @Binding var textColor: Color
+    @Binding var selectedFont: CustomFont
+    @Binding var usesFallbackFont: Bool
+    @Binding var previewText: String
+    let isPremium: Bool
     
     var body: some View {
-        VStack(spacing: 12) {
-            Text("Text Controls")
-                .font(.headline)
-                .frame(maxWidth: .infinity, alignment: .leading)
+        VStack(spacing: 0) {
+            // Font and Color Section
+            HStack(spacing: 0) {
+                // Left side - Font Picker
+                FontPickerView(
+                    selectedFont: $selectedFont,
+                    usesFallbackFont: $usesFallbackFont,
+                    previewText: $previewText,
+                    isPremium: isPremium
+                )
+                .frame(maxWidth: .infinity)
+                
+                Divider()
+                    .frame(height: 40)
+                    .padding(.horizontal)
+                
+                // Right side - Text Color
+                VStack(alignment: .center, spacing: 4) {
+                    Text("Color")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    ColorPicker("", selection: $textColor)
+                        .labelsHidden()
+                }
+                .frame(width: 100, alignment: .center)
+                .padding(.trailing)
+            }
+            .padding(.vertical, 8)
             
+            Divider()
+            
+            // Text Size and Position Section
             HStack(spacing: 20) {
-                // Position Matrix
-                VStack {
+                Spacer()
+                
+                // Center - Position Matrix
+                VStack(spacing: 8) {
                     Text("Position")
-                        .font(.subheadline)
-                    
+                        .font(.headline)
                     Grid(horizontalSpacing: 8, verticalSpacing: 8) {
                         ForEach(0..<3) { row in
                             GridRow {
@@ -40,23 +72,19 @@ struct TextPositionControlView: View {
                     }
                 }
                 
-                // Size and Color Controls
+                Spacer()
+                
+                // Right side - Text Size
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Text Size")
-                        .font(.subheadline)
-                    
+                        .font(.headline)
                     Slider(value: $textSize, in: 0.1...0.3)
                         .frame(width: 120)
                         .tint(.blue)
-                    
-                    ColorPicker("Text Color", selection: $textColor)
-                        .labelsHidden()
-                        .padding(.top, 8)
                 }
-                .frame(width: 120)
             }
+            .padding()
         }
-        .padding()
         .background(Color(uiColor: .secondarySystemBackground))
         .cornerRadius(12)
     }
@@ -64,8 +92,7 @@ struct TextPositionControlView: View {
     private func isSelected(row: Int, col: Int) -> Bool {
         let currentVertical = verticalAlignment(for: row)
         let currentHorizontal = horizontalAlignment(for: col)
-        return verticalAlignment == currentVertical && 
-               horizontalAlignment == currentHorizontal
+        return verticalAlignment == currentVertical && horizontalAlignment == currentHorizontal
     }
     
     private func updatePosition(row: Int, col: Int) {
@@ -90,4 +117,4 @@ struct TextPositionControlView: View {
         default: return .center
         }
     }
-} 
+}
