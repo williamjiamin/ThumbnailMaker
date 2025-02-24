@@ -217,6 +217,10 @@ struct PremiumMakerView: View {
             }
             .onTapGesture {
                 focusedField = nil
+                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), 
+                                              to: nil, 
+                                              from: nil, 
+                                              for: nil)
             }
             .ignoresSafeArea(.keyboard)
             .navigationTitle("")
@@ -281,11 +285,15 @@ struct PremiumMakerView: View {
             }
         }
         .sheet(isPresented: $showingYouTubeInput) {
+            // On dismiss
+            focusedField = nil
+        } content: {
             YouTubeURLInputView { image, title in
                 viewModel.premiumMakerConfiguration.selectedImage = image
                 if !title.isEmpty {
                     viewModel.premiumMakerConfiguration.overlayText = title
                 }
+                focusedField = nil
             }
         }
         .onChange(of: viewModel.imageSelection) { oldValue, newValue in

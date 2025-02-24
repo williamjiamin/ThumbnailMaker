@@ -51,8 +51,12 @@ struct PremiumPreviewComponentView: View {
                     .padding(width * 0.05)
             }
             
+            let referenceHeight: CGFloat = 720 // Standard reference height
+            let scaleFactor = height / referenceHeight
+            let fontSize = referenceHeight * premiumMakerConfiguration.textSize * scaleFactor
+            
             Text(premiumMakerConfiguration.overlayText)
-                .font(.system(size: max(1, height * premiumMakerConfiguration.textSize), weight: .bold))
+                .font(.system(size: fontSize, weight: .bold))
                 .foregroundColor(premiumMakerConfiguration.textColor)
                 .lineLimit(3)
                 .truncationMode(.tail)

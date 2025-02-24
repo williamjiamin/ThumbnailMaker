@@ -6,6 +6,7 @@ struct YouTubeURLInputView: View {
     @State private var isLoading = false
     @State private var errorMessage: String?
     @State private var videoInfo: YouTubeVideoInfo?
+    @FocusState private var isFocused: Bool
     let onSelection: (UIImage, String) -> Void
     
     var body: some View {
@@ -39,6 +40,7 @@ struct YouTubeURLInputView: View {
                             .autocapitalization(.none)
                             .disableAutocorrection(true)
                             .textContentType(.URL)
+                            .focused($isFocused)
                     }
                     .padding(.horizontal)
                     
@@ -162,9 +164,17 @@ struct YouTubeURLInputView: View {
             }
             .navigationTitle("YouTube Import")
             .navigationBarTitleDisplayMode(.inline)
+            .onTapGesture {
+                isFocused = false
+                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), 
+                                             to: nil, 
+                                             from: nil, 
+                                             for: nil)
+            }
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("Cancel") {
+                        isFocused = false
                         dismiss()
                     }
                 }

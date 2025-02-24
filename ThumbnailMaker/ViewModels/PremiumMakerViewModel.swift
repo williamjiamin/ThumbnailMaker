@@ -59,12 +59,13 @@ class PremiumMakerViewModel: ObservableObject {
         let renderer = ImageRenderer(content: content)
         
         renderer.proposedSize = ProposedViewSize(width: targetWidth, height: targetHeight)
-        renderer.scale = 2.0
+        renderer.scale = 1.0
         renderer.colorMode = .nonLinear
         
         if let renderedImage = renderer.uiImage {
-            UIGraphicsBeginImageContextWithOptions(renderedImage.size, false, 2.0)
-            renderedImage.draw(in: CGRect(origin: .zero, size: renderedImage.size))
+            let finalSize = CGSize(width: targetWidth * 2, height: targetHeight * 2)
+            UIGraphicsBeginImageContextWithOptions(finalSize, false, 1.0)
+            renderedImage.draw(in: CGRect(origin: .zero, size: finalSize))
             let optimizedImage = UIGraphicsGetImageFromCurrentImageContext()
             UIGraphicsEndImageContext()
             
