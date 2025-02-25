@@ -35,7 +35,7 @@ class PurchaseManager: ObservableObject {
     private var lastVerificationDate: Date?
     private let verificationInterval: TimeInterval = 3600 // 1 hour
     
-    private let maxDailyYoutubeImports = 5  // Changed from 100 to 5 for testing
+    private let maxDailyYoutubeImports = 100  // Increased from 5 to 100 imports per day
     private let maxFreeYoutubeImports = 3
     private var lastYoutubeImportReset: Date?
     

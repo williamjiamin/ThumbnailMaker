@@ -1,6 +1,6 @@
 Privacy Policy for Simple Thumbnail Maker
 
-Last Updated: December 4, 2024
+Last Updated: December 10, 2024
 
 1. Information We Access
 1.1. Photo Library Access
@@ -10,6 +10,14 @@ Last Updated: December 4, 2024
   * Select images for thumbnail creation
 - We do not upload or store your images on any servers
 
+1.2. YouTube Integration
+- When using the YouTube import feature, we:
+  * Access YouTube Data API to fetch video information
+  * Download video thumbnails directly to your device
+  * Track daily import quota usage locally on your device
+- We do not store YouTube video data on our servers
+- Video information is processed entirely on your device
+
 2. How We Use Information
 2.1. Photo Library
 - Only accessed when you explicitly choose to:
@@ -17,7 +25,14 @@ Last Updated: December 4, 2024
   * Select an image for editing
 - All image processing is done locally on your device
 
-2.2. Purchase Information
+2.2. YouTube Access
+- We use the YouTube Data API solely to fetch publicly available:
+  * Video thumbnails
+  * Video titles
+- This information is only accessed when you explicitly use the YouTube import feature
+- We maintain a local counter for your daily import quota
+
+2.3. Purchase Information
 - Premium feature purchase status is stored locally
 - Purchase records are managed by Apple's App Store
 
@@ -28,17 +43,25 @@ Last Updated: December 4, 2024
 - Images or thumbnails
 - Location data
 - Device information
+- YouTube browsing habits
 
-3.2. App Store Data
+3.2. Locally Stored Information:
+- YouTube import quota usage
+- Last import reset date
+- Premium purchase status
+
+3.3. App Store Data
 - Standard App Store analytics may be collected by Apple
 
 4. Data Storage
 - All app data is stored locally on your device
 - No cloud storage or external servers are used
 - Your images remain on your device
+- YouTube thumbnails are saved only to your device
 
 5. Third-Party Services
 - Apple App Store for app distribution and purchases
+- YouTube Data API for fetching public video information
 - No other third-party services are used
 
 6. Children's Privacy

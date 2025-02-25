@@ -41,7 +41,7 @@ struct YouTubeURLInputView: View {
                                 guideRow(number: "3", text: "Select 'Copy Link'")
                                 guideRow(number: "4", text: "Paste the link below")
                                 guideRow(number: "5", text: "Tap 'Fetch Video Info'")
-                                Text("Premium users: 5 imports per day | Free users: 3 imports per day")
+                                Text("Premium users: 100 imports per day | Free users: 3 imports per day")
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                                     .padding(.leading, 36)
@@ -64,11 +64,14 @@ struct YouTubeURLInputView: View {
                                 
                                 VStack(alignment: .leading, spacing: 6) {
                                     disclaimerRow("Internet connection required")
+                                    disclaimerRow("Limited to 3 imports per day (free) or 100 imports per day (premium)")
                                     disclaimerRow("Only supports regular YouTube videos (not Shorts)")
-                                    disclaimerRow("This tool is for reference and inspiration only")
-                                    disclaimerRow("YouTube thumbnails may be subject to copyright")
-                                    disclaimerRow("You should use your own content for final thumbnails")
+                                    disclaimerRow("YouTube thumbnails may be protected by copyright")
+                                    disclaimerRow("Only use your own content or properly licensed thumbnails")
+                                    disclaimerRow("This feature is for reference and inspiration only")
+                                    disclaimerRow("Using imported thumbnails commercially may violate copyright laws")
                                     disclaimerRow("We are not responsible for any copyright violations")
+                                    disclaimerRow("Subject to YouTube API Terms of Service")
                                 }
                             }
                             .padding()
