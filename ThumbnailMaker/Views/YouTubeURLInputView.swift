@@ -145,7 +145,22 @@ struct YouTubeURLInputView: View {
                                 .autocapitalization(.none)
                                 .disableAutocorrection(true)
                                 .textContentType(.URL)
+                                .keyboardType(.URL)
                                 .focused($isFocused)
+                                .textSelection(.enabled)
+                                .contextMenu {
+                                    Button {
+                                        UIPasteboard.general.string.map { youtubeURL = $0 }
+                                    } label: {
+                                        Label("Paste", systemImage: "doc.on.clipboard")
+                                    }
+                                    
+                                    Button {
+                                        youtubeURL = ""
+                                    } label: {
+                                        Label("Clear", systemImage: "xmark")
+                                    }
+                                }
                         }
                         .padding(.horizontal)
                     } else {
@@ -300,13 +315,19 @@ struct YouTubeURLInputView: View {
             }
             .navigationTitle("YouTube Import")
             .navigationBarTitleDisplayMode(.inline)
-            .onTapGesture {
-                isFocused = false
-                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), 
-                                             to: nil, 
-                                             from: nil, 
-                                             for: nil)
-            }
+            .simultaneousGesture(
+                TapGesture()
+                    .onEnded { _ in
+                        // Only dismiss keyboard if it's currently showing
+                        if isFocused {
+                            isFocused = false
+                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder),
+                                                          to: nil,
+                                                          from: nil,
+                                                          for: nil)
+                        }
+                    }
+            )
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("Cancel") {
