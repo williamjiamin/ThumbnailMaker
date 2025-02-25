@@ -131,6 +131,8 @@ struct SimpleMakerView: View {
                         }
                         .padding(.vertical, 16)
                         .padding(.horizontal, 20)
+                        
+                        
                     }
                 }
                 .scrollDismissesKeyboard(.immediately)
@@ -180,6 +182,27 @@ struct SimpleMakerView: View {
                     await viewModel.updateImage()
                 }
             }
+        }
+    }
+    
+    private func premiumFeatureTeaser(icon: String, text: String) -> some View {
+        VStack(spacing: 4) {
+            Image(systemName: icon)
+                .font(.system(size: 24))
+                .foregroundStyle(.linearGradient(colors: [.blue, .purple],
+                                               startPoint: .topLeading,
+                                               endPoint: .bottomTrailing))
+            Text(text)
+                .font(.caption)
+                .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            NotificationCenter.default.post(
+                name: Notification.Name("ShowPremiumUpgrade"),
+                object: nil
+            )
         }
     }
 }

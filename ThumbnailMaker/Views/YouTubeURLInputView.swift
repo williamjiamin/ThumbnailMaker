@@ -1,4 +1,5 @@
 import SwiftUI
+import Network
 
 struct YouTubeURLInputView: View {
     @Environment(\.dismiss) private var dismiss
@@ -8,41 +9,119 @@ struct YouTubeURLInputView: View {
     @State private var videoInfo: YouTubeVideoInfo?
     @FocusState private var isFocused: Bool
     let onSelection: (UIImage, String) -> Void
+    @StateObject private var networkMonitor = NetworkMonitor()
+    @StateObject private var purchaseManager = PurchaseManager.shared
+    @State private var currentTime = Date()
+    private let timer = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
+    
+    private var isButtonDisabled: Bool {
+        youtubeURL.isEmpty || 
+        isLoading || 
+        purchaseManager.youtubeImportsRemaining <= 0 ||
+        videoInfo != nil
+    }
+    
+    private var isQuotaReached: Bool {
+        purchaseManager.youtubeImportsRemaining <= 0
+    }
     
     var body: some View {
         NavigationView {
             ScrollView {
                 VStack(spacing: 24) {
-                    // Guide Section
-                    VStack(spacing: 16) {
-                        Text("How to Import from YouTube")
-                            .font(.headline)
-                        
-                        VStack(alignment: .leading, spacing: 12) {
-                            guideRow(number: "1", text: "Copy a YouTube video URL")
-                            guideRow(number: "2", text: "Paste the URL below")
-                            guideRow(number: "3", text: "Tap 'Fetch Video Info'")
-                            guideRow(number: "4", text: "Choose how to use the content")
+                    // Guide Section - Always show this
+                    if !isQuotaReached {
+                        VStack(spacing: 16) {
+                            Text("How to Import from YouTube")
+                                .font(.headline)
+                            
+                            VStack(alignment: .leading, spacing: 12) {
+                                guideRow(number: "1", text: "Open your YouTube video")
+                                guideRow(number: "2", text: "Tap the Share button")
+                                guideRow(number: "3", text: "Select 'Copy Link'")
+                                guideRow(number: "4", text: "Paste the link below")
+                                guideRow(number: "5", text: "Tap 'Fetch Video Info'")
+                                Text("Premium users: 5 imports per day | Free users: 3 imports per day")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                    .padding(.leading, 36)
+                            }
+                            .padding()
+                            .background(Color.blue.opacity(0.1))
+                            .cornerRadius(12)
                         }
-                        .padding()
-                        .background(Color.blue.opacity(0.1))
-                        .cornerRadius(12)
+                        .padding(.horizontal)
+                        
+                        // Disclaimer Section
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("Important Notice")
+                                .font(.headline)
+                            
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("By using this feature, you acknowledge:")
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                                
+                                VStack(alignment: .leading, spacing: 6) {
+                                    disclaimerRow("Internet connection required")
+                                    disclaimerRow("Only supports regular YouTube videos (not Shorts)")
+                                    disclaimerRow("This tool is for reference and inspiration only")
+                                    disclaimerRow("YouTube thumbnails may be subject to copyright")
+                                    disclaimerRow("You should use your own content for final thumbnails")
+                                    disclaimerRow("We are not responsible for any copyright violations")
+                                }
+                            }
+                            .padding()
+                            .background(Color.orange.opacity(0.1))
+                            .cornerRadius(12)
+                        }
+                        .padding(.horizontal)
                     }
-                    .padding(.horizontal)
                     
                     // URL Input Section
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Enter YouTube Video URL")
-                            .font(.headline)
-                        
-                        TextField("https://youtube.com/watch?v=...", text: $youtubeURL)
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
-                            .autocapitalization(.none)
-                            .disableAutocorrection(true)
-                            .textContentType(.URL)
-                            .focused($isFocused)
+                    if !isQuotaReached {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Enter YouTube Video URL")
+                                .font(.headline)
+                            
+                            TextField("https://youtube.com/watch?v=...", text: $youtubeURL)
+                                .textFieldStyle(RoundedBorderTextFieldStyle())
+                                .autocapitalization(.none)
+                                .disableAutocorrection(true)
+                                .textContentType(.URL)
+                                .focused($isFocused)
+                        }
+                        .padding(.horizontal)
+                    } else {
+                        VStack(spacing: 12) {
+                            HStack {
+                                Image(systemName: "exclamationmark.circle.fill")
+                                    .foregroundColor(.red)
+                                Text(purchaseManager.purchasedProductIDs.isEmpty ? 
+                                    "Daily Free Import Limit Reached" : 
+                                    "Daily Premium Import Limit Reached")
+                                    .font(.headline)
+                                    .foregroundColor(.red)
+                            }
+                            
+                            Text("Your imports will reset tomorrow at midnight.")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                            
+                            HStack {
+                                Image(systemName: "clock")
+                                    .foregroundColor(.secondary)
+                                Text("Next reset in: \(purchaseManager.timeUntilNextReset)")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            .padding(.top, 4)
+                        }
+                        .padding()
+                        .background(Color.red.opacity(0.1))
+                        .cornerRadius(12)
+                        .padding(.horizontal)
                     }
-                    .padding(.horizontal)
                     
                     // Preview Section
                     if let videoInfo = videoInfo {
@@ -128,7 +207,7 @@ struct YouTubeURLInputView: View {
                     }
                     
                     // Fetch Button
-                    if videoInfo == nil {
+                    if videoInfo == nil && !isQuotaReached {
                         Button(action: {
                             Task {
                                 await fetchVideoInfo()
@@ -143,11 +222,12 @@ struct YouTubeURLInputView: View {
                             }
                             .frame(maxWidth: .infinity)
                             .padding()
-                            .background(youtubeURL.isEmpty ? Color.gray : Color.blue)
+                            .background(Color.blue)
                             .foregroundColor(.white)
                             .cornerRadius(10)
                         }
-                        .disabled(youtubeURL.isEmpty || isLoading)
+                        .disabled(isButtonDisabled)
+                        .opacity(isButtonDisabled ? 0.5 : 1)
                         .padding(.horizontal)
                     }
                     
@@ -197,9 +277,44 @@ struct YouTubeURLInputView: View {
         }
     }
     
+    private func disclaimerRow(_ text: String) -> some View {
+        HStack(alignment: .top, spacing: 8) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .font(.system(size: 12))
+                .foregroundColor(.orange)
+            
+            Text(text)
+                .font(.caption)
+                .foregroundColor(.secondary)
+        }
+    }
+    
     private func fetchVideoInfo() async {
+        guard networkMonitor.isConnected else {
+            errorMessage = "No internet connection. Please check your network settings."
+            return
+        }
+        
         isLoading = true
-        errorMessage = nil
+        
+        let importStatus = purchaseManager.useYoutubeImport()
+        
+        await MainActor.run {
+            switch importStatus {
+            case .limitReachedPremium:
+                errorMessage = "You've reached today's import limit. Your imports will reset tomorrow at midnight."
+                isLoading = false
+                return
+                
+            case .limitReachedFree:
+                errorMessage = "You've reached the daily free import limit. Upgrade to Premium for more imports."
+                isLoading = false
+                return
+                
+            case .success:
+                break // Continue with the fetch
+            }
+        }
         
         do {
             videoInfo = try await YouTubeService.fetchVideoInfo(videoURL: youtubeURL)
@@ -223,4 +338,6 @@ extension Image {
         let renderer = ImageRenderer(content: self)
         return renderer.uiImage
     }
-} 
+}
+
+

@@ -22,6 +22,7 @@ struct PremiumMakerView: View {
     @State private var toastMessage = ""
     @State private var showingMacroSettings = false
     @State private var showingYouTubeInput = false
+    @State private var showingQuotaLimit = false
     
     var body: some View {
         Group {
@@ -176,7 +177,7 @@ struct PremiumMakerView: View {
                             .padding(.horizontal, 20)
                         
                         // Position and Size Controls
-                        UnifiedPositionControlView(
+                        PremiumTextControlView(
                             textPosition: Binding(
                                 get: { (viewModel.premiumMakerConfiguration.verticalAlignment,
                                        viewModel.premiumMakerConfiguration.horizontalAlignment) },
@@ -202,7 +203,10 @@ struct PremiumMakerView: View {
                                 }
                             ),
                             textSize: $viewModel.premiumMakerConfiguration.textSize,
-                            textColor: $viewModel.premiumMakerConfiguration.textColor
+                            textColor: $viewModel.premiumMakerConfiguration.textColor,
+                            selectedFont: $viewModel.premiumMakerConfiguration.selectedFont,
+                            usesFallbackFont: $viewModel.premiumMakerConfiguration.usesFallbackFont,
+                            previewText: $viewModel.premiumMakerConfiguration.overlayText
                         )
                         .padding(.horizontal, 20)
                     }
@@ -296,6 +300,9 @@ struct PremiumMakerView: View {
                 focusedField = nil
             }
         }
+        .sheet(isPresented: $showingQuotaLimit) {
+            QuotaLimitView()
+        }
         .onChange(of: viewModel.imageSelection) { oldValue, newValue in
             Task {
                 await viewModel.updateImage()
@@ -342,10 +349,16 @@ struct PremiumMakerView: View {
                 }
                 
                 Button(action: {
-                    showingYouTubeInput = true
+                    if purchaseManager.youtubeImportsRemaining > 0 {
+                        showingYouTubeInput = true
+                    } else {
+                        showingQuotaLimit = true
+                    }
                 }) {
-                    Label("Import from YouTube", systemImage: "play.rectangle.fill")
+                    Label("Import from YouTube (\(purchaseManager.youtubeImportsRemaining) left today)", 
+                          systemImage: "play.rectangle.fill")
                 }
+                .disabled(purchaseManager.youtubeImportsRemaining <= 0)
             } label: {
                 HStack {
                     Image(systemName: "photo")

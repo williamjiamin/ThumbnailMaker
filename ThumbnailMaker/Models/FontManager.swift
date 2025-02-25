@@ -2,10 +2,13 @@ import SwiftUI
 import NaturalLanguage
 
 enum CustomFont: String, CaseIterable, Identifiable {
-    // Universal font with full language support
+    // Basic fonts (Available in Simple Maker)
     case goNoto = "GoNotoCurrent-Regular"
+    case openSans = "OpenSans-Regular"
+    case roboto = "Roboto-Regular"
+    case montserrat = "Montserrat-Regular"
     
-    // Style fonts with specific language support
+    // Premium fonts
     case borel = "Borel-Regular"
     case cherryBombOne = "CherryBombOne-Regular"
     case deliciousHandrawn = "DeliciousHandrawn-Regular"
@@ -16,13 +19,10 @@ enum CustomFont: String, CaseIterable, Identifiable {
     case longCang = "LongCang-Regular"
     case lxgwWenKaiMonoTC = "LXGWWenKaiMonoTC-Regular"
     case meowScript = "MeowScript-Regular"
-    case montserrat = "Montserrat-Regular"
     case mysteryQuest = "MysteryQuest-Regular"
-    case openSans = "OpenSans-Regular"
     case oswald = "Oswald-Regular"
     case pixelifySans = "PixelifySans-VariableFont_wght"
     case poppins = "Poppins-Regular"
-    case roboto = "Roboto-Regular"
     case yujiBoku = "YujiBoku-Regular"
     case zhiMangXing = "ZhiMangXing-Regular"
     
@@ -83,8 +83,21 @@ enum CustomFont: String, CaseIterable, Identifiable {
         }
     }
     
-    static var styleOnlyFonts: [CustomFont] {
-        Array(allCases.dropFirst()) // All fonts except goNoto
+    var isPremium: Bool {
+        switch self {
+        case .goNoto, .openSans, .roboto, .montserrat:
+            return false
+        default:
+            return true
+        }
+    }
+    
+    static var basicFonts: [CustomFont] {
+        allCases.filter { !$0.isPremium }
+    }
+    
+    static var premiumFonts: [CustomFont] {
+        allCases.filter { $0.isPremium }
     }
 }
 

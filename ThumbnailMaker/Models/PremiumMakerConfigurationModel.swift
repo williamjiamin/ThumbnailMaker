@@ -19,4 +19,6 @@ struct PremiumMakerConfigurationModel {
     var horizontalAlignment: HorizontalAlignment = .center
     var circularProfile: CircularProfileConfig?
     var macroConfig: MacroConfig = MacroConfig()
+    var selectedFont: CustomFont = .goNoto
+    var usesFallbackFont: Bool = false
 }
