@@ -38,14 +38,29 @@ class PurchaseManager: ObservableObject {
         let defaults = UserDefaults.standard
         remainingFreeTries = defaults.integer(forKey: UserDefaultsKeys.remainingFreeTries)
         hasUsedFreeTrial = defaults.bool(forKey: UserDefaultsKeys.hasUsedFreeTrial)
-        lastYoutubeImportReset = defaults.object(forKey: UserDefaultsKeys.lastYoutubeImportReset) as? Date
+        
+        // Critical fix: Always load YouTube import values from UserDefaults
         youtubeImportsRemaining = defaults.integer(forKey: UserDefaultsKeys.youtubeImportsRemaining)
+        lastYoutubeImportReset = defaults.object(forKey: UserDefaultsKeys.lastYoutubeImportReset) as? Date
         
         print("🔍 [PurchaseManager] Initial values:")
         print("- YouTube imports remaining: \(youtubeImportsRemaining)")
         print("- Last reset date: \(String(describing: lastYoutubeImportReset))")
         
-        // Handle first launch initialization
+        // First launch initialization only - don't do automatic resets
+        if lastYoutubeImportReset == nil {
+            print("⚠️ [PurchaseManager] No last reset date found, performing initial setup")
+            // Set initial values without resetting
+            youtubeImportsRemaining = maxFreeYoutubeImports // Always start with free quota
+            lastYoutubeImportReset = Calendar.current.startOfDay(for: Date())
+            
+            // Save to UserDefaults
+            defaults.set(youtubeImportsRemaining, forKey: UserDefaultsKeys.youtubeImportsRemaining)
+            defaults.set(lastYoutubeImportReset, forKey: UserDefaultsKeys.lastYoutubeImportReset)
+            defaults.synchronize()
+        }
+        
+        // Handle first launch initialization for free trials
         if !defaults.bool(forKey: UserDefaultsKeys.hasInitializedTries) {
             remainingFreeTries = maxFreeTries
             defaults.set(true, forKey: UserDefaultsKeys.hasInitializedTries)
@@ -53,17 +68,16 @@ class PurchaseManager: ObservableObject {
             defaults.synchronize()
         }
         
+        // CRITICAL FIX: Don't check for reset or load products during init
+        // Only check day changes when explicitly using imports
+        
+        listenForTransactions()
+        
+        // Load products in background without quota impact
         Task {
             print("🔍 [PurchaseManager] Starting product loading...")
             await loadProducts()
-            await updatePurchasedProducts()
-            print("🔍 [PurchaseManager] Products loaded, checking YouTube imports...")
-            await MainActor.run {
-                checkAndResetYoutubeImports()
-            }
         }
-        
-        listenForTransactions()
     }
     
     private func listenForTransactions() {
@@ -85,13 +99,14 @@ class PurchaseManager: ObservableObject {
     }
     
     private func updatePurchasedProducts() async {
+        print("🔍 [PurchaseManager] Updating purchased products (WITHOUT quota reset)")
         for await result in Transaction.currentEntitlements {
-            await handleTransactionResult(result)
+            await handleTransactionResult(result, skipQuotaReset: true)
         }
     }
     
-    private func handleTransactionResult(_ result: VerificationResult<Transaction>) async {
-        print("🔍 [PurchaseManager] Handling transaction result...")
+    private func handleTransactionResult(_ result: VerificationResult<Transaction>, skipQuotaReset: Bool = false) async {
+        print("🔍 [PurchaseManager] Handling transaction result... (skipQuotaReset: \(skipQuotaReset))")
         verificationResult = result
         
         guard case .verified(let transaction) = result else {
@@ -102,16 +117,10 @@ class PurchaseManager: ObservableObject {
             return
         }
         
-        // Check UserDefaults for previous premium status
-        let defaults = UserDefaults.standard
-        let previousImports = defaults.integer(forKey: UserDefaultsKeys.youtubeImportsRemaining)
-        let lastResetDate = defaults.object(forKey: UserDefaultsKeys.lastYoutubeImportReset) as? Date
+        let oldPurchasedIDs = purchasedProductIDs
+        let wasPremiumBefore = !oldPurchasedIDs.isEmpty
         
-        let wasPremiumBefore = previousImports > maxFreeYoutubeImports || 
-                              (lastResetDate != nil && !purchasedProductIDs.isEmpty)
-        
-        print("🔍 [PurchaseManager] Was premium before (based on imports): \(wasPremiumBefore)")
-        print("🔍 [PurchaseManager] Current purchasedProductIDs: \(purchasedProductIDs)")
+        print("🔍 [PurchaseManager] Old purchase IDs: \(oldPurchasedIDs), was premium before: \(wasPremiumBefore)")
         
         await MainActor.run {
             if transaction.revocationDate == nil {
@@ -119,8 +128,9 @@ class PurchaseManager: ObservableObject {
                 print("🔍 [PurchaseManager] Added product ID: \(transaction.productID)")
                 print("🔍 [PurchaseManager] Updated purchasedProductIDs: \(purchasedProductIDs)")
                 
-                // Only reset if this is truly the first time becoming premium
-                if !wasPremiumBefore && purchasedProductIDs.count == 1 {
+                // Only reset quota on explicit premium upgrade, never during app startup
+                let isNewPremium = !wasPremiumBefore && !purchasedProductIDs.isEmpty
+                if isNewPremium && !skipQuotaReset {
                     print("📢 [PurchaseManager] First-time premium upgrade detected, resetting imports")
                     resetYoutubeImports()
                 }
@@ -196,18 +206,20 @@ class PurchaseManager: ObservableObject {
     }
     
     var canAccessPremium: Bool {
-        // Remove the YouTube imports check from here to avoid view update issues
-        if let lastVerification = lastVerificationDate,
-           Date().timeIntervalSince(lastVerification) > verificationInterval {
-            Task {
-                await verifyPurchases()
+        // Use a much longer verification interval (once per day max)
+        let verificationInterval: TimeInterval = 86400 // 24 hours
+        
+        // Only verify occasionally
+        if purchasedProductIDs.isEmpty && !verificationInProgress {
+            if let lastVerification = lastVerificationDate,
+               Date().timeIntervalSince(lastVerification) > verificationInterval {
+                Task {
+                    await verifyPurchases()
+                }
             }
         }
         
-        if verificationInProgress {
-            return false
-        }
-        
+        // Important: Return cached result immediately rather than waiting for verification
         return !purchasedProductIDs.isEmpty || remainingFreeTries > 0
     }
     
@@ -228,9 +240,27 @@ class PurchaseManager: ObservableObject {
     }
     
     private func verifyReceipt() async throws {
-        // Verify with App Store
-        try await AppStore.sync()
+        // Only sync with App Store occasionally (once per day max)
+        let defaults = UserDefaults.standard
+        let lastSyncKey = "lastAppStoreSync"
+        let syncInterval: TimeInterval = 86400 // 24 hours
         
+        let shouldSync = if let lastSync = defaults.object(forKey: lastSyncKey) as? Date {
+            Date().timeIntervalSince(lastSync) > syncInterval
+        } else {
+            true // First time, so sync
+        }
+        
+        if shouldSync {
+            print("🔄 [PurchaseManager] Syncing with App Store (daily check)")
+            try await AppStore.sync()
+            defaults.set(Date(), forKey: lastSyncKey)
+            defaults.synchronize()
+        } else {
+            print("✅ [PurchaseManager] Using cached purchase status (avoiding password prompt)")
+        }
+        
+        // Always check local entitlements (doesn't require password)
         var verifiedProducts = Set<String>()
         for await result in Transaction.currentEntitlements {
             if case .verified(let transaction) = result {
@@ -261,10 +291,15 @@ class PurchaseManager: ObservableObject {
             return
         }
         
-        if !Calendar.current.isDateInToday(lastReset) {
+        let calendar = Calendar.current
+        let now = Date()
+        let lastResetDay = calendar.startOfDay(for: lastReset)
+        let today = calendar.startOfDay(for: now)
+        
+        if lastResetDay < today {
             print("⚠️ [PurchaseManager] Last reset not from today, performing daily reset")
             print("- Last reset: \(lastReset)")
-            print("- Current date: \(Date())")
+            print("- Current date: \(now)")
             resetYoutubeImports()
         } else {
             print("✅ [PurchaseManager] Reset not needed - last reset was today")
@@ -301,17 +336,36 @@ class PurchaseManager: ObservableObject {
     func useYoutubeImport() -> YouTubeImportStatus {
         let defaults = UserDefaults.standard
         
-        // Always load the latest value from UserDefaults
+        // Create a consistent state by reloading from UserDefaults
         youtubeImportsRemaining = defaults.integer(forKey: UserDefaultsKeys.youtubeImportsRemaining)
+        lastYoutubeImportReset = defaults.object(forKey: UserDefaultsKeys.lastYoutubeImportReset) as? Date
+        
+        print("📊 [PurchaseManager] Using YouTube import, current remaining: \(youtubeImportsRemaining)")
+        
+        // Check if we need a reset based on the date (new day)
         checkAndResetYoutubeImports()
         
+        // After potential reset, check if we can proceed
         if youtubeImportsRemaining <= 0 {
+            print("📊 [PurchaseManager] No imports remaining, can't use import")
             return purchasedProductIDs.isEmpty ? .limitReachedFree : .limitReachedPremium
         }
         
+        // We have imports available, use one
         youtubeImportsRemaining -= 1
+        
+        // Save immediately with synchronize
         defaults.set(youtubeImportsRemaining, forKey: UserDefaultsKeys.youtubeImportsRemaining)
         defaults.synchronize()
+        
+        print("📊 [PurchaseManager] Used YouTube import, new remaining: \(youtubeImportsRemaining)")
+        
+        // Load products in background (without affecting quota)
+        Task {
+            if products.isEmpty {
+                await loadProducts()
+            }
+        }
         
         return .success
     }
@@ -331,6 +385,49 @@ class PurchaseManager: ObservableObject {
         guard let hours = components.hour, let minutes = components.minute else { return "" }
         return String(format: "%02d:%02d", hours, minutes)
     }
+    
+    var availableYoutubeImports: Int {
+        let defaults = UserDefaults.standard
+        return defaults.integer(forKey: UserDefaultsKeys.youtubeImportsRemaining)
+    }
+    
+    // 3. Add a new method for explicit verification (only when user requests it)
+    func manuallyVerifyPurchases() async -> Bool {
+        print("🔍 [PurchaseManager] Manual purchase verification requested by user")
+        guard !verificationInProgress else { return !purchasedProductIDs.isEmpty }
+        
+        await MainActor.run {
+            verificationInProgress = true
+        }
+        
+        do {
+            // Force App Store sync since user explicitly requested it
+            try await AppStore.sync()
+            
+            var verifiedProducts = Set<String>()
+            for await result in Transaction.currentEntitlements {
+                if case .verified(let transaction) = result {
+                    if transaction.revocationDate == nil && 
+                       transaction.revocationReason == nil {
+                        verifiedProducts.insert(transaction.productID)
+                    }
+                }
+            }
+            
+            await MainActor.run {
+                purchasedProductIDs = verifiedProducts
+                lastVerificationDate = Date()
+                verificationInProgress = false
+            }
+            
+            return !purchasedProductIDs.isEmpty
+        } catch {
+            await MainActor.run {
+                verificationInProgress = false
+            }
+            return !purchasedProductIDs.isEmpty
+        }
+    }
 }
 
 enum PurchaseError: Error {
@@ -339,3 +436,4 @@ enum PurchaseError: Error {
     case pending
     case unknown
 } 
+
