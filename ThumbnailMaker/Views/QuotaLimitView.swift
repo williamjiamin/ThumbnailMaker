@@ -3,6 +3,8 @@ import SwiftUI
 struct QuotaLimitView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var purchaseManager = PurchaseManager.shared
+    @State private var timerRefreshTrigger = Date()
+    private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
     
     var body: some View {
         NavigationView {
@@ -22,14 +24,21 @@ struct QuotaLimitView: View {
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                     
-                    HStack {
-                        Image(systemName: "clock")
-                            .foregroundColor(.secondary)
-                        Text("Next reset in: \(purchaseManager.timeUntilNextReset)")
+                    // Enhanced timer display
+                    VStack(spacing: 8) {
+                        Text("Next reset in:")
                             .font(.caption)
                             .foregroundColor(.secondary)
+                        
+                        Text(purchaseManager.timeUntilNextReset)
+                            .font(.system(size: 28, weight: .bold, design: .monospaced))
+                            .foregroundColor(.red)
+                            .padding(.vertical, 4)
+                            .padding(.horizontal, 12)
+                            .background(Color.red.opacity(0.1))
+                            .cornerRadius(8)
                     }
-                    .padding(.top, 4)
+                    .padding(.top, 8)
                 }
                 .padding()
                 .background(Color.red.opacity(0.1))
@@ -44,6 +53,9 @@ struct QuotaLimitView: View {
                         dismiss()
                     }
                 }
+            }
+            .onReceive(timer) { _ in
+                timerRefreshTrigger = Date()
             }
         }
     }

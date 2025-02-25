@@ -1,4 +1,6 @@
 import StoreKit
+import Combine
+import SwiftUI
 
 private struct UserDefaultsKeys {
     static let youtubeImportsRemaining = "youtubeImportsRemaining"
@@ -21,11 +23,15 @@ class PurchaseManager: ObservableObject {
     @Published private(set) var verificationInProgress = false
     @Published private(set) var youtubeImportsRemaining: Int
     
+    // Add these new properties for the timer
+    @Published private(set) var timeRemainingString: String = "--:--:--"
+    private var timerCancellable: AnyCancellable?
+    
     private let maxFreeTries = 3
     private let productIDs = ["com.williamjiamin.ThumbnailMaker.premiumlifetime2024"]
     private var productsLoaded = false
     
-    private var verificationResult: VerificationResult<Transaction>?
+    private var verificationResult: VerificationResult<StoreKit.Transaction>?
     private var lastVerificationDate: Date?
     private let verificationInterval: TimeInterval = 3600 // 1 hour
     
@@ -76,21 +82,21 @@ class PurchaseManager: ObservableObject {
             defaults.synchronize()
         }
         
+        // After all initialization is done, start the timer
+        startResetTimer()
+        
         listenForTransactions()
         
-        // Load products in background without quota impact
         Task {
             print("🔍 [PurchaseManager] Starting product loading...")
             await loadProducts()
-            
-            // NEW: Silently verify purchases in background (won't prompt for password)
             await silentlyVerifyPurchases()
         }
     }
     
     private func listenForTransactions() {
         Task.detached { @MainActor in
-            for await result in Transaction.updates {
+            for await result in StoreKit.Transaction.updates {
                 await self.handleTransactionResult(result)
             }
         }
@@ -108,12 +114,12 @@ class PurchaseManager: ObservableObject {
     
     private func updatePurchasedProducts() async {
         print("🔍 [PurchaseManager] Updating purchased products (WITHOUT quota reset)")
-        for await result in Transaction.currentEntitlements {
+        for await result in StoreKit.Transaction.currentEntitlements {
             await handleTransactionResult(result, skipQuotaReset: true)
         }
     }
     
-    private func handleTransactionResult(_ result: VerificationResult<Transaction>, skipQuotaReset: Bool = false) async {
+    private func handleTransactionResult(_ result: VerificationResult<StoreKit.Transaction>, skipQuotaReset: Bool = false) async {
         print("🔍 [PurchaseManager] Handling transaction result... (skipQuotaReset: \(skipQuotaReset))")
         verificationResult = result
         
@@ -400,13 +406,10 @@ class PurchaseManager: ObservableObject {
         return nextDay
     }
     
+    // Replace your existing timeUntilNextReset property with this one
+    // that returns the live updating string
     var timeUntilNextReset: String {
-        guard let nextReset = nextResetDate else { return "" }
-        let now = Date()
-        let components = Calendar.current.dateComponents([.hour, .minute], from: now, to: nextReset)
-        
-        guard let hours = components.hour, let minutes = components.minute else { return "" }
-        return String(format: "%02d:%02d", hours, minutes)
+        return timeRemainingString
     }
     
     var availableYoutubeImports: Int {
@@ -479,6 +482,36 @@ class PurchaseManager: ObservableObject {
             UserDefaults.standard.synchronize()
         }
     }
+    
+    // Method to start the timer
+    private func startResetTimer() {
+        // Update immediately
+        updateTimeRemainingString()
+        
+        // Then update every second
+        timerCancellable = Timer.publish(every: 1.0, on: .main, in: .common)
+            .autoconnect()
+            .sink { [weak self] _ in
+                self?.updateTimeRemainingString()
+            }
+    }
+    
+    // Method to update the time remaining string
+    private func updateTimeRemainingString() {
+        guard let nextReset = nextResetDate else {
+            timeRemainingString = "--:--:--"
+            return
+        }
+        
+        let now = Date()
+        let timeRemaining = max(0, nextReset.timeIntervalSince(now))
+        
+        let hours = Int(timeRemaining) / 3600
+        let minutes = (Int(timeRemaining) % 3600) / 60
+        let seconds = Int(timeRemaining) % 60
+        
+        timeRemainingString = String(format: "%02d:%02d:%02d", hours, minutes, seconds)
+    }
 }
 
 enum PurchaseError: Error {
@@ -486,5 +519,6 @@ enum PurchaseError: Error {
     case userCancelled
     case pending
     case unknown
-} 
+}
+
 

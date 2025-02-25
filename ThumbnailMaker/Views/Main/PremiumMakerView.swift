@@ -23,6 +23,8 @@ struct PremiumMakerView: View {
     @State private var showingMacroSettings = false
     @State private var showingYouTubeInput = false
     @State private var showingQuotaLimit = false
+    @State private var timerRefreshTrigger = Date()
+    private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
     
     var body: some View {
         Group {
@@ -355,8 +357,13 @@ struct PremiumMakerView: View {
                         showingQuotaLimit = true
                     }
                 }) {
-                    Label("Import from YouTube (\(purchaseManager.youtubeImportsRemaining) left today)", 
-                          systemImage: "play.rectangle.fill")
+                    if purchaseManager.youtubeImportsRemaining > 0 {
+                        Label("Import from YouTube (\(purchaseManager.youtubeImportsRemaining) left today)", 
+                              systemImage: "play.rectangle.fill")
+                    } else {
+                        Label("Import from YouTube (Next in: \(purchaseManager.timeUntilNextReset))", 
+                              systemImage: "clock.fill")
+                    }
                 }
                 .disabled(purchaseManager.youtubeImportsRemaining <= 0)
             } label: {
@@ -373,6 +380,9 @@ struct PremiumMakerView: View {
                 )
                 .foregroundColor(.white)
                 .cornerRadius(10)
+            }
+            .onReceive(timer) { _ in
+                timerRefreshTrigger = Date()
             }
             
             if viewModel.premiumMakerConfiguration.selectedImage != nil {
