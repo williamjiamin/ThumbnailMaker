@@ -6,6 +6,7 @@ private struct UserDefaultsKeys {
     static let remainingFreeTries = "remainingFreeTries"
     static let hasInitializedTries = "hasInitializedTries"
     static let hasUsedFreeTrial = "hasUsedFreeTrial"
+    static let cachedPurchasedProductIDs = "cachedPurchasedProductIDs"
 }
 
 @MainActor
@@ -43,9 +44,16 @@ class PurchaseManager: ObservableObject {
         youtubeImportsRemaining = defaults.integer(forKey: UserDefaultsKeys.youtubeImportsRemaining)
         lastYoutubeImportReset = defaults.object(forKey: UserDefaultsKeys.lastYoutubeImportReset) as? Date
         
+        // IMPORTANT NEW FIX: Load cached purchase status
+        if let cachedProductIDs = defaults.stringArray(forKey: UserDefaultsKeys.cachedPurchasedProductIDs) {
+            purchasedProductIDs = Set(cachedProductIDs)
+            print("🔍 [PurchaseManager] Loaded cached purchases: \(purchasedProductIDs)")
+        }
+        
         print("🔍 [PurchaseManager] Initial values:")
         print("- YouTube imports remaining: \(youtubeImportsRemaining)")
         print("- Last reset date: \(String(describing: lastYoutubeImportReset))")
+        print("- Premium status: \(!purchasedProductIDs.isEmpty)")
         
         // First launch initialization only - don't do automatic resets
         if lastYoutubeImportReset == nil {
@@ -68,15 +76,15 @@ class PurchaseManager: ObservableObject {
             defaults.synchronize()
         }
         
-        // CRITICAL FIX: Don't check for reset or load products during init
-        // Only check day changes when explicitly using imports
-        
         listenForTransactions()
         
         // Load products in background without quota impact
         Task {
             print("🔍 [PurchaseManager] Starting product loading...")
             await loadProducts()
+            
+            // NEW: Silently verify purchases in background (won't prompt for password)
+            await silentlyVerifyPurchases()
         }
     }
     
@@ -113,6 +121,9 @@ class PurchaseManager: ObservableObject {
             print("❌ [PurchaseManager] Transaction not verified")
             await MainActor.run {
                 purchasedProductIDs.removeAll()
+                // Clear cache when no valid transactions found
+                UserDefaults.standard.removeObject(forKey: UserDefaultsKeys.cachedPurchasedProductIDs)
+                UserDefaults.standard.synchronize()
             }
             return
         }
@@ -128,6 +139,10 @@ class PurchaseManager: ObservableObject {
                 print("🔍 [PurchaseManager] Added product ID: \(transaction.productID)")
                 print("🔍 [PurchaseManager] Updated purchasedProductIDs: \(purchasedProductIDs)")
                 
+                // Cache the purchase status to UserDefaults
+                UserDefaults.standard.set(Array(purchasedProductIDs), forKey: UserDefaultsKeys.cachedPurchasedProductIDs)
+                UserDefaults.standard.synchronize()
+                
                 // Only reset quota on explicit premium upgrade, never during app startup
                 let isNewPremium = !wasPremiumBefore && !purchasedProductIDs.isEmpty
                 if isNewPremium && !skipQuotaReset {
@@ -137,6 +152,14 @@ class PurchaseManager: ObservableObject {
             } else {
                 purchasedProductIDs.remove(transaction.productID)
                 print("❌ [PurchaseManager] Removed revoked product ID: \(transaction.productID)")
+                
+                // Update cached status
+                if purchasedProductIDs.isEmpty {
+                    UserDefaults.standard.removeObject(forKey: UserDefaultsKeys.cachedPurchasedProductIDs)
+                } else {
+                    UserDefaults.standard.set(Array(purchasedProductIDs), forKey: UserDefaultsKeys.cachedPurchasedProductIDs)
+                }
+                UserDefaults.standard.synchronize()
             }
         }
         
@@ -426,6 +449,34 @@ class PurchaseManager: ObservableObject {
                 verificationInProgress = false
             }
             return !purchasedProductIDs.isEmpty
+        }
+    }
+    
+    // Add this new method for silent verification
+    private func silentlyVerifyPurchases() async {
+        print("🔍 [PurchaseManager] Silently verifying purchases on startup...")
+        
+        // Check local transactions without forcing App Store sync
+        var foundProducts = Set<String>()
+        
+        for await result in Transaction.currentEntitlements {
+            if case .verified(let transaction) = result {
+                if transaction.revocationDate == nil && 
+                   transaction.revocationReason == nil {
+                    foundProducts.insert(transaction.productID)
+                    print("✅ [PurchaseManager] Found valid transaction: \(transaction.productID)")
+                }
+            }
+        }
+        
+        // Update and cache the results
+        if !foundProducts.isEmpty {
+            purchasedProductIDs = foundProducts
+            print("✅ [PurchaseManager] Updated premium status: \(purchasedProductIDs)")
+            
+            // Cache the valid purchases to UserDefaults
+            UserDefaults.standard.set(Array(purchasedProductIDs), forKey: UserDefaultsKeys.cachedPurchasedProductIDs)
+            UserDefaults.standard.synchronize()
         }
     }
 }
