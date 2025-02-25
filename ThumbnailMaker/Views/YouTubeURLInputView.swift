@@ -29,6 +29,59 @@ struct YouTubeURLInputView: View {
         NavigationView {
             ScrollView {
                 VStack(spacing: 24) {
+                    // Quota Information Section
+                    VStack(spacing: 12) {
+                        HStack {
+                            Image(systemName: "info.circle.fill")
+                                .foregroundColor(.blue)
+                            Text("Import Quota")
+                                .font(.headline)
+                                .foregroundColor(.primary)
+                        }
+                        
+                        HStack(spacing: 16) {
+                            VStack(alignment: .center, spacing: 4) {
+                                Text("\(purchaseManager.youtubeImportsRemaining)")
+                                    .font(.system(size: 24, weight: .bold))
+                                    .foregroundColor(.blue)
+                                Text("Remaining")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            .frame(maxWidth: .infinity)
+                            
+                            Divider().frame(height: 30)
+                            
+                            VStack(alignment: .center, spacing: 4) {
+                                Text(purchaseManager.purchasedProductIDs.isEmpty ? "3" : "100")
+                                    .font(.system(size: 24, weight: .bold))
+                                    .foregroundColor(.secondary)
+                                Text("Daily Limit")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            .frame(maxWidth: .infinity)
+                            
+                            if purchaseManager.youtubeImportsRemaining < (purchaseManager.purchasedProductIDs.isEmpty ? 3 : 100) {
+                                Divider().frame(height: 30)
+                                
+                                VStack(alignment: .center, spacing: 4) {
+                                    Text(purchaseManager.timeUntilNextReset)
+                                        .font(.system(size: 16, weight: .bold, design: .monospaced))
+                                        .foregroundColor(.orange)
+                                    Text("Until Reset")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                                .frame(maxWidth: .infinity)
+                            }
+                        }
+                    }
+                    .padding()
+                    .background(Color.blue.opacity(0.1))
+                    .cornerRadius(12)
+                    .padding(.horizontal)
+                    
                     // Guide Section - Always show this
                     if !isQuotaReached {
                         VStack(spacing: 16) {

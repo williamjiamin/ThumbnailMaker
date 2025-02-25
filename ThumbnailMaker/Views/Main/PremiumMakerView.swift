@@ -351,21 +351,20 @@ struct PremiumMakerView: View {
                 }
                 
                 Button(action: {
-                    if purchaseManager.youtubeImportsRemaining > 0 {
-                        showingYouTubeInput = true
-                    } else {
-                        showingQuotaLimit = true
-                    }
+                    showingYouTubeInput = true
                 }) {
-                    if purchaseManager.youtubeImportsRemaining > 0 {
-                        Label("Import from YouTube (\(purchaseManager.youtubeImportsRemaining) left today)", 
-                              systemImage: "play.rectangle.fill")
-                    } else {
-                        Label("Import from YouTube (Next in: \(purchaseManager.timeUntilNextReset))", 
-                              systemImage: "clock.fill")
-                    }
+                    Label("Import from YouTube", systemImage: "play.rectangle.fill")
+                        .frame(maxWidth: .infinity)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                        .background(
+                            LinearGradient(colors: [.blue, .blue.opacity(0.8)],
+                                         startPoint: .leading,
+                                         endPoint: .trailing)
+                        )
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
                 }
-                .disabled(purchaseManager.youtubeImportsRemaining <= 0)
             } label: {
                 HStack {
                     Image(systemName: "photo")
