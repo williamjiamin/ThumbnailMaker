@@ -342,54 +342,15 @@ struct PremiumMakerView: View {
     }
     
     private var actionButtonsSection: some View {
-        HStack(spacing: 12) {
-            Menu {
-                Button(action: {
-                    viewModel.showPhotoPicker = true
-                }) {
-                    Label("Import from Library", systemImage: "photo.on.rectangle")
-                }
-                
-                Button(action: {
-                    showingYouTubeInput = true
-                }) {
-                    Label("Import from YouTube", systemImage: "play.rectangle.fill")
-                        .frame(maxWidth: .infinity)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 8)
-                        .background(
-                            LinearGradient(colors: [.blue, .blue.opacity(0.8)],
-                                         startPoint: .leading,
-                                         endPoint: .trailing)
-                        )
-                        .foregroundColor(.white)
-                        .cornerRadius(10)
-                }
-            } label: {
-                HStack {
-                    Image(systemName: "photo")
-                    Text("Select Image")
-                }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
-                .background(
-                    LinearGradient(colors: [.blue, .blue.opacity(0.8)],
-                                 startPoint: .leading,
-                                 endPoint: .trailing)
-                )
-                .foregroundColor(.white)
-                .cornerRadius(10)
-            }
-            .onReceive(timer) { _ in
-                timerRefreshTrigger = Date()
-            }
-            
-            if viewModel.premiumMakerConfiguration.selectedImage != nil {
-                PhotosPicker(selection: $viewModel.profileImageSelection,
+        VStack(spacing: 16) {
+            // Primary actions row - Select Image and YouTube Import
+            HStack(spacing: 12) {
+                // Select Image button (library only)
+                PhotosPicker(selection: $viewModel.imageSelection,
                            matching: .images) {
                     HStack {
-                        Image(systemName: "person.crop.circle")
-                        Text("Profile")
+                        Image(systemName: "photo")
+                        Text("Select Image")
                     }
                     .padding(.horizontal, 12)
                     .padding(.vertical, 8)
@@ -402,45 +363,93 @@ struct PremiumMakerView: View {
                     .cornerRadius(10)
                 }
                 
+                // YouTube Import button
                 Button(action: {
                     focusedField = nil
-                    let (targetWidth, targetHeight) = viewModel.premiumMakerConfiguration.selectedRatio.dimensions
-                    let content = PremiumPreviewComponentView(
-                        premiumMakerConfiguration: viewModel.premiumMakerConfiguration,
-                        width: targetWidth,
-                        height: targetHeight
-                    )
-                    Task {
-                        await viewModel.saveImageWithOverlay(content: content)
+                    
+                    // Check quota before showing YouTube input
+                    let importStatus = PurchaseManager.shared.youtubeImportsRemaining
+                    if importStatus <= 0 {
+                        showingQuotaLimit = true
+                    } else {
+                        showingYouTubeInput = true
                     }
                 }) {
                     HStack {
-                        Image(systemName: "square.and.arrow.down")
-                        if viewModel.isSaving {
-                            ProgressView()
-                                .tint(.white)
-                        } else {
-                            Text("Save")
-                        }
+                        Image(systemName: "play.rectangle.fill")
+                        Text("YouTube Import")
                     }
                     .padding(.horizontal, 12)
                     .padding(.vertical, 8)
                     .background(
-                        LinearGradient(colors: [.green, .green.opacity(0.8)],
+                        LinearGradient(colors: [.purple, .purple.opacity(0.8)],
                                      startPoint: .leading,
                                      endPoint: .trailing)
                     )
                     .foregroundColor(.white)
                     .cornerRadius(10)
                 }
-                .disabled(viewModel.isSaving)
+            }
+            
+            // Secondary actions row - Profile and Save
+            if viewModel.premiumMakerConfiguration.selectedImage != nil {
+                HStack(spacing: 12) {
+                    // Profile Image button
+                    PhotosPicker(selection: $viewModel.profileImageSelection,
+                               matching: .images) {
+                        HStack {
+                            Image(systemName: "person.crop.circle")
+                            Text("Profile")
+                        }
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                        .background(
+                            LinearGradient(colors: [.orange, .orange.opacity(0.8)],
+                                         startPoint: .leading,
+                                         endPoint: .trailing)
+                        )
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
+                    }
+                    
+                    // Save button
+                    Button(action: {
+                        focusedField = nil
+                        let (targetWidth, targetHeight) = viewModel.premiumMakerConfiguration.selectedRatio.dimensions
+                        let content = PremiumPreviewComponentView(
+                            premiumMakerConfiguration: viewModel.premiumMakerConfiguration,
+                            width: targetWidth,
+                            height: targetHeight
+                        )
+                        Task {
+                            await viewModel.saveImageWithOverlay(content: content)
+                        }
+                    }) {
+                        HStack {
+                            Image(systemName: "square.and.arrow.down")
+                            if viewModel.isSaving {
+                                ProgressView()
+                                    .tint(.white)
+                            } else {
+                                Text("Save")
+                            }
+                        }
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                        .background(
+                            LinearGradient(colors: [.green, .green.opacity(0.8)],
+                                         startPoint: .leading,
+                                         endPoint: .trailing)
+                        )
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
+                    }
+                    .disabled(viewModel.isSaving)
+                }
             }
         }
         .padding(.vertical, 16)
         .padding(.horizontal, 20)
-        .photosPicker(isPresented: $viewModel.showPhotoPicker,
-                     selection: $viewModel.imageSelection,
-                     matching: .images)
     }
     
     private var batchSettingsSection: some View {

@@ -403,7 +403,7 @@ class PurchaseManager: ObservableObject {
         return .success
     }
     
-    private var nextResetDate: Date? {
+    var nextResetDate: Date? {
         guard let lastReset = lastYoutubeImportReset else { return nil }
         
         if DebugSettings.isDebugMode {
