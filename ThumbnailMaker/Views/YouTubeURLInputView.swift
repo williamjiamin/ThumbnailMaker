@@ -1,5 +1,6 @@
 import SwiftUI
 import Network
+import Combine
 
 struct YouTubeURLInputView: View {
     @Environment(\.dismiss) private var dismiss
@@ -12,7 +13,9 @@ struct YouTubeURLInputView: View {
     @StateObject private var networkMonitor = NetworkMonitor()
     @StateObject private var purchaseManager = PurchaseManager.shared
     @State private var currentTime = Date()
-    private let timer = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
+    
+    // Use a cancellable timer instead of a fixed one
+    @State private var timerCancellable: AnyCancellable?
     
     // Don't check pasteboard automatically
     @State private var pasteboardHasContent = false
@@ -141,15 +144,33 @@ struct YouTubeURLInputView: View {
                     }
                 }
             }
-            .onReceive(timer) { _ in
-                // Only update the time, don't refresh UI elements user is interacting with
-                currentTime = Date()
-            }
         }
         .onAppear {
-            // Don't automatically check pasteboard on appear - this was causing the permission prompts
-            // Check will only happen when user explicitly taps the paste button
+            // Start the timer when the view appears
+            startTimer()
         }
+        .onDisappear {
+            // Cancel the timer when the view disappears
+            timerCancellable?.cancel()
+        }
+        .onChange(of: isFocused) { _, newValue in
+            // Pause timer when text field is focused to prevent context menu disappearing
+            if newValue {
+                timerCancellable?.cancel()
+            } else {
+                startTimer()
+            }
+        }
+    }
+    
+    private func startTimer() {
+        // Create a new timer that runs every minute
+        timerCancellable = Timer.publish(every: 60, on: .main, in: .common)
+            .autoconnect()
+            .sink { _ in
+                // Only update time without causing unnecessary UI refreshes
+                currentTime = Date()
+            }
     }
     
     private var premiumUpgradeButton: some View {
