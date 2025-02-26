@@ -53,11 +53,27 @@ struct YouTubeURLInputView: View {
                                     .padding(.horizontal)
                             }
                             
-                            // Quota information
-                            QuotaInfoView(
-                                remainingImports: purchaseManager.availableYoutubeImports,
-                                isPremium: !purchaseManager.purchasedProductIDs.isEmpty
-                            )
+                            // Quota information with countdown timer
+                            VStack(spacing: 8) {
+                                QuotaInfoView(
+                                    remainingImports: purchaseManager.availableYoutubeImports,
+                                    isPremium: !purchaseManager.purchasedProductIDs.isEmpty
+                                )
+                                
+                                // Countdown timer
+                                HStack {
+                                    Image(systemName: "clock")
+                                        .foregroundColor(.blue)
+                                    
+                                    Text("Resets in: \(purchaseManager.timeUntilNextReset)")
+                                        .font(.caption)
+                                        .foregroundColor(.blue)
+                                }
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .background(Color.blue.opacity(0.1))
+                                .cornerRadius(16)
+                            }
                             
                             // URL Display and Paste Controls
                             VStack(spacing: 16) {
@@ -180,11 +196,11 @@ struct YouTubeURLInputView: View {
     }
     
     private func startTimer() {
-        // Create a new timer that runs every minute
-        timerCancellable = Timer.publish(every: 60, on: .main, in: .common)
+        // Create a new timer that runs every second to update the countdown
+        timerCancellable = Timer.publish(every: 1, on: .main, in: .common)
             .autoconnect()
             .sink { _ in
-                // Only update time without causing unnecessary UI refreshes
+                // Update time to trigger UI refresh of the countdown
                 currentTime = Date()
             }
     }
