@@ -35,8 +35,14 @@ class PurchaseManager: ObservableObject {
     private var lastVerificationDate: Date?
     private let verificationInterval: TimeInterval = 3600 // 1 hour
     
-    private let maxDailyYoutubeImports = 100  // Increased from 5 to 100 imports per day
-    private let maxFreeYoutubeImports = 3
+    private var maxDailyYoutubeImports: Int {
+        DebugSettings.premiumQuotaLimit
+    }
+    
+    private var maxFreeYoutubeImports: Int {
+        DebugSettings.freeQuotaLimit
+    }
+    
     private var lastYoutubeImportReset: Date?
     
     private init() {
@@ -308,30 +314,28 @@ class PurchaseManager: ObservableObject {
         }
     }
     
-    func checkAndResetYoutubeImports() {
-        print("\n🔄 [PurchaseManager] Checking YouTube imports reset...")
-        print("- Current imports remaining: \(youtubeImportsRemaining)")
-        print("- Last reset date: \(String(describing: lastYoutubeImportReset))")
-        print("- Is premium: \(!purchasedProductIDs.isEmpty)")
-        
+    private func checkAndResetYoutubeImports() {
         guard let lastReset = lastYoutubeImportReset else {
-            print("⚠️ [PurchaseManager] No last reset date found, performing initial reset")
+            // First reset
             resetYoutubeImports()
             return
         }
         
         let calendar = Calendar.current
         let now = Date()
-        let lastResetDay = calendar.startOfDay(for: lastReset)
-        let today = calendar.startOfDay(for: now)
         
-        if lastResetDay < today {
-            print("⚠️ [PurchaseManager] Last reset not from today, performing daily reset")
-            print("- Last reset: \(lastReset)")
-            print("- Current date: \(now)")
-            resetYoutubeImports()
+        // In debug mode, reset after 3 minutes
+        // In production mode, reset after midnight
+        if DebugSettings.isDebugMode {
+            // Simple time-based check for debug mode
+            if now.timeIntervalSince(lastReset) >= DebugSettings.quotaResetInterval {
+                resetYoutubeImports()
+            }
         } else {
-            print("✅ [PurchaseManager] Reset not needed - last reset was today")
+            // Original production logic (reset at midnight)
+            if !calendar.isDate(lastReset, inSameDayAs: now) {
+                resetYoutubeImports()
+            }
         }
     }
     
@@ -401,9 +405,15 @@ class PurchaseManager: ObservableObject {
     
     private var nextResetDate: Date? {
         guard let lastReset = lastYoutubeImportReset else { return nil }
-        let calendar = Calendar.current
-        let nextDay = calendar.startOfDay(for: lastReset).addingTimeInterval(24 * 3600)
-        return nextDay
+        
+        if DebugSettings.isDebugMode {
+            // In debug mode, reset after 3 minutes from last reset
+            return lastReset.addingTimeInterval(DebugSettings.quotaResetInterval)
+        } else {
+            // In production mode, reset at midnight
+            let calendar = Calendar.current
+            return calendar.startOfDay(for: lastReset).addingTimeInterval(24 * 3600)
+        }
     }
     
     // Replace your existing timeUntilNextReset property with this one

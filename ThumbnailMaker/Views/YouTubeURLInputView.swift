@@ -337,6 +337,19 @@ struct YouTubeURLInputView: View {
                 }
             }
         }
+        
+        #if DEBUG
+        .overlay(alignment: .top) {
+            if DebugSettings.isDebugMode {
+                Text("DEBUG MODE: \(DebugSettings.premiumQuotaLimit) premium imports, resets every 3 minutes")
+                    .font(.caption2)
+                    .padding(4)
+                    .background(Color.red.opacity(0.2))
+                    .cornerRadius(4)
+                    .padding(.top, 4)
+            }
+        }
+        #endif
     }
     
     private func guideRow(number: String, text: String) -> some View {

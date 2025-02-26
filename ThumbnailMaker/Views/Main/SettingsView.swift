@@ -13,6 +13,7 @@ struct SettingsView: View {
     @Environment(\.openURL) private var openURL
     @State private var purchaseMessage: String?
     @State private var showingPurchaseMessage = false
+    @State private var isDebugMode: Bool = DebugSettings.isDebugMode
     
     var body: some View {
         NavigationView {
@@ -156,6 +157,58 @@ struct SettingsView: View {
                         LegalDocumentView(title: "Privacy Policy", documentName: "privacy_policy")
                     }
                 }
+                
+                #if DEBUG
+                Section(header: Text("Developer Settings")) {
+                    // Display debug mode status (read-only)
+                    HStack {
+                        Image(systemName: "ladybug.fill")
+                            .foregroundColor(.red)
+                        Text("Debug Mode: \(DebugSettings.isDebugMode ? "ON" : "OFF")")
+                        Spacer()
+                        Text("Change in code")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    VStack(alignment: .leading, spacing: 8) {
+                        if DebugSettings.isDebugMode {
+                            Text("Current Debug Settings:")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        
+                            Label("Premium Quota: \(DebugSettings.premiumQuotaLimit)", systemImage: "number.circle")
+                                .font(.caption)
+                        
+                            Label("Reset Time: 3 minutes", systemImage: "clock")
+                                .font(.caption)
+                        } else {
+                            Text("Production Settings:")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                                
+                            Label("Premium Quota: \(DebugSettings.productionPremiumQuotaLimit)", systemImage: "number.circle")
+                                .font(.caption)
+                                
+                            Label("Reset Time: 24 hours", systemImage: "clock")
+                                .font(.caption)
+                        }
+                        
+                        Button(action: {
+                            // Force reset YouTube imports
+                            UserDefaults.standard.removeObject(forKey: "lastYoutubeImportReset")
+                            UserDefaults.standard.synchronize()
+                        }) {
+                            Label("Force Reset Quota", systemImage: "arrow.counterclockwise.circle")
+                                .font(.caption)
+                                .foregroundColor(.blue)
+                        }
+                    }
+                    .padding()
+                    .background(Color.blue.opacity(0.1))
+                    .cornerRadius(8)
+                }
+                #endif
             }
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.inline)
