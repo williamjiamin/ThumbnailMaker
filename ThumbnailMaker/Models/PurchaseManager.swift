@@ -324,16 +324,25 @@ class PurchaseManager: ObservableObject {
         let calendar = Calendar.current
         let now = Date()
         
+        // Add debug print to trace the execution
+        print("🔍 [Quota Check] Current time: \(now)")
+        print("🔍 [Quota Check] Last reset: \(lastReset)")
+        
         // In debug mode, reset after 3 minutes
         // In production mode, reset after midnight
         if DebugSettings.isDebugMode {
             // Simple time-based check for debug mode
-            if now.timeIntervalSince(lastReset) >= DebugSettings.quotaResetInterval {
+            let timeSinceReset = now.timeIntervalSince(lastReset)
+            print("🔍 [Quota Check] Time since reset: \(timeSinceReset)s, Required: \(DebugSettings.quotaResetInterval)s")
+            
+            if timeSinceReset >= DebugSettings.quotaResetInterval {
+                print("🔍 [Quota Check] Debug reset triggered!")
                 resetYoutubeImports()
             }
         } else {
             // Original production logic (reset at midnight)
             if !calendar.isDate(lastReset, inSameDayAs: now) {
+                print("🔍 [Quota Check] Production reset triggered!")
                 resetYoutubeImports()
             }
         }
@@ -343,14 +352,13 @@ class PurchaseManager: ObservableObject {
         print("\n🔄 [PurchaseManager] Resetting YouTube imports...")
         let defaults = UserDefaults.standard
         let isPremium = !purchasedProductIDs.isEmpty
-        let calendar = Calendar.current
-        let today = calendar.startOfDay(for: Date())
+        let now = Date()  // Use current time, not start of day
         
         print("- Is premium: \(isPremium)")
         print("- Current purchasedProductIDs: \(purchasedProductIDs)")
         
         youtubeImportsRemaining = isPremium ? maxDailyYoutubeImports : maxFreeYoutubeImports
-        lastYoutubeImportReset = today
+        lastYoutubeImportReset = now  // Use exact time for precise interval calculations
         
         print("- New imports remaining: \(youtubeImportsRemaining)")
         print("- New reset date: \(String(describing: lastYoutubeImportReset))")
@@ -367,18 +375,11 @@ class PurchaseManager: ObservableObject {
     }
     
     func useYoutubeImport() -> YouTubeImportStatus {
-        let defaults = UserDefaults.standard
-        
-        // Create a consistent state by reloading from UserDefaults
-        youtubeImportsRemaining = defaults.integer(forKey: UserDefaultsKeys.youtubeImportsRemaining)
-        lastYoutubeImportReset = defaults.object(forKey: UserDefaultsKeys.lastYoutubeImportReset) as? Date
-        
-        print("📊 [PurchaseManager] Using YouTube import, current remaining: \(youtubeImportsRemaining)")
-        
-        // Check if we need a reset based on the date (new day)
+        // Check if we need to reset the quota first
         checkAndResetYoutubeImports()
         
-        // After potential reset, check if we can proceed
+        let defaults = UserDefaults.standard
+        
         if youtubeImportsRemaining <= 0 {
             print("📊 [PurchaseManager] No imports remaining, can't use import")
             return purchasedProductIDs.isEmpty ? .limitReachedFree : .limitReachedPremium
@@ -386,12 +387,11 @@ class PurchaseManager: ObservableObject {
         
         // We have imports available, use one
         youtubeImportsRemaining -= 1
+        print("📊 [PurchaseManager] Used YouTube import, new remaining: \(youtubeImportsRemaining)")
         
         // Save immediately with synchronize
         defaults.set(youtubeImportsRemaining, forKey: UserDefaultsKeys.youtubeImportsRemaining)
         defaults.synchronize()
-        
-        print("📊 [PurchaseManager] Used YouTube import, new remaining: \(youtubeImportsRemaining)")
         
         // Load products in background (without affecting quota)
         Task {
@@ -423,8 +423,8 @@ class PurchaseManager: ObservableObject {
     }
     
     var availableYoutubeImports: Int {
-        let defaults = UserDefaults.standard
-        return defaults.integer(forKey: UserDefaultsKeys.youtubeImportsRemaining)
+        // Return the in-memory value, which should always be up-to-date
+        return youtubeImportsRemaining
     }
     
     // 3. Add a new method for explicit verification (only when user requests it)
@@ -516,11 +516,37 @@ class PurchaseManager: ObservableObject {
         let now = Date()
         let timeRemaining = max(0, nextReset.timeIntervalSince(now))
         
-        let hours = Int(timeRemaining) / 3600
-        let minutes = (Int(timeRemaining) % 3600) / 60
-        let seconds = Int(timeRemaining) % 60
+        // Debug prints
+        if DebugSettings.isDebugMode {
+            print("⏱️ [Timer] Next reset: \(nextReset), Time remaining: \(timeRemaining)s")
+        }
         
-        timeRemainingString = String(format: "%02d:%02d:%02d", hours, minutes, seconds)
+        // Check if the timer has reached zero
+        if timeRemaining <= 0 {
+            // Only call reset once when we cross the threshold
+            print("⏱️ [Timer] Threshold crossed, checking if reset needed")
+            checkAndResetYoutubeImports()
+            
+            // Recalculate after potential reset
+            guard let newNextReset = nextResetDate else {
+                timeRemainingString = "--:--:--"
+                return
+            }
+            
+            let newTimeRemaining = max(0, newNextReset.timeIntervalSince(now))
+            let hours = Int(newTimeRemaining) / 3600
+            let minutes = (Int(newTimeRemaining) % 3600) / 60
+            let seconds = Int(newTimeRemaining) % 60
+            
+            timeRemainingString = String(format: "%02d:%02d:%02d", hours, minutes, seconds)
+        } else {
+            // Normal time update
+            let hours = Int(timeRemaining) / 3600
+            let minutes = (Int(timeRemaining) % 3600) / 60
+            let seconds = Int(timeRemaining) % 60
+            
+            timeRemainingString = String(format: "%02d:%02d:%02d", hours, minutes, seconds)
+        }
     }
 }
 
