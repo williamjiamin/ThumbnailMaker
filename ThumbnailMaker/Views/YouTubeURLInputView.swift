@@ -14,6 +14,9 @@ struct YouTubeURLInputView: View {
     @State private var currentTime = Date()
     private let timer = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
     
+    // Don't check pasteboard automatically
+    @State private var pasteboardHasContent = false
+    
     private var isButtonDisabled: Bool {
         youtubeURL.isEmpty || 
         isLoading || 
@@ -67,8 +70,9 @@ struct YouTubeURLInputView: View {
                                     .padding(.horizontal)
                                     .disabled(isLoading || videoInfo != nil)
                                 
-                                // Dedicated paste button
+                                // Dedicated paste button - only checks pasteboard when tapped
                                 Button(action: {
+                                    // Only access pasteboard when explicitly requested
                                     if let pasteboardString = UIPasteboard.general.string {
                                         youtubeURL = pasteboardString
                                     }
@@ -80,7 +84,7 @@ struct YouTubeURLInputView: View {
                                 .tint(.blue)
                                 .controlSize(.large)
                                 .padding(.horizontal)
-                                .disabled(isLoading || videoInfo != nil || UIPasteboard.general.string == nil)
+                                .disabled(isLoading || videoInfo != nil)
                             }
                             
                             // Error message
@@ -138,16 +142,13 @@ struct YouTubeURLInputView: View {
                 }
             }
             .onReceive(timer) { _ in
-                // Refresh to check quota
+                // Only update the time, don't refresh UI elements user is interacting with
                 currentTime = Date()
             }
         }
         .onAppear {
-            // Check for URL in clipboard on appear
-            if youtubeURL.isEmpty, let pasteboardString = UIPasteboard.general.string,
-               pasteboardString.contains("youtube.com") || pasteboardString.contains("youtu.be") {
-                youtubeURL = pasteboardString
-            }
+            // Don't automatically check pasteboard on appear - this was causing the permission prompts
+            // Check will only happen when user explicitly taps the paste button
         }
     }
     
