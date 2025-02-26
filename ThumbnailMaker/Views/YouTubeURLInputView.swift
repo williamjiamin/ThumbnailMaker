@@ -39,14 +39,14 @@ struct YouTubeURLInputView: View {
                     NoInternetView()
                 } else {
                     ScrollView {
-                        VStack(spacing: 16) {
+                        VStack(spacing: 20) {
                             // Header and information
-                            VStack(spacing: 4) {
-                                Text("Enter YouTube Video URL")
+                            VStack(spacing: 8) {
+                                Text("Import YouTube Thumbnail")
                                     .font(.headline)
                                     .padding(.top)
                                 
-                                Text("Paste a link to get a high-quality thumbnail")
+                                Text("Use the buttons below to paste a YouTube video link")
                                     .font(.subheadline)
                                     .foregroundColor(.secondary)
                                     .multilineTextAlignment(.center)
@@ -59,35 +59,60 @@ struct YouTubeURLInputView: View {
                                 isPremium: !purchaseManager.purchasedProductIDs.isEmpty
                             )
                             
-                            // URL Input section with standard TextField and paste button
-                            VStack(spacing: 12) {
-                                // Standard TextField with full iOS text editing capabilities
-                                TextField("YouTube URL", text: $youtubeURL)
-                                    .textInputAutocapitalization(.never)
-                                    .disableAutocorrection(true)
-                                    .keyboardType(.URL)
-                                    .focused($isFocused)
-                                    .padding()
-                                    .background(Color(.systemGray6))
-                                    .cornerRadius(8)
-                                    .padding(.horizontal)
-                                    .disabled(isLoading || videoInfo != nil)
-                                
-                                // Dedicated paste button - only checks pasteboard when tapped
-                                Button(action: {
-                                    // Only access pasteboard when explicitly requested
-                                    if let pasteboardString = UIPasteboard.general.string {
-                                        youtubeURL = pasteboardString
-                                    }
-                                }) {
-                                    Label("Paste from Clipboard", systemImage: "doc.on.clipboard")
-                                        .frame(maxWidth: .infinity)
+                            // URL Display and Paste Controls
+                            VStack(spacing: 16) {
+                                // Read-only URL display field
+                                HStack {
+                                    Text(youtubeURL.isEmpty ? "No URL pasted yet" : youtubeURL)
+                                        .foregroundColor(youtubeURL.isEmpty ? .secondary : .primary)
+                                        .lineLimit(1)
+                                        .truncationMode(.middle)
+                                        .padding()
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 8)
+                                                .stroke(Color.secondary.opacity(0.3), lineWidth: 1)
+                                                .background(Color(.systemGray6).cornerRadius(8))
+                                        )
                                 }
-                                .buttonStyle(.bordered)
-                                .tint(.blue)
-                                .controlSize(.large)
                                 .padding(.horizontal)
-                                .disabled(isLoading || videoInfo != nil)
+                                
+                                // Action buttons
+                                HStack(spacing: 12) {
+                                    // Paste button
+                                    Button(action: {
+                                        if let pasteboardString = UIPasteboard.general.string {
+                                            youtubeURL = pasteboardString
+                                        }
+                                    }) {
+                                        HStack {
+                                            Image(systemName: "doc.on.clipboard")
+                                            Text("Paste from Clipboard")
+                                        }
+                                        .frame(maxWidth: .infinity)
+                                        .padding(.vertical, 12)
+                                    }
+                                    .buttonStyle(.borderedProminent)
+                                    .tint(.blue)
+                                    .disabled(isLoading || videoInfo != nil)
+                                    
+                                    // Clear button
+                                    Button(action: {
+                                        youtubeURL = ""
+                                        errorMessage = nil
+                                    }) {
+                                        HStack {
+                                            Image(systemName: "xmark")
+                                            Text("Clear")
+                                        }
+                                        .frame(maxWidth: .infinity)
+                                        .padding(.vertical, 12)
+                                    }
+                                    .buttonStyle(.bordered)
+                                    .tint(.red)
+                                    .disabled(youtubeURL.isEmpty || isLoading || videoInfo != nil)
+                                }
+                                .padding(.horizontal)
                             }
                             
                             // Error message
@@ -102,7 +127,6 @@ struct YouTubeURLInputView: View {
                             
                             // Get Thumbnail Button
                             Button(action: {
-                                isFocused = false
                                 fetchVideoInfo()
                             }) {
                                 if isLoading {
@@ -152,14 +176,6 @@ struct YouTubeURLInputView: View {
         .onDisappear {
             // Cancel the timer when the view disappears
             timerCancellable?.cancel()
-        }
-        .onChange(of: isFocused) { _, newValue in
-            // Pause timer when text field is focused to prevent context menu disappearing
-            if newValue {
-                timerCancellable?.cancel()
-            } else {
-                startTimer()
-            }
         }
     }
     
