@@ -27,407 +27,283 @@ struct YouTubeURLInputView: View {
     
     var body: some View {
         NavigationView {
-            ScrollView {
-                VStack(spacing: 24) {
-                    // Quota Information Section
-                    VStack(spacing: 12) {
-                        HStack {
-                            Image(systemName: "info.circle.fill")
-                                .foregroundColor(.blue)
-                            Text("Import Quota")
-                                .font(.headline)
-                                .foregroundColor(.primary)
-                        }
-                        
-                        HStack(spacing: 16) {
-                            VStack(alignment: .center, spacing: 4) {
-                                Text("\(purchaseManager.youtubeImportsRemaining)")
-                                    .font(.system(size: 24, weight: .bold))
-                                    .foregroundColor(.blue)
-                                Text("Remaining")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                            .frame(maxWidth: .infinity)
-                            
-                            Divider().frame(height: 30)
-                            
-                            VStack(alignment: .center, spacing: 4) {
-                                Text(purchaseManager.purchasedProductIDs.isEmpty ? "3" : "100")
-                                    .font(.system(size: 24, weight: .bold))
-                                    .foregroundColor(.secondary)
-                                Text("Daily Limit")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                            .frame(maxWidth: .infinity)
-                            
-                            if purchaseManager.youtubeImportsRemaining < (purchaseManager.purchasedProductIDs.isEmpty ? 3 : 100) {
-                                Divider().frame(height: 30)
-                                
-                                VStack(alignment: .center, spacing: 4) {
-                                    Text(purchaseManager.timeUntilNextReset)
-                                        .font(.system(size: 16, weight: .bold, design: .monospaced))
-                                        .foregroundColor(.orange)
-                                    Text("Until Reset")
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
-                                }
-                                .frame(maxWidth: .infinity)
-                            }
-                        }
-                    }
-                    .padding()
-                    .background(Color.blue.opacity(0.1))
-                    .cornerRadius(12)
-                    .padding(.horizontal)
-                    
-                    // Guide Section - Always show this
-                    if !isQuotaReached {
+            VStack {
+                if !networkMonitor.isConnected {
+                    // No internet connection warning
+                    NoInternetView()
+                } else {
+                    ScrollView {
                         VStack(spacing: 16) {
-                            Text("How to Import from YouTube")
-                                .font(.headline)
-                            
-                            VStack(alignment: .leading, spacing: 12) {
-                                guideRow(number: "1", text: "Open your YouTube video")
-                                guideRow(number: "2", text: "Tap the Share button")
-                                guideRow(number: "3", text: "Select 'Copy Link'")
-                                guideRow(number: "4", text: "Paste the link below")
-                                guideRow(number: "5", text: "Tap 'Fetch Video Info'")
-                                Text("Premium users: 100 imports per day | Free users: 3 imports per day")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                                    .padding(.leading, 36)
-                            }
-                            .padding()
-                            .background(Color.blue.opacity(0.1))
-                            .cornerRadius(12)
-                        }
-                        .padding(.horizontal)
-                        
-                        // Disclaimer Section
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text("Important Notice")
-                                .font(.headline)
-                            
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text("By using this feature, you acknowledge:")
-                                    .font(.subheadline)
-                                    .foregroundColor(.secondary)
-                                
-                                VStack(alignment: .leading, spacing: 6) {
-                                    disclaimerRow("Internet connection required")
-                                    disclaimerRow("Limited to 3 imports per day (free) or 100 imports per day (premium)")
-                                    disclaimerRow("Only supports regular YouTube videos (not Shorts)")
-                                    disclaimerRow("YouTube thumbnails may be protected by copyright")
-                                    disclaimerRow("Only use your own content or properly licensed thumbnails")
-                                    disclaimerRow("This feature is for reference and inspiration only")
-                                    disclaimerRow("Using imported thumbnails commercially may violate copyright laws")
-                                    disclaimerRow("We are not responsible for any copyright violations")
-                                    disclaimerRow("Subject to YouTube API Terms of Service")
-                                }
-                            }
-                            .padding()
-                            .background(Color.orange.opacity(0.1))
-                            .cornerRadius(12)
-                        }
-                        .padding(.horizontal)
-                    }
-                    
-                    // URL Input Section
-                    if !isQuotaReached {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Enter YouTube Video URL")
-                                .font(.headline)
-                            
-                            TextField("https://youtube.com/watch?v=...", text: $youtubeURL)
-                                .textFieldStyle(RoundedBorderTextFieldStyle())
-                                .autocapitalization(.none)
-                                .disableAutocorrection(true)
-                                .textContentType(.URL)
-                                .keyboardType(.URL)
-                                .focused($isFocused)
-                                .textSelection(.enabled)
-                                .contextMenu {
-                                    Button {
-                                        UIPasteboard.general.string.map { youtubeURL = $0 }
-                                    } label: {
-                                        Label("Paste", systemImage: "doc.on.clipboard")
-                                    }
-                                    
-                                    Button {
-                                        youtubeURL = ""
-                                    } label: {
-                                        Label("Clear", systemImage: "xmark")
-                                    }
-                                }
-                        }
-                        .padding(.horizontal)
-                    } else {
-                        VStack(spacing: 12) {
-                            HStack {
-                                Image(systemName: "exclamationmark.circle.fill")
-                                    .foregroundColor(.red)
-                                Text(purchaseManager.purchasedProductIDs.isEmpty ? 
-                                    "Daily Free Import Limit Reached" : 
-                                    "Daily Premium Import Limit Reached")
+                            // Header and information
+                            VStack(spacing: 4) {
+                                Text("Enter YouTube Video URL")
                                     .font(.headline)
-                                    .foregroundColor(.red)
-                            }
-                            
-                            Text("Your imports will reset tomorrow at midnight.")
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
-                            
-                            HStack {
-                                Image(systemName: "clock")
-                                    .foregroundColor(.secondary)
-                                Text("Next reset in: \(purchaseManager.timeUntilNextReset)")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                            .padding(.top, 4)
-                        }
-                        .padding()
-                        .background(Color.red.opacity(0.1))
-                        .cornerRadius(12)
-                        .padding(.horizontal)
-                    }
-                    
-                    // Preview Section
-                    if let videoInfo = videoInfo {
-                        VStack(spacing: 16) {
-                            Text("Preview")
-                                .font(.headline)
-                            
-                            videoInfo.thumbnail
-                                .resizable()
-                                .aspectRatio(contentMode: .fit)
-                                .frame(maxHeight: 200)
-                                .cornerRadius(8)
-                            
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text("Title:")
+                                    .padding(.top)
+                                
+                                Text("Paste a link to get a high-quality thumbnail")
                                     .font(.subheadline)
                                     .foregroundColor(.secondary)
-                                
-                                Text(videoInfo.title)
-                                    .font(.body)
-                                    .lineLimit(3)
-                                    .fixedSize(horizontal: false, vertical: true)
+                                    .multilineTextAlignment(.center)
+                                    .padding(.horizontal)
                             }
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding()
-                            .background(Color.gray.opacity(0.1))
-                            .cornerRadius(8)
                             
-                            // Action Buttons
+                            // Quota information
+                            QuotaInfoView(
+                                remainingImports: purchaseManager.availableYoutubeImports,
+                                isPremium: !purchaseManager.purchasedProductIDs.isEmpty
+                            )
+                            
+                            // URL Input section with standard TextField and paste button
                             VStack(spacing: 12) {
-                                Button(action: {
-                                    if let uiImage = videoInfo.thumbnail.asUIImage() {
-                                        onSelection(uiImage, "")
-                                        dismiss()
-                                    }
-                                }) {
-                                    Label("Use Thumbnail Only", systemImage: "photo")
-                                        .frame(maxWidth: .infinity)
-                                        .padding()
-                                        .background(Color.blue)
-                                        .foregroundColor(.white)
-                                        .cornerRadius(10)
-                                }
+                                // Standard TextField with full iOS text editing capabilities
+                                TextField("YouTube URL", text: $youtubeURL)
+                                    .textInputAutocapitalization(.never)
+                                    .disableAutocorrection(true)
+                                    .keyboardType(.URL)
+                                    .focused($isFocused)
+                                    .padding()
+                                    .background(Color(.systemGray6))
+                                    .cornerRadius(8)
+                                    .padding(.horizontal)
+                                    .disabled(isLoading || videoInfo != nil)
                                 
+                                // Dedicated paste button
                                 Button(action: {
-                                    if let uiImage = videoInfo.thumbnail.asUIImage() {
-                                        // Format title for better display
-                                        let formattedTitle = videoInfo.title
-                                            .replacingOccurrences(of: " - YouTube", with: "")
-                                            .trimmingCharacters(in: .whitespacesAndNewlines)
-                                        onSelection(uiImage, formattedTitle)
-                                        dismiss()
+                                    if let pasteboardString = UIPasteboard.general.string {
+                                        youtubeURL = pasteboardString
                                     }
                                 }) {
-                                    Label("Use Title Only", systemImage: "text.alignleft")
+                                    Label("Paste from Clipboard", systemImage: "doc.on.clipboard")
                                         .frame(maxWidth: .infinity)
-                                        .padding()
-                                        .background(Color.blue)
-                                        .foregroundColor(.white)
-                                        .cornerRadius(10)
                                 }
-                                
-                                Button(action: {
-                                    if let uiImage = videoInfo.thumbnail.asUIImage() {
-                                        onSelection(uiImage, videoInfo.title)
-                                        dismiss()
-                                    }
-                                }) {
-                                    Label("Use Both", systemImage: "text.below.photo")
-                                        .frame(maxWidth: .infinity)
-                                        .padding()
-                                        .background(Color.blue)
-                                        .foregroundColor(.white)
-                                        .cornerRadius(10)
-                                }
+                                .buttonStyle(.bordered)
+                                .tint(.blue)
+                                .controlSize(.large)
+                                .padding(.horizontal)
+                                .disabled(isLoading || videoInfo != nil || UIPasteboard.general.string == nil)
                             }
-                            .padding(.horizontal)
-                        }
-                        .padding()
-                        .background(Color.gray.opacity(0.05))
-                        .cornerRadius(12)
-                        .padding()
-                    }
-                    
-                    // Fetch Button
-                    if videoInfo == nil && !isQuotaReached {
-                        Button(action: {
-                            Task {
-                                await fetchVideoInfo()
+                            
+                            // Error message
+                            if let errorMessage = errorMessage {
+                                Text(errorMessage)
+                                    .font(.footnote)
+                                    .foregroundColor(.red)
+                                    .multilineTextAlignment(.center)
+                                    .frame(maxWidth: .infinity, alignment: .center)
+                                    .padding(.horizontal)
                             }
-                        }) {
-                            HStack {
+                            
+                            // Get Thumbnail Button
+                            Button(action: {
+                                isFocused = false
+                                fetchVideoInfo()
+                            }) {
                                 if isLoading {
                                     ProgressView()
-                                        .tint(.white)
+                                        .padding()
+                                } else {
+                                    Text("Get Thumbnail")
+                                        .frame(maxWidth: .infinity)
+                                        .padding()
                                 }
-                                Text("Fetch Video Info")
                             }
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.blue)
-                            .foregroundColor(.white)
-                            .cornerRadius(10)
-                        }
-                        .disabled(isButtonDisabled)
-                        .opacity(isButtonDisabled ? 0.5 : 1)
-                        .padding(.horizontal)
-                    }
-                    
-                    if let errorMessage = errorMessage {
-                        Text(errorMessage)
-                            .foregroundColor(.red)
-                            .font(.caption)
+                            .buttonStyle(.borderedProminent)
+                            .controlSize(.large)
                             .padding(.horizontal)
+                            .disabled(isButtonDisabled)
+                            
+                            // YouTube Premium upsell for non-premium users with quota reached
+                            if isQuotaReached && purchaseManager.purchasedProductIDs.isEmpty {
+                                premiumUpgradeButton
+                            }
+                            
+                            // Video thumbnail result
+                            if let videoInfo = videoInfo {
+                                thumbnailResultView(videoInfo: videoInfo, thumbnail: videoInfo.thumbnail)
+                            }
+                            
+                            Spacer(minLength: 20)
+                        }
+                        .padding(.bottom, 20)
                     }
-                    
-                    Spacer()
                 }
-                .padding(.top)
             }
             .navigationTitle("YouTube Import")
             .navigationBarTitleDisplayMode(.inline)
-            .simultaneousGesture(
-                TapGesture()
-                    .onEnded { _ in
-                        // Only dismiss keyboard if it's currently showing
-                        if isFocused {
-                            isFocused = false
-                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder),
-                                                          to: nil,
-                                                          from: nil,
-                                                          for: nil)
-                        }
-                    }
-            )
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("Cancel") {
-                        isFocused = false
                         dismiss()
                     }
                 }
             }
-        }
-        
-        #if DEBUG
-        .overlay(alignment: .top) {
-            if DebugSettings.isDebugMode {
-                Text("DEBUG MODE: \(DebugSettings.premiumQuotaLimit) premium imports, resets every 3 minutes")
-                    .font(.caption2)
-                    .padding(4)
-                    .background(Color.red.opacity(0.2))
-                    .cornerRadius(4)
-                    .padding(.top, 4)
+            .onReceive(timer) { _ in
+                // Refresh to check quota
+                currentTime = Date()
             }
         }
-        #endif
+        .onAppear {
+            // Check for URL in clipboard on appear
+            if youtubeURL.isEmpty, let pasteboardString = UIPasteboard.general.string,
+               pasteboardString.contains("youtube.com") || pasteboardString.contains("youtu.be") {
+                youtubeURL = pasteboardString
+            }
+        }
     }
     
-    private func guideRow(number: String, text: String) -> some View {
-        HStack(spacing: 12) {
-            Text(number)
+    private var premiumUpgradeButton: some View {
+        Button(action: {
+            // Show premium upgrade
+        }) {
+            VStack(spacing: 8) {
+                Text("Get Premium for Unlimited Imports")
+                    .font(.headline)
+                
+                Text("Unlock unlimited YouTube thumbnail imports and more premium features")
+                    .font(.caption)
+                    .multilineTextAlignment(.center)
+            }
+            .frame(maxWidth: .infinity)
+            .padding()
+            .background(Color.blue.opacity(0.1))
+            .foregroundColor(.blue)
+            .cornerRadius(8)
+        }
+        .padding(.horizontal)
+    }
+    
+    private func thumbnailResultView(videoInfo: YouTubeVideoInfo, thumbnail: Image) -> some View {
+        VStack(spacing: 12) {
+            Text("Thumbnail Found!")
                 .font(.headline)
-                .foregroundColor(.blue)
-                .frame(width: 24, height: 24)
-                .background(Circle().stroke(Color.blue, lineWidth: 2))
+                .foregroundColor(.green)
             
-            Text(text)
+            thumbnail
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .cornerRadius(8)
+                .shadow(radius: 3)
+                .padding(.horizontal)
+            
+            Text(videoInfo.title)
                 .font(.subheadline)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal)
             
-            Spacer()
+            Button(action: {
+                // Get the UIImage from the Image view
+                if let uiImage = imageFromThumbnail(thumbnail) {
+                    onSelection(uiImage, videoInfo.title)
+                    dismiss()
+                }
+            }) {
+                Text("Use This Thumbnail")
+                    .frame(maxWidth: .infinity)
+                    .padding()
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
+            .padding(.horizontal)
         }
+        .padding()
+        .background(Color(.systemGray6))
+        .cornerRadius(12)
+        .padding(.horizontal)
     }
     
-    private func disclaimerRow(_ text: String) -> some View {
-        HStack(alignment: .top, spacing: 8) {
-            Image(systemName: "exclamationmark.triangle.fill")
-                .font(.system(size: 12))
-                .foregroundColor(.orange)
-            
-            Text(text)
-                .font(.caption)
-                .foregroundColor(.secondary)
-        }
+    // Helper function to convert SwiftUI Image to UIImage
+    private func imageFromThumbnail(_ image: Image) -> UIImage? {
+        // This is a workaround since we need the UIImage for the callback
+        // In a real app, you'd probably store the UIImage directly
+        let renderer = ImageRenderer(content: image.resizable().aspectRatio(contentMode: .fit))
+        return renderer.uiImage
     }
     
-    private func fetchVideoInfo() async {
-        guard networkMonitor.isConnected else {
-            errorMessage = "No internet connection. Please check your network settings."
+    private func fetchVideoInfo() {
+        guard !youtubeURL.isEmpty else { return }
+        
+        // Check quota first
+        if purchaseManager.youtubeImportsRemaining <= 0 {
+            errorMessage = "Daily limit reached"
+            return
+        }
+        
+        // Use YouTube import quota
+        let status = purchaseManager.useYoutubeImport()
+        guard status == .success else {
+            // Show quota limit screen
             return
         }
         
         isLoading = true
+        errorMessage = nil
         
-        let importStatus = purchaseManager.useYoutubeImport()
-        
-        await MainActor.run {
-            switch importStatus {
-            case .limitReachedPremium:
-                errorMessage = "You've reached today's import limit. Your imports will reset tomorrow at midnight."
-                isLoading = false
-                return
-                
-            case .limitReachedFree:
-                errorMessage = "You've reached the daily free import limit. Upgrade to Premium for more imports."
-                isLoading = false
-                return
-                
-            case .success:
-                break // Continue with the fetch
+        // Fetch video info
+        Task {
+            do {
+                let result = try await YouTubeService.fetchVideoInfo(videoURL: youtubeURL)
+                await MainActor.run {
+                    videoInfo = result
+                    isLoading = false
+                }
+            } catch {
+                await MainActor.run {
+                    errorMessage = "Error fetching thumbnail: \(error.localizedDescription)"
+                    isLoading = false
+                }
             }
         }
-        
-        do {
-            videoInfo = try await YouTubeService.fetchVideoInfo(videoURL: youtubeURL)
-        } catch YouTubeError.invalidVideoID {
-            errorMessage = "Invalid YouTube URL"
-        } catch YouTubeError.noThumbnailFound {
-            errorMessage = "Could not find thumbnail"
-        } catch YouTubeError.noTitleFound {
-            errorMessage = "Could not fetch video title"
-        } catch {
-            errorMessage = "Failed to fetch video info"
-        }
-        
-        isLoading = false
     }
 }
 
-@MainActor
-extension Image {
-    func asUIImage() -> UIImage? {
-        let renderer = ImageRenderer(content: self)
-        return renderer.uiImage
+struct QuotaInfoView: View {
+    let remainingImports: Int
+    let isPremium: Bool
+    
+    var body: some View {
+        HStack {
+            Image(systemName: "info.circle")
+                .foregroundColor(.blue)
+            
+            if isPremium {
+                Text("Premium: \(remainingImports) imports remaining today")
+                    .font(.caption)
+                    .foregroundColor(.blue)
+            } else {
+                Text("Free: \(remainingImports) imports remaining today")
+                    .font(.caption)
+                    .foregroundColor(.blue)
+            }
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(Color.blue.opacity(0.1))
+        .cornerRadius(16)
     }
+}
+
+struct NoInternetView: View {
+    var body: some View {
+        VStack(spacing: 16) {
+            Image(systemName: "wifi.slash")
+                .font(.system(size: 50))
+                .foregroundColor(.red)
+            
+            Text("No Internet Connection")
+                .font(.headline)
+            
+            Text("This feature requires an internet connection to download thumbnails from YouTube.")
+                .multilineTextAlignment(.center)
+                .foregroundColor(.secondary)
+                .padding(.horizontal)
+        }
+        .padding()
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+}
+
+#Preview {
+    YouTubeURLInputView { _, _ in }
 }
 
 
