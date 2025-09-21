@@ -17,15 +17,15 @@ struct SimpleMakerView: View {
     @Namespace private var topID
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             GeometryReader { geometry in
                 let availableWidth = geometry.size.width - 40
                 let availableHeight = geometry.size.height * viewModel.usableHeightProportion
                 let previewHeight = availableHeight * viewModel.previewHeightProportion
                 let previewWidth = previewHeight * viewModel.simpleMakerConfiguration.selectedRatio.value
-                
+
                 ScrollView {
-                    VStack {
+                    VStack(spacing: 20) {
                         // 1. Preview Section at top
                         PreviewComponentView(
                             simpleMakerConfiguration: $viewModel.simpleMakerConfiguration,
@@ -34,24 +34,16 @@ struct SimpleMakerView: View {
                         )
                         .frame(maxWidth: availableWidth, maxHeight: previewHeight)
                         .padding(.horizontal, 20)
-                        
+
                         // 2. Text Input Field
-                        TextField("Enter overlay text", text: $viewModel.simpleMakerConfiguration.overlayText)
-                            .lineLimit(1)
-                            .truncationMode(.tail)
-                            .focused($isFocused)
-                            .padding(12)
-                            .background(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .fill(Color(uiColor: .systemGray6))
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 12)
-                                            .stroke(Color.gray.opacity(0.3))
-                                    )
-                            )
-                            .padding(.horizontal, 20)
-                            .padding(.vertical, 8)
-                        
+                        OverlayTextEditor(
+                            text: $viewModel.simpleMakerConfiguration.overlayText,
+                            placeholder: "Add overlay text",
+                            characterLimit: viewModel.overlayCharacterLimit,
+                            focus: $isFocused
+                        )
+                        .padding(.horizontal, 20)
+
                         // 3. Core Controls Section
                         VStack(spacing: 16) {
                             // Canvas Settings
