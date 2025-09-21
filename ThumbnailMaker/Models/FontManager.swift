@@ -133,43 +133,52 @@ class FontManager {
     
     func getAttributedText(_ text: String, selectedFont: CustomFont, size: CGFloat, color: Color) -> AttributedString {
         var attributedString = AttributedString(text)
-        
+
         // Apply default font and color to entire string
         attributedString.font = .custom(selectedFont.rawValue, size: size)
         attributedString.foregroundColor = color
-        
+
         // If using GoNoto, return early as it supports all scripts
         if selectedFont == .goNoto {
             return attributedString
         }
-        
-        // Check each character and apply GoNoto font for unsupported scripts
-        text.unicodeScalars.enumerated().forEach { index, scalar in
-            let script = getScript(for: scalar)
-            if !selectedFont.supportedScripts.contains(script) {
-                let range = attributedString.range(of: String(scalar))
-                if let range = range {
-                    attributedString[range].font = .custom(CustomFont.goNoto.rawValue, size: size)
-                }
+
+        var attributedIndex = attributedString.startIndex
+        for character in text {
+            guard attributedIndex < attributedString.endIndex else { break }
+            let nextIndex = attributedString.index(after: attributedIndex)
+
+            if characterRequiresFallback(character, selectedFont: selectedFont) {
+                attributedString[attributedIndex..<nextIndex].font = .custom(CustomFont.goNoto.rawValue, size: size)
             }
+
+            attributedIndex = nextIndex
         }
-        
+
         return attributedString
     }
-    
+
     func getFontForText(_ text: String, selectedFont: CustomFont) -> (font: CustomFont, needsFallback: Bool) {
-        // If it's GoNoto, use it directly as it supports all languages
-        if selectedFont == .goNoto {
+        guard selectedFont != .goNoto else {
             return (selectedFont, false)
         }
-        
-        // Check if all characters in the text are supported by the selected font
-        let hasUnsupportedCharacters = text.unicodeScalars.contains { scalar in
+
+        return needsFallback(for: text, selectedFont: selectedFont)
+            ? (.goNoto, true)
+            : (selectedFont, false)
+    }
+
+    func needsFallback(for text: String, selectedFont: CustomFont) -> Bool {
+        guard selectedFont != .goNoto else { return false }
+
+        return text.contains { characterRequiresFallback($0, selectedFont: selectedFont) }
+    }
+
+    private func characterRequiresFallback(_ character: Character, selectedFont: CustomFont) -> Bool {
+        character.unicodeScalars.contains { scalar in
             let script = getScript(for: scalar)
             return !selectedFont.supportedScripts.contains(script)
         }
-        
-        return hasUnsupportedCharacters ? (.goNoto, true) : (selectedFont, false)
     }
     
     func getScript(for scalar: Unicode.Scalar) -> UnicodeScript {

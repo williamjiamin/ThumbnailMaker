@@ -11,6 +11,7 @@ struct PremiumPreviewComponentView: View {
     let premiumMakerConfiguration: PremiumMakerConfigurationModel
     let width: CGFloat
     let height: CGFloat
+    var fallbackStateDidChange: ((Bool) -> Void)? = nil
     
     var body: some View {
         thumbnailContent
@@ -69,15 +70,15 @@ struct PremiumPreviewComponentView: View {
         )
         
         // Check if any character uses fallback font
-        let needsFallback = text.unicodeScalars.contains { scalar in
-            let script = FontManager.shared.getScript(for: scalar)
-            return !premiumMakerConfiguration.selectedFont.supportedScripts.contains(script)
-        }
-        
+        let needsFallback = FontManager.shared.needsFallback(
+            for: text,
+            selectedFont: premiumMakerConfiguration.selectedFont
+        )
+
         return Text(attributedText)
+            .onAppear { fallbackStateDidChange?(needsFallback) }
             .onChange(of: needsFallback) { oldValue, newValue in
-                // Since we can't directly modify the configuration, we need to handle this differently
-                // You might want to add a callback or use a binding for this
+                fallbackStateDidChange?(newValue)
             }
             .truncationMode(.tail)
             .shadow(color: .black, radius: 3, x: 1, y: 1)

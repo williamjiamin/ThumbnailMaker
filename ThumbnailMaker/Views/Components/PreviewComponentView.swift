@@ -60,14 +60,14 @@ struct PreviewComponentView: View {
             size: fontSize,
             color: simpleMakerConfiguration.textColor
         )
-        
-        // Check if any character uses fallback font
-        let needsFallback = text.unicodeScalars.contains { scalar in
-            let script = FontManager.shared.getScript(for: scalar)
-            return !simpleMakerConfiguration.selectedFont.supportedScripts.contains(script)
-        }
-        
+
+        let needsFallback = FontManager.shared.needsFallback(
+            for: text,
+            selectedFont: simpleMakerConfiguration.selectedFont
+        )
+
         return Text(attributedText)
+            .onAppear { simpleMakerConfiguration.usesFallbackFont = needsFallback }
             .onChange(of: needsFallback) { oldValue, newValue in
                 simpleMakerConfiguration.usesFallbackFont = newValue
             }
