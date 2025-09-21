@@ -1,6 +1,7 @@
 import SwiftUI
 import Network
 import Combine
+import UIKit
 
 struct YouTubeURLInputView: View {
     @Environment(\.dismiss) private var dismiss
@@ -13,12 +14,14 @@ struct YouTubeURLInputView: View {
     @StateObject private var networkMonitor = NetworkMonitor()
     @StateObject private var purchaseManager = PurchaseManager.shared
     @State private var currentTime = Date()
-    
+    @Environment(\.scenePhase) private var scenePhase
+
     // Use a cancellable timer instead of a fixed one
     @State private var timerCancellable: AnyCancellable?
-    
-    // Don't check pasteboard automatically
-    @State private var pasteboardHasContent = false
+
+    @State private var showPasteboardSuggestion = false
+    @State private var suggestedPasteboardURL: String?
+    @State private var lastPasteboardChangeCount: Int?
     
     private var isButtonDisabled: Bool {
         youtubeURL.isEmpty || 
@@ -188,13 +191,28 @@ struct YouTubeURLInputView: View {
         .onAppear {
             // Start the timer when the view appears
             startTimer()
+            checkPasteboardForYouTubeLink()
         }
         .onDisappear {
             // Cancel the timer when the view disappears
             timerCancellable?.cancel()
         }
+        .onChange(of: scenePhase) { newPhase in
+            guard newPhase == .active else { return }
+            checkPasteboardForYouTubeLink()
+        }
+        .alert("Paste YouTube Link?", isPresented: $showPasteboardSuggestion, presenting: suggestedPasteboardURL) { suggestion in
+            Button("Paste", role: .none) {
+                youtubeURL = suggestion
+            }
+            Button("Cancel", role: .cancel) {
+                suggestedPasteboardURL = nil
+            }
+        } message: { _ in
+            Text("We found a YouTube link in your clipboard. Would you like to paste it?")
+        }
     }
-    
+
     private func startTimer() {
         // Create a new timer that runs every second to update the countdown
         timerCancellable = Timer.publish(every: 1, on: .main, in: .common)
@@ -275,20 +293,20 @@ struct YouTubeURLInputView: View {
     
     private func fetchVideoInfo() {
         guard !youtubeURL.isEmpty else { return }
-        
+
         // Check quota first
         if purchaseManager.youtubeImportsRemaining <= 0 {
             errorMessage = "Daily limit reached"
             return
         }
-        
+
         // Use YouTube import quota
         let status = purchaseManager.useYoutubeImport()
         guard status == .success else {
             // Show quota limit screen
             return
         }
-        
+
         isLoading = true
         errorMessage = nil
         
@@ -307,6 +325,46 @@ struct YouTubeURLInputView: View {
                 }
             }
         }
+    }
+
+    private func checkPasteboardForYouTubeLink() {
+        let pasteboard = UIPasteboard.general
+        let changeCount = pasteboard.changeCount
+        if let lastChange = lastPasteboardChangeCount, lastChange == changeCount {
+            return
+        }
+        lastPasteboardChangeCount = changeCount
+
+        let clipboardString = pasteboard.detectedURL?.absoluteString ?? pasteboard.string ?? ""
+        guard let candidate = extractYouTubeURL(from: clipboardString), candidate != youtubeURL else { return }
+
+        suggestedPasteboardURL = candidate
+        showPasteboardSuggestion = true
+    }
+
+    private func extractYouTubeURL(from text: String) -> String? {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        if let url = URL(string: trimmed), isYouTubeURL(url) {
+            return url.absoluteString
+        }
+
+        let detector = try? NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue)
+        let range = NSRange(text.startIndex..<text.endIndex, in: text)
+        let matches = detector?.matches(in: text, options: [], range: range) ?? []
+
+        for match in matches {
+            if let url = match.url, isYouTubeURL(url) {
+                return url.absoluteString
+            }
+        }
+
+        return nil
+    }
+
+    private func isYouTubeURL(_ url: URL) -> Bool {
+        guard let host = url.host?.lowercased() else { return false }
+        return host.contains("youtube.com") || host.contains("youtu.be")
     }
 }
 
