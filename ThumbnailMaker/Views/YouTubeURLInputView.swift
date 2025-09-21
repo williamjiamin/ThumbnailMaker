@@ -197,7 +197,7 @@ struct YouTubeURLInputView: View {
             // Cancel the timer when the view disappears
             timerCancellable?.cancel()
         }
-        .onChange(of: scenePhase) { newPhase in
+        .onChange(of: scenePhase) { _, newPhase in
             guard newPhase == .active else { return }
             checkPasteboardForYouTubeLink()
         }
@@ -335,7 +335,7 @@ struct YouTubeURLInputView: View {
         }
         lastPasteboardChangeCount = changeCount
 
-        let clipboardString = pasteboard.detectedURL?.absoluteString ?? pasteboard.string ?? ""
+        let clipboardString = pasteboard.url?.absoluteString ?? pasteboard.string ?? ""
         guard let candidate = extractYouTubeURL(from: clipboardString), candidate != youtubeURL else { return }
 
         suggestedPasteboardURL = candidate

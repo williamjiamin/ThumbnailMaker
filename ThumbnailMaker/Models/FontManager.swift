@@ -146,7 +146,7 @@ class FontManager {
         var attributedIndex = attributedString.startIndex
         for character in text {
             guard attributedIndex < attributedString.endIndex else { break }
-            let nextIndex = attributedString.index(after: attributedIndex)
+            let nextIndex = attributedString.characters.index(after: attributedIndex)
 
             if characterRequiresFallback(character, selectedFont: selectedFont) {
                 attributedString[attributedIndex..<nextIndex].font = .custom(CustomFont.goNoto.rawValue, size: size)
