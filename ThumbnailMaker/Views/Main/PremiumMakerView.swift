@@ -146,7 +146,12 @@ struct PremiumMakerView: View {
                     PremiumPreviewComponentView(
                         premiumMakerConfiguration: viewModel.premiumMakerConfiguration,
                         width: previewWidth,
-                        height: previewHeight
+                        height: previewHeight,
+                        fallbackStateDidChange: { usesFallback in
+                            if viewModel.premiumMakerConfiguration.usesFallbackFont != usesFallback {
+                                viewModel.premiumMakerConfiguration.usesFallbackFont = usesFallback
+                            }
+                        }
                     )
                     .frame(maxWidth: availableWidth, maxHeight: previewHeight)
                     .padding(.horizontal, 20)
