@@ -19,7 +19,7 @@ class SimpleMakerViewModel: ObservableObject {
     
     let usableHeightProportion: CGFloat = 0.6
     let previewHeightProportion: CGFloat = 0.35
-    let textFieldHeight: CGFloat = 50
+    let overlayCharacterLimit = 120
     
     func updateImage() async {
         if let data = try? await imageSelection?.loadTransferable(type: Data.self),
