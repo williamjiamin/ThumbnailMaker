@@ -1,0 +1,26 @@
+# macOS Finder metadata
+.DS_Store
+
+# Xcode local/user state
+xcuserdata/
+*.xcuserstate
+*.xcbkptlist
+DerivedData/
+
+# SwiftPM/Xcode generated state
+.swiftpm/
+build/
+.build-ci*/
+.build-ent-check/
+.build-mac-ui-test/
+.build-screenshots*/
+*.xcresult/
+
+# Local editor/debug state
+.cursor/
+
+# Local secrets file for API keys
+ThumbnailMaker/Config/Secrets.plist
+
+# Local verification artifacts and exported screenshots
+artifacts/

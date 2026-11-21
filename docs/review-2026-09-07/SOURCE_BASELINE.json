@@ -1,0 +1,699 @@
+{
+  "recorded_at": "2026-09-08T01:15:09.840076+00:00",
+  "purpose": "Preserve original source inventory before implementation; hashes recorded only for readable bytes.",
+  "files": [
+    {
+      "path": "ThumbnailMaker/App/ThumbnailMakerApp.swift",
+      "size": 305,
+      "mtime_ns": 1781355878355937004,
+      "dataless": true
+    },
+    {
+      "path": "ThumbnailMaker/App.swift",
+      "size": 1,
+      "mtime_ns": 1781355156894830942,
+      "dataless": false,
+      "sha256": "36a9e7f1c95b82ffb99743e0c5c4ce95d83c9a430aac59f84ef3cbfab6145068"
+    },
+    {
+      "path": "ThumbnailMaker/Config/Secrets.example.plist",
+      "size": 260,
+      "mtime_ns": 1781355251024821281,
+      "dataless": false,
+      "sha256": "ea38cb5a97b3e0b858606bfd09316f9248e4cc7ee41729a714a23c66a25ee3ed"
+    },
+    {
+      "path": "ThumbnailMaker/Extensions/View+Extension.swift",
+      "size": 399,
+      "mtime_ns": 1781587725442088842,
+      "dataless": true
+    },
+    {
+      "path": "ThumbnailMaker/Fonts/Borel-Regular.ttf",
+      "size": 190380,
+      "mtime_ns": 1782739219929699313,
+      "dataless": true
+    },
+    {
+      "path": "ThumbnailMaker/Fonts/CherryBombOne-Regular.ttf",
+      "size": 212988,
+      "mtime_ns": 1782739238987232327,
+      "dataless": true
+    },
+    {
+      "path": "ThumbnailMaker/Fonts/DeliciousHandrawn-Regular.ttf",
+      "size": 73972,
+      "mtime_ns": 1782739247155138098,
+      "dataless": true
+    },
+    {
+      "path": "ThumbnailMaker/Fonts/EastSeaDokdo-Regular.ttf",
+      "size": 3178684,
+      "mtime_ns": 1782740857913343911,
+      "dataless": true
+    },
+    {
+      "path": "ThumbnailMaker/Fonts/MeowScript-Regular.ttf",
+      "size": 601304,
+      "mtime_ns": 1782741071911709928,
+      "dataless": false,
+      "sha256": "20e58b8455a19f18c687d67e2edfa0b62bd7b66d18ae68f5f47e0b603c197776"
+    },
+    {
+      "path": "ThumbnailMaker/Info.plist",
+      "size": 1446,
+      "mtime_ns": 1781643674546205997,
+      "dataless": true
+    },
+    {
+      "path": "ThumbnailMaker/Models/APIConfig.swift",
+      "size": 1984,
+      "mtime_ns": 1781355349679437875,
+      "dataless": true
+    },
+    {
+      "path": "ThumbnailMaker/Models/AlignmentModel.swift",
+      "size": 580,
+      "mtime_ns": 1781355156893143892,
+      "dataless": false,
+      "sha256": "ae72b7b513d3ebe279a36cf39656d284f8bff47e6e457b575dfce5eb1ae7ca20"
+    },
+    {
+      "path": "ThumbnailMaker/Models/AspectRatioModel.swift",
+      "size": 996,
+      "mtime_ns": 1782646752972320809,
+      "dataless": false,
+      "sha256": "13a568f864057ccfc9a7877a10043a6050e721426beb1c6e2dcbe2fa69bd2684"
+    },
+    {
+      "path": "ThumbnailMaker/Models/BrandKit.swift",
+      "size": 5030,
+      "mtime_ns": 1781609347193856000,
+      "dataless": true
+    },
+    {
+      "path": "ThumbnailMaker/Models/CircularProfileConfig.swift",
+      "size": 133,
+      "mtime_ns": 1781599863009059906,
+      "dataless": true
+    },
+    {
+      "path": "ThumbnailMaker/Models/DebugSettings.swift",
+      "size": 1513,
+      "mtime_ns": 1781355156893012285,
+      "dataless": true
+    },
+    {
+      "path": "ThumbnailMaker/Models/FontManager.swift",
+      "size": 6966,
+      "mtime_ns": 1781355156892492532,
+      "dataless": false,
+      "sha256": "2b84291135fc115e6f3f0af61c762fbef9e9db688948bb114d1ab62d477d6c49"
+    },
+    {
+      "path": "ThumbnailMaker/Models/MacroConfig.swift",
+      "size": 541,
+      "mtime_ns": 1781426807112155914,
+      "dataless": true
+    },
+    {
+      "path": "ThumbnailMaker/Models/PremiumMakerConfigurationModel.swift",
+      "size": 1281,
+      "mtime_ns": 1781494953619776725,
+      "dataless": true
+    },
+    {
+      "path": "ThumbnailMaker/Models/PurchaseManager.swift",
+      "size": 22149,
+      "mtime_ns": 1781490695413084268,
+      "dataless": false,
+      "sha256": "f1e3f621d4d0599aaa56d4cb1f5c267b10218f7f03a2b25bb30963fcd354b76d"
+    },
+    {
+      "path": "ThumbnailMaker/Models/SimpleMakerConfigurationModel.swift",
+      "size": 1097,
+      "mtime_ns": 1781494949118869304,
+      "dataless": true
+    },
+    {
+      "path": "ThumbnailMaker/Models/ThumbnailDocument.swift",
+      "size": 50012,
+      "mtime_ns": 1782696898530766038,
+      "dataless": false,
+      "sha256": "9bebb45747703ba191822c23e23680047e4583cf467320e234d9874a30269e2b"
+    },
+    {
+      "path": "ThumbnailMaker/Models/ThumbnailDocumentHistory.swift",
+      "size": 1601,
+      "mtime_ns": 1781428124386097669,
+      "dataless": true
+    },
+    {
+      "path": "ThumbnailMaker/Models/ThumbnailEditorLayer.swift",
+      "size": 2346,
+      "mtime_ns": 1781597362726292848,
+      "dataless": true
+    },
+    {
+      "path": "ThumbnailMaker/Models/ThumbnailExportModel.swift",
+      "size": 12708,
+      "mtime_ns": 1782646623105160425,
+      "dataless": true
+    },
+    {
+      "path": "ThumbnailMaker/Models/ThumbnailIdea.swift",
+      "size": 10249,
+      "mtime_ns": 1781610939406107425,
+      "dataless": true
+    },
+    {
+      "path": "ThumbnailMaker/Models/ThumbnailOverlayTransform.swift",
+      "size": 6178,
+      "mtime_ns": 1782653349357198715,
+      "dataless": true
+    },
+    {
+      "path": "ThumbnailMaker/Models/ThumbnailReadinessAnalyzer.swift",
+      "size": 7277,
+      "mtime_ns": 1781597252830025672,
+      "dataless": false,
+      "sha256": "d442d35b53d9b0c6a65441108cba544036a2a296b31170d990e30d1d39cad102"
+    },
+    {
+      "path": "ThumbnailMaker/Models/ThumbnailSuggestion.swift",
+      "size": 6810,
+      "mtime_ns": 1781609347194615840,
+      "dataless": false,
+      "sha256": "65d02968824848e19423243d3437394fdc7b47d06f830f2675d1a31f078451f4"
+    },
+    {
+      "path": "ThumbnailMaker/Models/ThumbnailTemplate.swift",
+      "size": 8900,
+      "mtime_ns": 1782646630592673056,
+      "dataless": false,
+      "sha256": "66211bde5cdcc84c64907fc6ab3cc27808f8d329b40b2a19434c8e29d2233deb"
+    },
+    {
+      "path": "ThumbnailMaker/Models/TimerManager.swift",
+      "size": 1456,
+      "mtime_ns": 1781644103357777357,
+      "dataless": false,
+      "sha256": "9a99e3fcc51e2da0cea704ecce239f6e5700915619c95b48f359336627476ca3"
+    },
+    {
+      "path": "ThumbnailMaker/Preview Content/Preview Assets.xcassets/Contents.json",
+      "size": 63,
+      "mtime_ns": 1781355156894243955,
+      "dataless": false,
+      "sha256": "0fd49ba3c3585c709678e0046a821c3c60685ec7063720d30d3a3448be3a208b"
+    },
+    {
+      "path": "ThumbnailMaker/PrivacyInfo.xcprivacy",
+      "size": 815,
+      "mtime_ns": 1781612676277748584,
+      "dataless": false,
+      "sha256": "10e30c3a228307f4cf0eecf35997a7551e74924f326189391168e6142ff6a9f6"
+    },
+    {
+      "path": "ThumbnailMaker/Resources/Assets.xcassets/AccentColor.colorset/Contents.json",
+      "size": 123,
+      "mtime_ns": 1781355156000000000,
+      "dataless": true
+    },
+    {
+      "path": "ThumbnailMaker/Resources/Assets.xcassets/AppIcon.appiconset/1024.png",
+      "size": 81370,
+      "mtime_ns": 1782738617800898256,
+      "dataless": true
+    },
+    {
+      "path": "ThumbnailMaker/Resources/Assets.xcassets/AppIcon.appiconset/120.png",
+      "size": 9445,
+      "mtime_ns": 1781355156000000000,
+      "dataless": false,
+      "sha256": "5a849f65d8546a48c7398235ce6e3db3a0850752cf2bf8446d9bbd8f08460341"
+    },
+    {
+      "path": "ThumbnailMaker/Resources/Assets.xcassets/AppIcon.appiconset/152.png",
+      "size": 10451,
+      "mtime_ns": 1781356808000000000,
+      "dataless": false,
+      "sha256": "8fcd6ffd8aaffc6291d2967e15cbdc8d4e7567ea6ee7f459b9cbe8660744db77"
+    },
+    {
+      "path": "ThumbnailMaker/Resources/Assets.xcassets/AppIcon.appiconset/167.png",
+      "size": 11715,
+      "mtime_ns": 1781356808000000000,
+      "dataless": false,
+      "sha256": "e4c7db3ed951dafc2ceb9462c48b5c4d3e05406001fb3abeb0bd1809d2c0d50a"
+    },
+    {
+      "path": "ThumbnailMaker/Resources/Assets.xcassets/AppIcon.appiconset/180.png",
+      "size": 15631,
+      "mtime_ns": 1781355156000000000,
+      "dataless": true
+    },
+    {
+      "path": "ThumbnailMaker/Resources/Assets.xcassets/AppIcon.appiconset/20.png",
+      "size": 935,
+      "mtime_ns": 1781356808000000000,
+      "dataless": true
+    },
+    {
+      "path": "ThumbnailMaker/Resources/Assets.xcassets/AppIcon.appiconset/29.png",
+      "size": 1197,
+      "mtime_ns": 1781355156000000000,
+      "dataless": true
+    },
+    {
+      "path": "ThumbnailMaker/Resources/Assets.xcassets/AppIcon.appiconset/40.png",
+      "size": 2224,
+      "mtime_ns": 1781355156000000000,
+      "dataless": true
+    },
+    {
+      "path": "ThumbnailMaker/Resources/Assets.xcassets/AppIcon.appiconset/58.png",
+      "size": 3513,
+      "mtime_ns": 1781355156000000000,
+      "dataless": false,
+      "sha256": "0d182d38627649dc05b7e4c3da5378b52e4bf22e7f7c81be27e6daf3f855799b"
+    },
+    {
+      "path": "ThumbnailMaker/Resources/Assets.xcassets/AppIcon.appiconset/60.png",
+      "size": 3740,
+      "mtime_ns": 1781355156000000000,
+      "dataless": true
+    },
+    {
+      "path": "ThumbnailMaker/Resources/Assets.xcassets/AppIcon.appiconset/76.png",
+      "size": 4454,
+      "mtime_ns": 1781356808000000000,
+      "dataless": false,
+      "sha256": "e6ccd31b12acedd0e9e12e2172181784a7a05a2e7f8defbf30cfc94e9572dd99"
+    },
+    {
+      "path": "ThumbnailMaker/Resources/Assets.xcassets/AppIcon.appiconset/80.png",
+      "size": 5515,
+      "mtime_ns": 1781355156000000000,
+      "dataless": true
+    },
+    {
+      "path": "ThumbnailMaker/Resources/Assets.xcassets/AppIcon.appiconset/87.png",
+      "size": 6331,
+      "mtime_ns": 1781355156000000000,
+      "dataless": false,
+      "sha256": "643dbbfd7ec29e689eaef96808355464968f9695f10a3085b6e67c37c70c86e2"
+    },
+    {
+      "path": "ThumbnailMaker/Resources/Assets.xcassets/AppIcon.appiconset/Contents.json",
+      "size": 2044,
+      "mtime_ns": 1781356828000000000,
+      "dataless": true
+    },
+    {
+      "path": "ThumbnailMaker/Resources/Assets.xcassets/Contents.json",
+      "size": 63,
+      "mtime_ns": 1781355156891851425,
+      "dataless": true
+    },
+    {
+      "path": "ThumbnailMaker/Resources/privacy_policy.txt",
+      "size": 2440,
+      "mtime_ns": 1781355156891991615,
+      "dataless": true
+    },
+    {
+      "path": "ThumbnailMaker/Resources/terms_of_service.txt",
+      "size": 1661,
+      "mtime_ns": 1781355156892125129,
+      "dataless": true
+    },
+    {
+      "path": "ThumbnailMaker/Services/BackgroundRemovalService.swift",
+      "size": 8343,
+      "mtime_ns": 1781607456657620668,
+      "dataless": true
+    },
+    {
+      "path": "ThumbnailMaker/Services/BrandKitStore.swift",
+      "size": 2016,
+      "mtime_ns": 1781586756567917108,
+      "dataless": true
+    },
+    {
+      "path": "ThumbnailMaker/Services/NetworkMonitor.swift",
+      "size": 477,
+      "mtime_ns": 1781355156899691581,
+      "dataless": false,
+      "sha256": "c13e307e36769ccc67824df31f11ac9d9a2bc243f5c592f143b0d2ef834d07e9"
+    },
+    {
+      "path": "ThumbnailMaker/Services/ThumbnailDraftStore.swift",
+      "size": 8308,
+      "mtime_ns": 1781426645947527647,
+      "dataless": true
+    },
+    {
+      "path": "ThumbnailMaker/Services/ThumbnailExporter.swift",
+      "size": 7186,
+      "mtime_ns": 1781359683363770723,
+      "dataless": false,
+      "sha256": "f880f18d54fcd791205a137eff0c6948cba7bdcb4e32325a2af997eaa35d7f84"
+    },
+    {
+      "path": "ThumbnailMaker/Services/YouTubeService.swift",
+      "size": 5784,
+      "mtime_ns": 1781355591571001529,
+      "dataless": false,
+      "sha256": "e0594a64d95fa7a2e749158fed8c80a8b6a77df06fa87d97acb141dfb36a7b6f"
+    },
+    {
+      "path": "ThumbnailMaker/ThumbnailMaker.entitlements",
+      "size": 442,
+      "mtime_ns": 1782691480716161607,
+      "dataless": true
+    },
+    {
+      "path": "ThumbnailMaker/Utilities/ImageRenderer.swift",
+      "size": 109,
+      "mtime_ns": 1781355156894690752,
+      "dataless": true
+    },
+    {
+      "path": "ThumbnailMaker/ViewModels/PremiumMakerViewModel.swift",
+      "size": 36229,
+      "mtime_ns": 1782719266021229802,
+      "dataless": true
+    },
+    {
+      "path": "ThumbnailMaker/ViewModels/SimpleMakerViewModel.swift",
+      "size": 38937,
+      "mtime_ns": 1782719266021982849,
+      "dataless": false,
+      "sha256": "d6714e9edf4a9f6dab28e99e2eb8fffaf14163c290906b124cb47372d3c4fe9d"
+    },
+    {
+      "path": "ThumbnailMaker/Views/Components/AspectRatioSelectorComponentView.swift",
+      "size": 1389,
+      "mtime_ns": 1781355156896822452,
+      "dataless": true
+    },
+    {
+      "path": "ThumbnailMaker/Views/Components/BatchProgressView.swift",
+      "size": 993,
+      "mtime_ns": 1781355156897074937,
+      "dataless": true
+    },
+    {
+      "path": "ThumbnailMaker/Views/Components/BrandKitEditorView.swift",
+      "size": 8626,
+      "mtime_ns": 1781609452628362178,
+      "dataless": true
+    },
+    {
+      "path": "ThumbnailMaker/Views/Components/CreatorActionIcon.swift",
+      "size": 1212,
+      "mtime_ns": 1781586156982058286,
+      "dataless": true
+    },
+    {
+      "path": "ThumbnailMaker/Views/Components/CustomizationControlComponentView.swift",
+      "size": 3722,
+      "mtime_ns": 1781588919988335371,
+      "dataless": true
+    },
+    {
+      "path": "ThumbnailMaker/Views/Components/ExportReadinessPanel.swift",
+      "size": 8586,
+      "mtime_ns": 1781594754749763250,
+      "dataless": true
+    },
+    {
+      "path": "ThumbnailMaker/Views/Components/ExportSettingsView.swift",
+      "size": 13222,
+      "mtime_ns": 1782651056275472640,
+      "dataless": false,
+      "sha256": "4a920f7d541bf189c705608ababea899c985eb25fe253700e57eaf34799f9c80"
+    },
+    {
+      "path": "ThumbnailMaker/Views/Components/FontPickerView.swift",
+      "size": 10500,
+      "mtime_ns": 1781355156896692037,
+      "dataless": true
+    },
+    {
+      "path": "ThumbnailMaker/Views/Components/LayerSelectionStripView.swift",
+      "size": 16679,
+      "mtime_ns": 1782719266020104885,
+      "dataless": false,
+      "sha256": "ccd18b66ecc9c7c2b0bd7c65e836ab933b069ab8549b79f089235fda80f389ae"
+    },
+    {
+      "path": "ThumbnailMaker/Views/Components/LegalDocumentView.swift",
+      "size": 560,
+      "mtime_ns": 1781355156897330522,
+      "dataless": true
+    },
+    {
+      "path": "ThumbnailMaker/Views/Components/OverlayManipulationChromeView.swift",
+      "size": 4732,
+      "mtime_ns": 1782688192601178884,
+      "dataless": false,
+      "sha256": "0b5a0ca7b455a1e3e276b513ef2e418c0deb7516f692ebacf88e77ed5bc770e6"
+    },
+    {
+      "path": "ThumbnailMaker/Views/Components/OverlayTextEditor.swift",
+      "size": 4159,
+      "mtime_ns": 1781605506801740884,
+      "dataless": true
+    },
+    {
+      "path": "ThumbnailMaker/Views/Components/OverlayTransformControlView.swift",
+      "size": 2564,
+      "mtime_ns": 1782653383868648615,
+      "dataless": true
+    },
+    {
+      "path": "ThumbnailMaker/Views/Components/PreviewComponentView.swift",
+      "size": 65106,
+      "mtime_ns": 1782694219136233091,
+      "dataless": true
+    },
+    {
+      "path": "ThumbnailMaker/Views/Components/SafeZoneGuideView.swift",
+      "size": 2750,
+      "mtime_ns": 1781588249106067895,
+      "dataless": false,
+      "sha256": "46a0e196b895e70ca372a4effe287d9d215a6b6bcc0ebbec53c0ec9974f1a51a"
+    },
+    {
+      "path": "ThumbnailMaker/Views/Components/ShareSheet.swift",
+      "size": 491,
+      "mtime_ns": 1781357583095060825,
+      "dataless": true
+    },
+    {
+      "path": "ThumbnailMaker/Views/Components/TemplateGalleryView.swift",
+      "size": 5614,
+      "mtime_ns": 1781593093915053129,
+      "dataless": true
+    },
+    {
+      "path": "ThumbnailMaker/Views/Components/TextControlView.swift",
+      "size": 5675,
+      "mtime_ns": 1782695958582261981,
+      "dataless": true
+    },
+    {
+      "path": "ThumbnailMaker/Views/Components/ThumbnailFileDocument.swift",
+      "size": 579,
+      "mtime_ns": 1781359683362400770,
+      "dataless": true
+    },
+    {
+      "path": "ThumbnailMaker/Views/Components/ThumbnailSmallPreviewPanel.swift",
+      "size": 3393,
+      "mtime_ns": 1781653281802852630,
+      "dataless": true
+    },
+    {
+      "path": "ThumbnailMaker/Views/Components/TitleIdeasStripView.swift",
+      "size": 3512,
+      "mtime_ns": 1781611196994318246,
+      "dataless": true
+    },
+    {
+      "path": "ThumbnailMaker/Views/Components/ToastView.swift",
+      "size": 492,
+      "mtime_ns": 1781355156896951436,
+      "dataless": true
+    },
+    {
+      "path": "ThumbnailMaker/Views/Components/UndoRedoToolbarButtons.swift",
+      "size": 1162,
+      "mtime_ns": 1781643155962214231,
+      "dataless": false,
+      "sha256": "b01ed53579166039f4fda632a2c67d517cc5f4683921ff984d2443b303de0c5b"
+    },
+    {
+      "path": "ThumbnailMaker/Views/MacroSettingsView.swift",
+      "size": 6251,
+      "mtime_ns": 1781355156898107290,
+      "dataless": true
+    },
+    {
+      "path": "ThumbnailMaker/Views/Main/ContentView.swift",
+      "size": 12399,
+      "mtime_ns": 1782736040835657563,
+      "dataless": true
+    },
+    {
+      "path": "ThumbnailMaker/Views/Main/PremiumMakerView.swift",
+      "size": 55321,
+      "mtime_ns": 1782778348856887578,
+      "dataless": true
+    },
+    {
+      "path": "ThumbnailMaker/Views/Main/SettingsView.swift",
+      "size": 11707,
+      "mtime_ns": 1781355156898327350,
+      "dataless": true
+    },
+    {
+      "path": "ThumbnailMaker/Views/Main/SimpleMakerView.swift",
+      "size": 25045,
+      "mtime_ns": 1782719266023321390,
+      "dataless": true
+    },
+    {
+      "path": "ThumbnailMaker/Views/PremiumComponents/AspectRatioDrawerView.swift",
+      "size": 2284,
+      "mtime_ns": 1781355156895834922,
+      "dataless": true
+    },
+    {
+      "path": "ThumbnailMaker/Views/PremiumComponents/CircularImageCropperView.swift",
+      "size": 4198,
+      "mtime_ns": 1781355156895223855,
+      "dataless": false,
+      "sha256": "960103747fa69ad4179eb6e3523e93710c415aff2814852a2a42c8715c1916f3"
+    },
+    {
+      "path": "ThumbnailMaker/Views/PremiumComponents/PremiumCustomizationControlComponentView.swift",
+      "size": 3712,
+      "mtime_ns": 1781588919989425897,
+      "dataless": false,
+      "sha256": "9e3d21b6ce37135e70c8ca102984ba79a2eb9b66926cae77847a1873912ad407"
+    },
+    {
+      "path": "ThumbnailMaker/Views/PremiumComponents/PremiumPreviewComponentView.swift",
+      "size": 57388,
+      "mtime_ns": 1782692632821587562,
+      "dataless": false,
+      "sha256": "144050dfcb12a2c73efe517aacbe57c08493ebdd5afb15321b2490412754ab4c"
+    },
+    {
+      "path": "ThumbnailMaker/Views/PremiumComponents/PremiumTextControlView.swift",
+      "size": 2190,
+      "mtime_ns": 1781597425299813747,
+      "dataless": true
+    },
+    {
+      "path": "ThumbnailMaker/Views/QuotaLimitView.swift",
+      "size": 2504,
+      "mtime_ns": 1781355156897978544,
+      "dataless": true
+    },
+    {
+      "path": "ThumbnailMaker/Views/YouTubeURLInputView.swift",
+      "size": 13249,
+      "mtime_ns": 1781355374479991674,
+      "dataless": true
+    },
+    {
+      "path": "ThumbnailMaker.xcodeproj/project.pbxproj",
+      "size": 22999,
+      "mtime_ns": 1782691480000000000,
+      "dataless": false,
+      "sha256": "0655969e616c9d3df020e91487e6935b3c4ba7dc34a88065c45bd76ca09be5b1"
+    },
+    {
+      "path": "ThumbnailMaker.xcodeproj/project.xcworkspace/contents.xcworkspacedata",
+      "size": 135,
+      "mtime_ns": 1781355156000000000,
+      "dataless": false,
+      "sha256": "7f3b00b5c3fdb45242d7b87e1e5c4e25d1fa8129a16c94295ecc4e8ea2235c5f"
+    },
+    {
+      "path": "ThumbnailMakerTests/ThumbnailMakerTests.swift",
+      "size": 124950,
+      "mtime_ns": 1782719282276150703,
+      "dataless": false,
+      "sha256": "5f215619e4c00da02e9e9bf36d82ccfdfd80dd080b07a3dfc999f1d6f277f44e"
+    },
+    {
+      "path": "ThumbnailMakerUITests/AppStoreScreenshotTests.swift",
+      "size": 6928,
+      "mtime_ns": 1781648042141167163,
+      "dataless": false,
+      "sha256": "c30868bf257863d61364fcbbd7613ee184831bc254f806f18c401137143e8cef"
+    },
+    {
+      "path": "ThumbnailMakerUITests/ThumbnailMakerUITests.swift",
+      "size": 60380,
+      "mtime_ns": 1782721322537806510,
+      "dataless": false,
+      "sha256": "71b10ceed98aa1f59def6fc318da85897a9c482d7cbffad772bdbbf13d118ff3"
+    },
+    {
+      "path": "ThumbnailMakerUITests/ThumbnailMakerUITestsLaunchTests.swift",
+      "size": 836,
+      "mtime_ns": 1781355156886562824,
+      "dataless": true
+    },
+    {
+      "path": "scripts/capture-screenshots.sh",
+      "size": 18391,
+      "mtime_ns": 1782776698082793951,
+      "dataless": false,
+      "sha256": "5e34804a15187000c94620ea816d0b19963ededc999c4c7e5b5760e2e8518b93"
+    },
+    {
+      "path": "scripts/ci-gate.sh",
+      "size": 7772,
+      "mtime_ns": 1782773217629729747,
+      "dataless": true
+    },
+    {
+      "path": "scripts/pick-simulator.sh",
+      "size": 5024,
+      "mtime_ns": 1782797370581175565,
+      "dataless": true
+    },
+    {
+      "path": "scripts/prepare-gate16-evidence-bundle.sh",
+      "size": 2123,
+      "mtime_ns": 1782774201541622422,
+      "dataless": true
+    },
+    {
+      "path": "scripts/verify-gate16-evidence-packet.sh",
+      "size": 11720,
+      "mtime_ns": 1782774476040760399,
+      "dataless": false,
+      "sha256": "a24e3aab79df501f5a01916adf8518f55c520da6896bff21b79b9dd6038f1d8c"
+    },
+    {
+      "path": "scripts/verify-gate16.sh",
+      "size": 10197,
+      "mtime_ns": 1782742116949645366,
+      "dataless": true
+    },
+    {
+      "path": ".github/workflows/ios-build.yml",
+      "size": 15769,
+      "mtime_ns": 1782797716518850801,
+      "dataless": true
+    }
+  ]
+}

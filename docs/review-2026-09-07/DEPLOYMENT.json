@@ -1,0 +1,45 @@
+{
+  "verified_at": "2026-09-07T23:35:11.814977+00:00",
+  "production_url": "https://williamjiamin.github.io/ThumbnailMaker/",
+  "commit": "0ef8f0863b21ba5e3ca92ef7c6cf3a69f9834f1b",
+  "previous_commit": "1562e95f1b417c9afc6c5a39291766b523665ec1",
+  "github_pages_status": "built",
+  "github_pages_updated_at": "2026-09-07T23:29:12Z",
+  "routes": [
+    {
+      "url": "https://williamjiamin.github.io/ThumbnailMaker/",
+      "status": 200,
+      "bytes": 2205,
+      "sha256": "e7808b987b1889e08145902b8652c6bbde856f50326ef59e5c565b922c63a773",
+      "matches_source": true,
+      "content_type": "text/html; charset=utf-8"
+    },
+    {
+      "url": "https://williamjiamin.github.io/ThumbnailMaker/privacy.html",
+      "status": 200,
+      "bytes": 3392,
+      "sha256": "256e377556627cb145da385977a2860a614d9760b86fb6219c4042bd7cf62ca3",
+      "matches_source": true,
+      "content_type": "text/html; charset=utf-8"
+    },
+    {
+      "url": "https://williamjiamin.github.io/ThumbnailMaker/styles.css",
+      "status": 200,
+      "bytes": 1936,
+      "sha256": "7a8b3dbc9e8649b855fefb0b033cf08d660e8c8753a2638356e51fd63ce3b3a1",
+      "matches_source": true,
+      "content_type": "text/css; charset=utf-8"
+    },
+    {
+      "url": "https://williamjiamin.github.io/ThumbnailMaker/sitemap.xml",
+      "status": 200,
+      "bytes": 266,
+      "sha256": "3d6ece4d2d31b1df58ad10fadfdd0e577d6a23e4b845881d3285d88d6f637302",
+      "matches_source": true,
+      "content_type": "application/xml"
+    }
+  ],
+  "robots_origin_status": 404,
+  "native_release": "not built or deployed",
+  "loop_started": false
+}

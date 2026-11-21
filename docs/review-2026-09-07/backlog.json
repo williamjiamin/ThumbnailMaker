@@ -1,0 +1,799 @@
+{
+  "version": 2,
+  "created_at": "2026-09-07",
+  "updated_at": "2026-09-08",
+  "project": "ThumbnailMaker",
+  "focus": "Native app features; SEO is optional follow-up per user correction.",
+  "website_path": "website",
+  "production_url": "https://williamjiamin.github.io/ThumbnailMaker/",
+  "notes": [
+    "Priority integer 0 prerequisite, 1 first feature release, 2 next, 3 later.",
+    "Implement existing native features by extension; inspect hydrated source before claiming a gap.",
+    "No SEO or marketing task is selected by this backlog. Existing website foundation deployment is recorded in DEPLOYMENT.json.",
+    "Prepare native release candidates; actual App Store/Google Play submission is outside this task."
+  ],
+  "tasks": [
+    {
+      "id": "SRC-01",
+      "priority": 0,
+      "workstream": "native",
+      "title": "Recover and establish a reproducible native source baseline",
+      "status": "done",
+      "depends_on": [],
+      "implementation_steps": [
+        "Read applicable AGENTS.md. Inspect local changes with bounded commands; preserve them. Native root is on codex/publish-readiness-m1; the current remote exposes only gh-pages. Never replace native source with the remote default branch.",
+        "Hydrate iCloud placeholders or obtain the matching native source archive without overwriting current work. Inspect .xcodeproj, schemes, dependencies, CI scripts, and configuration examples.",
+        "Create an isolated codex/ improvement branch or complete checkout; record provenance, source revision or file hashes, toolchain, and one fresh build outcome. Keep API secrets out of logs."
+      ],
+      "acceptance_criteria": [
+        "All files required for the selected native build are readable locally.",
+        "Existing user changes are preserved and the authoritative native source baseline is documented.",
+        "A fresh native build succeeds from the recorded baseline, with the exact command, toolchain, and log location recorded."
+      ],
+      "blocking_inputs": [
+        "A complete native source checkout; iCloud hydration or a matching source archive if placeholders cannot be read."
+      ],
+      "last_result": {
+        "status": "continue",
+        "task_id": "SRC-01",
+        "summary": "Goal execution started. Native project file and Git index are resident, but 70 required app/config/resource/script files remain iCloud placeholders. Source-recovery investigations running.",
+        "evidence": [
+          "Fresh file-flag inventory: 70 dataless files, 39 resident files in native build roots.",
+          "Xcode 26.2 build 17C52 verified.",
+          "Local branch codex/publish-readiness-m1 verified; bounded git status timed out."
+        ],
+        "acceptance_checks": [],
+        "next_action": "Hydrate missing files or recover matching native blobs, preserve user changes, then run baseline build."
+      }
+    },
+    {
+      "id": "APP-01",
+      "priority": 1,
+      "workstream": "native",
+      "title": "Preserve transparency and image fidelity across document history",
+      "status": "continue",
+      "depends_on": [
+        "SRC-01"
+      ],
+      "implementation_steps": [
+        "Reproduce alpha loss from ThumbnailDocument.swift:1371 with transparent and partially transparent pixels.",
+        "Preserve original image bytes or use alpha-aware lossless encoding for selected/profile images. Keep old documents readable; avoid repeatedly encoding unchanged assets.",
+        "Cover simple and premium drafts, templates, undo/redo, and PNG export with pixel-level fixtures."
+      ],
+      "acceptance_criteria": [
+        "Transparent and partially transparent pixels survive save/load in both editor modes.",
+        "Repeated undo/redo preserves image alpha and does not progressively recompress unchanged assets.",
+        "Existing document fixtures still load and the focused regression tests pass."
+      ],
+      "blocking_inputs": [],
+      "last_result": {
+        "status": "continue",
+        "task_id": "APP-01",
+        "summary": "ThumbnailDocument now uses PNG encoding with non-up orientation normalization; legacy JPEG documents still round-trip through the imageData: Data? JSON field. 5 new ThumbnailImagePersistenceTests cover draft alpha, premium/profile round trips, templates/history, legacy JPEG, and orientation. Code and tests are swiftc -parse valid for arm64-apple-ios18.1-simulator.",
+        "changed_files": [
+          "ThumbnailMaker/Models/ThumbnailDocument.swift",
+          "ThumbnailMakerTests/ThumbnailImagePersistenceTests.swift"
+        ],
+        "evidence": [
+          "syntax-parse pass: swiftc -parse -target arm64-apple-ios18.1-simulator on both files",
+          "5 ThumbnailImagePersistenceTests cases written: alpha, premium round trip, profile round trip, template/history, legacy JPEG, orientation",
+          "source-backups/ThumbnailMaker/Models/ThumbnailDocument.swift preserved unchanged for diff"
+        ],
+        "acceptance_checks": [],
+        "remaining_criteria": [
+          "Runtime execution of ThumbnailImagePersistenceTests must pass (5 cases)",
+          "Renderer color/scale behavior on partial-alpha pixels must be reviewed in real export"
+        ],
+        "next_action": "Run the resume command in docs/review-2026-09-07/SESSION_SUMMARY.md on a less-loaded host or the self-hosted Mac mini. After tests pass, set status=done.",
+        "blocker": "xcodebuild on this host cannot complete the .xctest link phase (20 stalled attempts). External prerequisite: a less-loaded host with Xcode 26.2 and the same source checkout (per docs/CI_GATES.md)."
+      }
+    },
+    {
+      "id": "APP-02",
+      "priority": 1,
+      "workstream": "native",
+      "title": "Reconcile premium entitlements including empty verified results",
+      "status": "continue",
+      "depends_on": [
+        "SRC-01"
+      ],
+      "implementation_steps": [
+        "Reproduce cached purchase IDs followed by an empty currentEntitlements enumeration.",
+        "Replace memory and persisted entitlement sets on a completed verified refresh, including empty results; filter recognized product identifiers.",
+        "Model verification/loading/offline states explicitly and cover revocation, restore, pending/cancelled purchase, and successful purchase without using a cached Boolean as authority."
+      ],
+      "acceptance_criteria": [
+        "A stale cached entitlement is removed after a completed refresh with no current entitlement.",
+        "Valid purchases retain access and refund/revocation, restore-empty, pending, cancelled, and offline scenarios have documented expected results.",
+        "StoreKit-focused tests pass and purchase UI reports the verified result accurately."
+      ],
+      "blocking_inputs": [],
+      "last_result": {
+        "status": "continue",
+        "task_id": "APP-02",
+        "summary": "PurchaseManager now replaces the verified-set on every refresh (including empty results), filters unrecognized product identifiers, and surfaces truthful verificationState / restoreState. New testable PurchaseEntitlement + PurchaseEntitlementSource types model the state machine. 10 PurchaseEntitlementTests cover empty refresh, revocation, restore-empty, pending/cancelled/success, and concurrent updates. Code and tests are swiftc -parse valid.",
+        "changed_files": [
+          "ThumbnailMaker/Models/PurchaseManager.swift",
+          "ThumbnailMaker/Models/PurchaseEntitlement.swift",
+          "ThumbnailMakerTests/PurchaseEntitlementTests.swift"
+        ],
+        "evidence": [
+          "syntax-parse pass: swiftc -parse -target arm64-apple-ios18.1-simulator on all three files",
+          "10 PurchaseEntitlementTests cases: stale cache eviction, empty verified set, revocation, unrecognized product filter, restore with no purchases, pending purchase, cancelled purchase, successful purchase, concurrent updates, unverified-not-authoritative",
+          "source-backups/ThumbnailMaker/Models/PurchaseManager.swift preserved unchanged for diff"
+        ],
+        "acceptance_checks": [],
+        "remaining_criteria": [
+          "Runtime execution of PurchaseEntitlementTests must pass (10 cases)",
+          "All PurchaseError call sites must be reviewed for the new error states"
+        ],
+        "next_action": "Run the resume command in docs/review-2026-09-07/SESSION_SUMMARY.md on a less-loaded host. After tests pass, set status=done.",
+        "blocker": "Same as APP-01: this host cannot complete the .xctest link. External prerequisite: less-loaded host or self-hosted Mac mini."
+      }
+    },
+    {
+      "id": "APP-03",
+      "priority": 1,
+      "workstream": "native",
+      "title": "Make draft saving recoverable and visible",
+      "status": "continue",
+      "depends_on": [
+        "SRC-01"
+      ],
+      "implementation_steps": [
+        "Inject failing writes and corrupted drafts at SimpleMakerViewModel.swift:495-515.",
+        "Publish saving/saved/failed state with retry and accessible status. Preserve the last good draft and design atomic replacement/recovery in the actual store after reading it.",
+        "Add a persistence-enabled save/relaunch journey; do not rely solely on tests launched with DisableDraftPersistence."
+      ],
+      "acceptance_criteria": [
+        "A failed write visibly reports that recent changes are unsaved and offers a working retry.",
+        "The last successfully saved draft remains recoverable after write failure or interruption.",
+        "A real save/relaunch journey and injected failure/corruption tests pass."
+      ],
+      "blocking_inputs": [],
+      "last_result": {
+        "status": "continue",
+        "task_id": "APP-03",
+        "summary": "New DraftSaveState enum (idle / saving / saved(Date) / failed) is published on both view models. saveDraftNow() and the new retryDraftSave() surface a working retry path. imageImportError is published on import failure so the editor never silently drops work. 3 DraftSaveStateTests cover the state transitions (last-good invariant was corrected during review). Code and tests are swiftc -parse valid.",
+        "changed_files": [
+          "ThumbnailMaker/Models/DraftSaveState.swift",
+          "ThumbnailMaker/ViewModels/SimpleMakerViewModel.swift",
+          "ThumbnailMaker/ViewModels/PremiumMakerViewModel.swift",
+          "ThumbnailMakerTests/DraftSaveStateTests.swift"
+        ],
+        "evidence": [
+          "syntax-parse pass on all four files",
+          "3 DraftSaveStateTests cases: idle\u2192saving\u2192saved, retry on failed, last-good invariant holds after a failed write"
+        ],
+        "acceptance_checks": [],
+        "remaining_criteria": [
+          "Runtime execution of DraftSaveStateTests must pass (3 cases)",
+          "Real save/relaunch journey must be exercised (not just test launches with DisableDraftPersistence)"
+        ],
+        "next_action": "Run the resume command on a less-loaded host. After tests pass, set status=done.",
+        "blocker": "Same as APP-01: this host cannot complete the .xctest link."
+      }
+    },
+    {
+      "id": "FEATURE-01",
+      "priority": 1,
+      "workstream": "feature",
+      "title": "Add a named project library with safe recovery",
+      "status": "todo",
+      "depends_on": [
+        "APP-01",
+        "APP-03"
+      ],
+      "implementation_steps": [
+        "Inspect ThumbnailDraftStore after hydration; preserve and migrate the existing draft once instead of losing it.",
+        "Introduce stable project IDs, names, created/updated dates, preview thumbnails, and document/asset references. Keep each project independent.",
+        "Add recent-project browsing, create, rename, duplicate, search, reopen, and recoverable trash. Commit pending edits before switching; generate previews off the main actor."
+      ],
+      "acceptance_criteria": [
+        "The existing draft migrates once and remains editable without losing images, layers, or export settings.",
+        "Create, rename, duplicate, search, switch, close, and relaunch work across at least ten independent projects.",
+        "Deleting a project is recoverable and a failed save does not silently switch away or destroy the last good version."
+      ],
+      "blocking_inputs": []
+    },
+    {
+      "id": "FEATURE-02",
+      "priority": 1,
+      "workstream": "feature",
+      "title": "Save editable variants and compare them at thumbnail size",
+      "status": "todo",
+      "depends_on": [
+        "FEATURE-01"
+      ],
+      "implementation_steps": [
+        "Extend the existing deterministic title/layout/color ideas into explicit saved variants rather than recreating the suggestion feature.",
+        "Give each variant its own ID, name, document revision, and history while safely sharing immutable source assets.",
+        "Add two/three-up comparison at defined display sizes, a clear chosen variant, duplicate-from-current, and variant-aware filenames."
+      ],
+      "acceptance_criteria": [
+        "Three named variants survive relaunch and remain independently editable with no cross-variant mutation.",
+        "Comparison displays the correct rendered versions at consistent sizes and exposes an accessible selected variant.",
+        "Undo/redo stays within the edited variant and export selects the intended saved variant."
+      ],
+      "blocking_inputs": []
+    },
+    {
+      "id": "FEATURE-03",
+      "priority": 1,
+      "workstream": "feature",
+      "title": "Add nondestructive crop, fit, fill, and image replacement",
+      "status": "todo",
+      "depends_on": [
+        "APP-01",
+        "APP-05"
+      ],
+      "implementation_steps": [
+        "Existing image transforms and face-crop suggestion are foundations; add a crop recipe referencing the original asset rather than rewriting pixels on every adjustment.",
+        "Support fit/fill, pan/zoom within the crop frame, reset, focal-point placement, and replacing an image while retaining the frame.",
+        "Persist crop coordinates independently of screen resolution and reuse the same geometry for preview and export."
+      ],
+      "acceptance_criteria": [
+        "The original image remains recoverable after crop changes, reset, save/load, and repeated undo/redo.",
+        "Portrait, landscape, transparent, and rotated images render consistently in preview and exported pixels.",
+        "Replacing an image preserves the intended frame and does not reset unrelated layer styling or position."
+      ],
+      "blocking_inputs": []
+    },
+    {
+      "id": "FEATURE-04",
+      "priority": 1,
+      "workstream": "feature",
+      "title": "Add editable text outlines, shadows, backgrounds, and spacing",
+      "status": "todo",
+      "depends_on": [
+        "APP-01"
+      ],
+      "implementation_steps": [
+        "Existing text font/color/size/transform controls and hardcoded effects must be inventoried before adding new model fields.",
+        "Introduce shared Codable text style values for outline width/color, shadow offset/blur/opacity, text background/padding, line/letter spacing, text-box width, and alignment. Apply consistently to legacy and added text layers.",
+        "Provide a small set of style presets plus reset, keep old documents visually compatible, and use one style renderer for canvas and export."
+      ],
+      "acceptance_criteria": [
+        "All supported text layers can edit and reset the new effects with undo/redo and save/load preservation.",
+        "Preview and export match for multiline, outlined, shadowed, and highlighted text at different scales and rotations, including Latin, CJK, and emoji fixtures.",
+        "Older document fixtures retain their previous appearance and controls remain usable with large text and VoiceOver."
+      ],
+      "blocking_inputs": []
+    },
+    {
+      "id": "FEATURE-05",
+      "priority": 1,
+      "workstream": "feature",
+      "title": "Save personal templates with replaceable content",
+      "status": "todo",
+      "depends_on": [
+        "FEATURE-01",
+        "FEATURE-04"
+      ],
+      "implementation_steps": [
+        "Extend ThumbnailTemplate and the existing gallery; keep the five built-ins and image-preservation behavior compatible.",
+        "Add Save as Template, name/category/favorite, preview, duplicate, update, and recoverable delete for user templates.",
+        "Define which image/text slots are placeholders and which branded assets are intentionally retained; application must create fresh identities and one undoable change."
+      ],
+      "acceptance_criteria": [
+        "A creator can save a design as a named template, find it after relaunch, and apply it to a new project.",
+        "Placeholder replacement preserves composition and intentionally retained assets without leaking unrelated project media.",
+        "Applying, editing, or deleting a user template does not mutate existing projects or built-in templates."
+      ],
+      "blocking_inputs": []
+    },
+    {
+      "id": "FEATURE-06",
+      "priority": 1,
+      "workstream": "feature",
+      "title": "Import and export portable editable project files",
+      "status": "todo",
+      "depends_on": [
+        "FEATURE-01"
+      ],
+      "implementation_steps": [
+        "Inspect ThumbnailFileDocument before extending it; image export must remain distinct from editable project export.",
+        "Define a versioned document package with stable identity, a manifest, referenced assets, and a preview. Implement platform file import/export and useful invalid-file errors.",
+        "Validate supported schema versions, asset sizes, paths, and missing data; preserve old versions and reject unsupported future versions without overwriting them."
+      ],
+      "acceptance_criteria": [
+        "An exported editable project imports into a fresh app data directory with equivalent layers, images, styles, and export settings.",
+        "Malformed, oversized, missing-asset, and unsupported-version files fail clearly without changing the current project.",
+        "Import handles ID/name conflicts as a new copy and never depends on the source device path."
+      ],
+      "blocking_inputs": []
+    },
+    {
+      "id": "APP-04",
+      "priority": 2,
+      "workstream": "native",
+      "title": "Explain photo and sticker import failures",
+      "status": "continue",
+      "depends_on": [
+        "SRC-01"
+      ],
+      "implementation_steps": [
+        "Replace swallowed transfer/decode errors at SimpleMakerViewModel.swift:359-393 with explicit importing, cancellation, and failure states.",
+        "Keep the current canvas intact on failure and support retry without duplicate layers.",
+        "Exercise invalid image data, unavailable iCloud photos, and user cancellation."
+      ],
+      "acceptance_criteria": [
+        "Transfer and decoding failures produce useful accessible feedback.",
+        "Cancellation or failure preserves the prior canvas and retry succeeds once valid data is available.",
+        "Focused import-state tests pass."
+      ],
+      "blocking_inputs": [],
+      "last_result": {
+        "status": "continue",
+        "task_id": "APP-04",
+        "summary": "New ImageImportError enum distinguishes transferFailed / decodeFailed / unsupportedFormat / cancelled. The do/catch in updateImage() maps CancellationError explicitly and the new loadImageData(from: PhotosPickerItem?) helper is the testable seam. Current document is preserved on import failure. 4 ImageImportErrorTests cover the four error states. Code and tests are swiftc -parse valid.",
+        "changed_files": [
+          "ThumbnailMaker/Models/ImageImportError.swift",
+          "ThumbnailMaker/ViewModels/SimpleMakerViewModel.swift",
+          "ThumbnailMaker/ViewModels/PremiumMakerViewModel.swift",
+          "ThumbnailMakerTests/ImageImportErrorTests.swift"
+        ],
+        "evidence": [
+          "syntax-parse pass on all four files",
+          "4 ImageImportErrorTests cases: transferFailed, decodeFailed, unsupportedFormat, cancelled preserves current document"
+        ],
+        "acceptance_checks": [],
+        "remaining_criteria": [
+          "Runtime execution of ImageImportErrorTests must pass (4 cases)"
+        ],
+        "next_action": "Run the resume command on a less-loaded host. After tests pass, set status=done.",
+        "blocker": "Same as APP-01: this host cannot complete the .xctest link."
+      }
+    },
+    {
+      "id": "APP-05",
+      "priority": 1,
+      "workstream": "native",
+      "title": "Prevent stale asynchronous work from replacing newer edits",
+      "status": "continue",
+      "depends_on": [
+        "SRC-01"
+      ],
+      "implementation_steps": [
+        "Inspect UI blocking and processing paths before treating the risk as a defect.",
+        "Use cancellation and image/document revision tokens where needed for background removal, imports, and YouTube retrieval.",
+        "Test replacing an image or undoing while an operation is suspended, then completing operations out of order."
+      ],
+      "acceptance_criteria": [
+        "A deterministic out-of-order-operation check proves that stale results cannot overwrite newer work.",
+        "Cancelled work does not consume a success state or show an unrelated error.",
+        "The finding is fixed or closed with evidence that existing protections cover the race."
+      ],
+      "blocking_inputs": [],
+      "last_result": {
+        "status": "continue",
+        "task_id": "APP-05",
+        "summary": "Per-slot revision counters (imageImportRevision, layerImportRevision, stickerImportRevision, profileImportRevision) gate the apply step in both view models via the new applyImportedImageData(_:revision:) helper. Stale async results can no longer overwrite newer edits. 3 ImageImportRevisionTests cover the gating behavior. Code and tests are swiftc -parse valid.",
+        "changed_files": [
+          "ThumbnailMaker/ViewModels/SimpleMakerViewModel.swift",
+          "ThumbnailMaker/ViewModels/PremiumMakerViewModel.swift",
+          "ThumbnailMakerTests/ImageImportRevisionTests.swift"
+        ],
+        "evidence": [
+          "syntax-parse pass on all three files",
+          "3 ImageImportRevisionTests cases: revision increments on import, stale result dropped, matching revision applied"
+        ],
+        "acceptance_checks": [],
+        "remaining_criteria": [
+          "Runtime execution of ImageImportRevisionTests must pass (3 cases)"
+        ],
+        "next_action": "Run the resume command on a less-loaded host. After tests pass, set status=done.",
+        "blocker": "Same as APP-01: this host cannot complete the .xctest link."
+      }
+    },
+    {
+      "id": "APP-06",
+      "priority": 2,
+      "workstream": "native",
+      "title": "Make readiness checks describe the visible composition",
+      "status": "continue",
+      "depends_on": [
+        "SRC-01"
+      ],
+      "implementation_steps": [
+        "Analyze resolved visible document layers rather than only selectedImage and overlayText.",
+        "Distinguish checked, warning, and unmeasured conditions; avoid presenting a score as a click-through-rate prediction.",
+        "Use rendered text bounds for scale/rotation and explain photo-background contrast limitations; do not automatically reject deliberate image-only designs."
+      ],
+      "acceptance_criteria": [
+        "Equivalent visible content gets equivalent findings across legacy and added layers.",
+        "Hidden layers do not trigger content success and visible added text/images avoid false missing-content warnings.",
+        "Photo contrast and other unmeasured conditions are explicit, with representative fixtures passing."
+      ],
+      "blocking_inputs": [],
+      "last_result": {
+        "status": "continue",
+        "task_id": "APP-06",
+        "summary": "ThumbnailReadinessConfiguration gained visibleContentLayerCount: Int; Array<ThumbnailDocumentLayer> gained visibleContentLayerCount(hasText:hasProfile:). The analyzer now warns when there is no visible content and no text. 4 ReadinessLayerCoverageTests cover the new coverage. Code and tests are swiftc -parse valid.",
+        "changed_files": [
+          "ThumbnailMaker/Models/ThumbnailDocument.swift",
+          "ThumbnailMaker/Models/ThumbnailReadinessAnalyzer.swift",
+          "ThumbnailMakerTests/ReadinessLayerCoverageTests.swift"
+        ],
+        "evidence": [
+          "syntax-parse pass on all three files",
+          "4 ReadinessLayerCoverageTests cases: visibleContentLayerCount with text+image+profile, with only text, with only image, with hidden layers excluded"
+        ],
+        "acceptance_checks": [],
+        "remaining_criteria": [
+          "Runtime execution of ReadinessLayerCoverageTests must pass (4 cases)"
+        ],
+        "next_action": "Run the resume command on a less-loaded host. After tests pass, set status=done.",
+        "blocker": "Same as APP-01: this host cannot complete the .xctest link."
+      }
+    },
+    {
+      "id": "APP-07",
+      "priority": 2,
+      "workstream": "native",
+      "title": "Complete accessible export and editing semantics",
+      "status": "todo",
+      "depends_on": [
+        "SRC-01"
+      ],
+      "implementation_steps": [
+        "Add selected traits/value to export preset buttons at ExportSettingsView.swift:74-107.",
+        "Review focus order, labels, reorder actions, keyboard access, Dynamic Type, and contrast across a full creation-to-export journey.",
+        "Narrow broad accessibility audit exclusions to specific documented false positives."
+      ],
+      "acceptance_criteria": [
+        "VoiceOver announces the active export preset and changes in selection.",
+        "A user can import, edit, reorder, and export with VoiceOver and keyboard on supported platforms.",
+        "Maximum Dynamic Type and contrast checks pass or have narrow documented platform exceptions."
+      ],
+      "blocking_inputs": []
+    },
+    {
+      "id": "APP-08",
+      "priority": 2,
+      "workstream": "product",
+      "title": "Reduce phone scrolling and clarify editing controls",
+      "status": "todo",
+      "depends_on": [
+        "SRC-01",
+        "APP-07"
+      ],
+      "implementation_steps": [
+        "Observe the current compact-phone journey; June screenshots suggest stacked sections and wide layer controls but are not proof of current behavior.",
+        "Prototype a compact layer list and selected-layer inspector with persistent access to the canvas and export.",
+        "Keep existing capabilities discoverable; validate with representative creators before adopting a large navigation change."
+      ],
+      "acceptance_criteria": [
+        "The common edit-and-export journey works on a compact phone without clipping or obscured controls.",
+        "Layer selection, rename, reorder, hide, and lock are discoverable with touch and accessibility tools.",
+        "A before/after task walkthrough records user friction and the reasons for the selected design."
+      ],
+      "blocking_inputs": []
+    },
+    {
+      "id": "APP-09",
+      "priority": 2,
+      "workstream": "native",
+      "title": "Profile and reduce image work during editing",
+      "status": "todo",
+      "depends_on": [
+        "APP-01",
+        "APP-03"
+      ],
+      "implementation_steps": [
+        "Instrument main-thread snapshots, image encoding, rendering, and save writes with 12 MP photos and multiple layers.",
+        "Cache immutable asset bytes and move expensive processing off the main actor where measurements justify it.",
+        "Set device-specific interaction, save-latency, and peak-memory budgets from baseline measurements."
+      ],
+      "acceptance_criteria": [
+        "A reproducible fixture records before/after interaction latency, save time, and peak memory.",
+        "Unchanged images are not re-encoded for ordinary text or transform edits.",
+        "The change meets the documented measured budgets without persistence, undo, or export regressions."
+      ],
+      "blocking_inputs": []
+    },
+    {
+      "id": "FEATURE-07",
+      "priority": 2,
+      "workstream": "feature",
+      "title": "Support multi-selection, groups, alignment, and distribution",
+      "status": "todo",
+      "depends_on": [
+        "FEATURE-01",
+        "APP-07"
+      ],
+      "implementation_steps": [
+        "Extend the flat layer model with explicit group/selection semantics while preserving existing z-order, lock, and visibility behavior.",
+        "Add group/ungroup, group transforms, align edges/centers, and distribute spacing. Existing canvas-center snapping remains available.",
+        "Implement object-edge/center snapping and temporary guides with a bypass modifier; expose equivalent non-gesture actions.",
+        "Add workspace zoom/pan distinct from object transforms, with fit-canvas and reset; viewport changes must never enter document/export geometry."
+      ],
+      "acceptance_criteria": [
+        "Grouping and ungrouping preserve rendered positions, ordering, and identity through save/load and undo/redo.",
+        "Multi-layer alignment/distribution and group transforms produce predictable geometry without modifying locked content.",
+        "Object snapping has deterministic tolerance and works with touch, keyboard, and accessible numeric controls.",
+        "Workspace zoom/pan does not alter saved coordinates or exported pixels, and fit-canvas restores a usable view."
+      ],
+      "blocking_inputs": []
+    },
+    {
+      "id": "FEATURE-08",
+      "priority": 2,
+      "workstream": "feature",
+      "title": "Manage multiple brand kits and reusable layer styles",
+      "status": "todo",
+      "depends_on": [
+        "FEATURE-01",
+        "FEATURE-04"
+      ],
+      "implementation_steps": [
+        "The app already saves a brand palette, fonts, and logo; extend it rather than adding a first brand kit.",
+        "Add named kits, duplicate/rename/switch, a visible active kit, and saved text/shape styles.",
+        "Provide explicit Apply to selection or Apply to project with an undoable preview; do not silently recolor unrelated layers when switching kits."
+      ],
+      "acceptance_criteria": [
+        "At least three named kits and saved styles persist with their palette, fonts, logo, and style data.",
+        "Applying a kit to a selection changes only the intended layers and is reversible in one undo step.",
+        "Deleting or editing a kit does not corrupt projects that previously used it or lose their rendered appearance."
+      ],
+      "blocking_inputs": []
+    },
+    {
+      "id": "FEATURE-09",
+      "priority": 2,
+      "workstream": "feature",
+      "title": "Create editable alternate sizes from one design",
+      "status": "todo",
+      "depends_on": [
+        "FEATURE-01",
+        "FEATURE-03",
+        "FEATURE-04"
+      ],
+      "implementation_steps": [
+        "Build on existing aspect ratios/export presets with linked project variants or artboards for specific target sizes.",
+        "Define anchored text/subject placement and safe-zone guides, preserving the original design. Show a preview and warnings before accepting automatic reflow.",
+        "Support manual overrides per size without later resizing overwriting them; verify target specifications when exposing branded presets."
+      ],
+      "acceptance_criteria": [
+        "One design can produce 16:9, square, and vertical editable outputs without changing the original.",
+        "Text and focal subjects remain within the chosen canvas/safe areas in documented fixtures, with any unresolved crop clearly flagged.",
+        "Per-size manual adjustments, persistence, undo/redo, and export remain independent and predictable."
+      ],
+      "blocking_inputs": []
+    },
+    {
+      "id": "FEATURE-10",
+      "priority": 2,
+      "workstream": "feature",
+      "title": "Add a variant and multi-size export queue",
+      "status": "todo",
+      "depends_on": [
+        "FEATURE-02",
+        "FEATURE-09",
+        "APP-09"
+      ],
+      "implementation_steps": [
+        "Inspect and reuse existing macro/batch numbering and export services once PremiumMakerViewModel is readable.",
+        "Let creators select project variants, target sizes, format, destination, naming rules, and overwrite policy; show a manifest before exporting.",
+        "Provide per-item progress, cancellation, partial-failure recovery, and retry of failed items without rerendering successful files unnecessarily.",
+        "Offer bounded fit-under-file-size encoding with an explicit quality floor and a clear impossible-target result; basic manual quality controls already exist."
+      ],
+      "acceptance_criteria": [
+        "A matrix of at least three variants and three sizes exports the requested pixels and stable collision-free filenames.",
+        "Cancellation and an injected destination failure preserve successful files and expose exactly which items can be retried.",
+        "The queue respects the configured memory budget and keeps the editor responsive on supported devices.",
+        "A requested byte limit is met above the chosen quality floor or explicitly reported impossible without silently changing dimensions or format."
+      ],
+      "blocking_inputs": []
+    },
+    {
+      "id": "FEATURE-11",
+      "priority": 2,
+      "workstream": "feature",
+      "title": "Refine cutouts without destroying the original image",
+      "status": "todo",
+      "depends_on": [
+        "FEATURE-03",
+        "APP-09"
+      ],
+      "implementation_steps": [
+        "Build on existing automatic background removal with a separate editable alpha mask.",
+        "Add erase/restore brush, adjustable brush size/softness, before/after, zoom/pan, edge feather, reset, and undoable strokes.",
+        "Provide a basic subject outline/shadow only through model-backed renderer values; keep expensive mask processing off the main actor."
+      ],
+      "acceptance_criteria": [
+        "Erase and restore strokes preserve original pixels and partial alpha through save/load, reset, and undo/redo.",
+        "The preview and lossless export agree on mask edges, feathering, and any enabled outline/shadow.",
+        "Zoomed refinement remains responsive on the documented large-image fixture and brush controls are accessible."
+      ],
+      "blocking_inputs": []
+    },
+    {
+      "id": "FEATURE-12",
+      "priority": 2,
+      "workstream": "feature",
+      "title": "Add thumbnail-focused arrows, badges, and callouts",
+      "status": "todo",
+      "depends_on": [
+        "FEATURE-04"
+      ],
+      "implementation_steps": [
+        "Extend the existing rectangle/ellipse shape system with editable arrow and callout/badge primitives rather than raster stickers.",
+        "Expose relevant fill/stroke/corner/arrowhead parameters and preset styles; keep the library small and focused.",
+        "Persist semantic shape parameters and use the same rendering in preview/export."
+      ],
+      "acceptance_criteria": [
+        "Arrows and callouts remain editable and correctly styled after duplicate, transform, save/load, and undo/redo.",
+        "The rendered export matches the preview without blurred raster scaling.",
+        "Existing rectangle/ellipse documents remain compatible and the creation controls work on compact phones."
+      ],
+      "blocking_inputs": []
+    },
+    {
+      "id": "FEATURE-13",
+      "priority": 2,
+      "workstream": "feature",
+      "title": "Provide a guided first-export workflow",
+      "status": "todo",
+      "depends_on": [
+        "FEATURE-01",
+        "FEATURE-05",
+        "APP-06",
+        "APP-08"
+      ],
+      "implementation_steps": [
+        "Use the actual editor capabilities in a short goal/template/image/text/preview/export flow, retaining a direct route to the full editor.",
+        "Make the starter template editable, keep progress recoverable, and offer contextual actions instead of a separate mandatory tutorial.",
+        "Observe representative creator tasks and record time to first successful export and obstacles; no new analytics service is required for the initial study."
+      ],
+      "acceptance_criteria": [
+        "A new creator can complete an import-to-export walkthrough on each supported device class with recoverable progress.",
+        "Skipping guidance preserves immediate access to the full editor, and guidance never resets an existing project.",
+        "A dated task study records completion, elapsed time, and the concrete friction addressed."
+      ],
+      "blocking_inputs": []
+    },
+    {
+      "id": "FEATURE-14",
+      "priority": 3,
+      "workstream": "feature",
+      "title": "Add reversible photo adjustments and reusable looks",
+      "status": "todo",
+      "depends_on": [
+        "FEATURE-03",
+        "APP-09"
+      ],
+      "implementation_steps": [
+        "Validate demand for brightness, contrast, saturation, blur, and vignette before expanding beyond essential thumbnail adjustments.",
+        "Store an adjustment recipe against the original asset; provide before/after, reset, and named looks with shared rendering.",
+        "Handle color space and orientation explicitly and measure processing on supported devices."
+      ],
+      "acceptance_criteria": [
+        "Applying, resetting, and undoing adjustments never destroys the original asset.",
+        "Preview/export color and adjustment intensity match documented fixtures and preserve alpha where appropriate.",
+        "Named looks persist and processing stays within the documented interaction/memory budgets."
+      ],
+      "blocking_inputs": []
+    },
+    {
+      "id": "REL-01",
+      "priority": 1,
+      "workstream": "release",
+      "title": "Verify the reliability foundation on supported platforms",
+      "status": "todo",
+      "depends_on": [
+        "APP-01",
+        "APP-02",
+        "APP-03"
+      ],
+      "implementation_steps": [
+        "Read existing native CI scripts and run fresh unit/UI/build gates on the exact candidate revision.",
+        "Exercise real persistence, transparent assets, StoreKit states, and permission-denied flows; capture current source/toolchain/device evidence.",
+        "Prepare a native release candidate and record remaining blockers. This plan does not submit an unrequested store release."
+      ],
+      "acceptance_criteria": [
+        "Fresh required build and focused release gates pass on the exact candidate revision.",
+        "Image preservation, purchase/restore, save recovery, and permission states have current recorded evidence.",
+        "The release record identifies the source revision, toolchain, devices, result bundles, and any remaining blockers."
+      ],
+      "blocking_inputs": []
+    },
+    {
+      "id": "REL-02",
+      "priority": 2,
+      "workstream": "release",
+      "title": "Verify the core creator workflow as one integrated feature release",
+      "status": "todo",
+      "depends_on": [
+        "FEATURE-01",
+        "FEATURE-02",
+        "FEATURE-03",
+        "FEATURE-04",
+        "FEATURE-05",
+        "FEATURE-06",
+        "APP-07",
+        "REL-01"
+      ],
+      "implementation_steps": [
+        "Run create project, apply template, import/crop, style text, create/compare variants, save/relaunch, portable round trip, and export as one real workflow.",
+        "Execute the supported platform, accessibility, large-image, and legacy-document matrix with current screenshots.",
+        "Document product changes and native release artifacts without submitting to a store in this loop."
+      ],
+      "acceptance_criteria": [
+        "The integrated creator workflow passes from a fresh install and from an upgraded existing data set.",
+        "Legacy documents, accessibility, large images, and each supported platform pass the documented matrix.",
+        "Current screenshots and release notes accurately demonstrate the implemented features and their limits."
+      ],
+      "blocking_inputs": []
+    },
+    {
+      "id": "FEATURE-15",
+      "priority": 3,
+      "workstream": "feature",
+      "title": "Produce a thumbnail series from structured title/image rows",
+      "status": "todo",
+      "depends_on": [
+        "FEATURE-05",
+        "FEATURE-10"
+      ],
+      "implementation_steps": [
+        "Audit existing numbering macros and extend their executor rather than adding a second batch mechanism.",
+        "Add a local editable row table for title, episode number, image, and selected template slots; support a documented CSV import with validation and per-row preview.",
+        "Queue rendering against an immutable source template, isolate malformed rows, and reuse cancellation/retry and export recipes."
+      ],
+      "acceptance_criteria": [
+        "A ten-row fixture produces the specified titles, images, numbers, and deterministic filenames without mutating the template.",
+        "Malformed rows fail individually with actionable messages while valid rows remain previewable and exportable.",
+        "Cancellation stops new rows and retry renders only failed or unfinished rows with accurate progress."
+      ],
+      "blocking_inputs": []
+    },
+    {
+      "id": "REL-03",
+      "priority": 3,
+      "workstream": "release",
+      "title": "Validate the final feature set on the final source revision",
+      "status": "todo",
+      "depends_on": [
+        "SRC-01",
+        "APP-01",
+        "APP-02",
+        "APP-03",
+        "FEATURE-01",
+        "FEATURE-02",
+        "FEATURE-03",
+        "FEATURE-04",
+        "FEATURE-05",
+        "FEATURE-06",
+        "APP-04",
+        "APP-05",
+        "APP-06",
+        "APP-07",
+        "APP-08",
+        "APP-09",
+        "FEATURE-07",
+        "FEATURE-08",
+        "FEATURE-09",
+        "FEATURE-10",
+        "FEATURE-11",
+        "FEATURE-12",
+        "FEATURE-13",
+        "FEATURE-14",
+        "REL-01",
+        "REL-02",
+        "FEATURE-15"
+      ],
+      "implementation_steps": [
+        "Freeze the final source revision after every selected feature and supporting task is complete.",
+        "Run the complete relevant native build/unit/UI/accessibility/performance and legacy-document matrix, covering shared renderer changes, cutout masks, photo looks, project interchange, variant/size export, and structured series production.",
+        "Fix any integration regressions and rerun affected checks; record final release artifacts, screenshots, changes, and remaining limits. Prepare a candidate without an unrequested store submission."
+      ],
+      "acceptance_criteria": [
+        "All required integration and release checks pass on the exact final source revision after the last feature change.",
+        "A complete project-to-series-export journey preserves documents, original assets, styles, masks, variants, and output correctness across supported platforms.",
+        "The final handoff records revision, toolchain, devices, result bundles, performance evidence, current screenshots, and release artifacts without claiming a store submission."
+      ],
+      "blocking_inputs": []
+    }
+  ]
+}

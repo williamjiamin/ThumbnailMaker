@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>This app needs access to save your created thumbnails to the Photos app.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>This app needs access to save created thumbnails and select images for editing.</string>
+	<key>UIAppFonts</key>
+	<array>
+		<string>GoNotoCurrent-Regular.ttf</string>
+		<string>OpenSans-Regular.ttf</string>
+		<string>Roboto-Regular.ttf</string>
+		<string>Montserrat-Regular.ttf</string>
+		<string>Borel-Regular.ttf</string>
+		<string>CherryBombOne-Regular.ttf</string>
+		<string>DeliciousHandrawn-Regular.ttf</string>
+		<string>EastSeaDokdo-Regular.ttf</string>
+		<string>HachiMaruPop-Regular.ttf</string>
+		<string>HennyPenny-Regular.ttf</string>
+		<string>Lato-Regular.ttf</string>
+		<string>LongCang-Regular.ttf</string>
+		<string>LXGWWenKaiMonoTC-Regular.ttf</string>
+		<string>MeowScript-Regular.ttf</string>
+		<string>MysteryQuest-Regular.ttf</string>
+		<string>Oswald-Regular.ttf</string>
+		<string>PixelifySans-VariableFont_wght.ttf</string>
+		<string>Poppins-Regular.ttf</string>
+		<string>YujiBoku-Regular.ttf</string>
+		<string>ZhiMangXing-Regular.ttf</string>
+	</array>
+	<key>UILaunchScreen</key>
+	<dict/>
+	<key>UTExportedTypeDeclarations</key>
+	<array>
+		<dict>
+			<key>UTTypeIdentifier</key>
+			<string>com.williamjiamin.ThumbnailMaker.project</string>
+			<key>UTTypeDescription</key>
+			<string>Simple Thumbnail Project</string>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>com.apple.package</string>
+				<string>public.composite-content</string>
+			</array>
+			<key>UTTypeIconFiles</key>
+			<array/>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>thumbproj</string>
+				</array>
+			</dict>
+		</dict>
+	</array>
+</dict>
+</plist>

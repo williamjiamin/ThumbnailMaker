@@ -1,0 +1,24 @@
+{
+  "date": "2026-09-07",
+  "status": "passed",
+  "pages": [
+    {
+      "file": "index.html",
+      "canonical": "https://williamjiamin.github.io/ThumbnailMaker/",
+      "checks": "unique title/description, canonical, Open Graph URL, landmarks, fragment and internal links passed"
+    },
+    {
+      "file": "privacy.html",
+      "canonical": "https://williamjiamin.github.io/ThumbnailMaker/privacy.html",
+      "checks": "unique title/description, canonical, Open Graph URL, landmarks, fragment and internal links passed"
+    }
+  ],
+  "sitemap": "two canonical URLs; XML valid",
+  "privacy_policy": "all original headings and policy paragraphs byte-identical",
+  "bundle_bytes": 7799,
+  "limits": [
+    "No native app tests run",
+    "No claim of search indexing or rankings",
+    "No field performance or Search Console data available"
+  ]
+}

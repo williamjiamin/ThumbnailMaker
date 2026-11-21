@@ -1,0 +1,397 @@
+name: ThumbnailMaker Apple CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  schedule:
+    - cron: "23 10 * * *"
+  workflow_dispatch:
+    inputs:
+      run_ui_smoke:
+        description: "Run the accessibility and title-ideas UI smoke tests"
+        required: false
+        type: boolean
+        default: false
+      run_ui_extended:
+        description: "Run the extended UI/accessibility gate"
+        required: false
+        type: boolean
+        default: false
+      capture_screenshots:
+        description: "Capture iPhone and iPad App Store screenshot artifacts"
+        required: false
+        type: boolean
+        default: false
+      capture_mac_screenshots:
+        description: "Capture Mac Catalyst App Store screenshot artifacts"
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: thumbnailmaker-mac-mini-ci
+  cancel-in-progress: false
+
+jobs:
+  apple-ci:
+    runs-on: [self-hosted, macos]
+    timeout-minutes: 60
+    steps:
+      - name: Seed source from Mac mini workspace
+        id: local_source
+        timeout-minutes: 20
+        env:
+          GH_TOKEN: ${{ github.token }}
+          LOCAL_WORKSPACE_SOURCE: /Users/Shared/ThumbnailMaker-ci-source
+          SOURCE_BUNDLE_URL: https://api.github.com/repos/${{ github.repository }}/contents/ci/apple-ci-source.tgz?ref=${{ github.sha }}
+        run: |
+          set -euo pipefail
+
+          /usr/bin/pkill -f '/usr/bin/find /Users -maxdepth 5 -type d -name ThumbnailMaker.xcodeproj' 2>/dev/null || true
+
+          source_dir=""
+          candidates=(
+            "$LOCAL_WORKSPACE_SOURCE"
+            "/Users/Shared/ThumbnailMaker-ci-source"
+            "$HOME/Documents/ThumbnailMaker 2"
+            "/Users/williamjiamin/Documents/ThumbnailMaker 2"
+            "/Users/rippawang/Documents/ThumbnailMaker 2"
+          )
+
+          for candidate in "${candidates[@]}"; do
+            if [[ -d "$candidate/ThumbnailMaker.xcodeproj" && -d "$candidate/ThumbnailMaker" ]]; then
+              source_dir="$candidate"
+              break
+            fi
+          done
+
+          if [[ -n "$source_dir" ]]; then
+            /usr/bin/rsync -a --delete \
+              --exclude='.git/' \
+              --exclude='.build*/' \
+              --exclude='artifacts/' \
+              "$source_dir/" "$GITHUB_WORKSPACE/"
+            echo "seeded=true" >> "$GITHUB_OUTPUT"
+            echo "Seeded source from $source_dir"
+          else
+            bundle="$RUNNER_TEMP/apple-ci-source.tgz"
+            /bin/rm -f "$bundle"
+
+            for attempt in 1 2 3 4 5 6 7 8; do
+              if /usr/bin/curl --http1.1 --fail --location --continue-at - \
+                --connect-timeout 20 --max-time 1200 \
+                -H "Authorization: Bearer $GH_TOKEN" \
+                -H "Accept: application/vnd.github.raw" \
+                "$SOURCE_BUNDLE_URL" --output "$bundle"; then
+                break
+              fi
+
+              rc=$?
+              echo "Download attempt $attempt failed (curl exit $rc); resuming after backoff..." >&2
+              if [[ "$attempt" -lt 8 ]]; then
+                sleep $(( attempt < 6 ? attempt * 5 : 30 ))
+              fi
+            done
+
+            if /usr/bin/tar -tzf "$bundle" >/dev/null 2>&1; then
+              /usr/bin/find "$GITHUB_WORKSPACE" -mindepth 1 -maxdepth 1 -exec /bin/rm -rf {} +
+              /usr/bin/tar -xzf "$bundle" -C "$GITHUB_WORKSPACE"
+              /bin/rm -f "$bundle"
+              echo "seeded=true" >> "$GITHUB_OUTPUT"
+              echo "Seeded source from ci/apple-ci-source.tgz"
+            else
+              /bin/rm -f "$bundle"
+              echo "seeded=false" >> "$GITHUB_OUTPUT"
+              echo "Local workspace source and CI source bundle unavailable; falling back to GitHub checkout."
+            fi
+          fi
+
+      - name: Require seeded source
+        if: ${{ steps.local_source.outputs.seeded != 'true' }}
+        run: |
+          echo "Seeded source is required because this runner cannot reliably download external checkout actions." >&2
+          exit 1
+
+      - name: Toolchain
+        run: |
+          xcodebuild -version
+          xcrun simctl list runtimes
+          echo "Disk at toolchain step:"
+          df -h / "$RUNNER_TEMP"
+          echo "Existing CI temp directories:"
+          while IFS= read -r -d '' directory; do
+            du -sh "$directory" || true
+          done < <(
+            find "$RUNNER_TEMP" -maxdepth 1 -type d \
+              \( -name 'DD-*' -o -name 'xcode-results' -o -name 'xcode-screenshot-results' -o -name 'app-store-screenshots' \) \
+              -print0 2>/dev/null
+          )
+
+      - name: Verify App Store readiness inputs
+        run: |
+          scripts/verify-gate16.sh
+
+      - name: Reclaim disk before CI gate
+        run: |
+          set -euo pipefail
+
+          echo "Disk before CI cleanup:"
+          df -h / "$RUNNER_TEMP"
+
+          runner_root="$(cd "$RUNNER_TEMP/../.." && pwd -P)"
+
+          echo "Reclaiming CI-safe Xcode and runner caches:"
+          cache_dirs=(
+            "$HOME/Library/Developer/Xcode/DerivedData"
+            "$HOME/Library/Developer/Xcode/iOS DeviceSupport"
+            "$HOME/Library/Developer/CoreSimulator/Caches"
+            "$HOME/Library/Developer/CoreSimulator/Devices"
+            "$HOME/Library/Logs/CoreSimulator"
+            "$runner_root/_diag"
+          )
+          for directory in ${cache_dirs[@]+"${cache_dirs[@]}"}; do
+            if [[ -d "$directory" ]]; then
+              du -sh "$directory" || true
+            fi
+          done
+
+          for directory in \
+            "$HOME/Library/Developer/Xcode/DerivedData" \
+            "$HOME/Library/Developer/Xcode/iOS DeviceSupport" \
+            "$HOME/Library/Developer/CoreSimulator/Caches"; do
+            if [[ -d "$directory" && "$directory" == "$HOME/Library/Developer/"* ]]; then
+              echo "Removing cache children in $directory"
+              find "$directory" -mindepth 1 -maxdepth 1 -exec rm -rf {} + 2>/dev/null || true
+            fi
+          done
+
+          if [[ -d "$HOME/Library/Logs/CoreSimulator" ]]; then
+            echo "Removing CoreSimulator logs in $HOME/Library/Logs/CoreSimulator"
+            find "$HOME/Library/Logs/CoreSimulator" -mindepth 1 -maxdepth 1 -exec rm -rf {} + 2>/dev/null || true
+          fi
+
+          if [[ -d "$runner_root" && "$runner_root" == */actions-runner-thumbnailmaker ]]; then
+            echo "Removing stale result bundles under $runner_root"
+            find "$runner_root" -maxdepth 6 -type d -name '*.xcresult' -exec rm -rf {} + 2>/dev/null || true
+          fi
+
+          if [[ -d "$runner_root/_diag" && "$runner_root" == */actions-runner-thumbnailmaker ]]; then
+            echo "Removing old runner diagnostic logs in $runner_root/_diag"
+            find "$runner_root/_diag" -type f -name '*.log' -mtime +1 -delete 2>/dev/null || true
+          fi
+
+          stale_dirs=()
+          while IFS= read -r -d '' directory; do
+            stale_dirs+=("$directory")
+          done < <(
+            find "$RUNNER_TEMP" -maxdepth 1 -type d \
+              \( -name 'DD-*' -o -name 'xcode-results' -o -name 'xcode-screenshot-results' -o -name 'app-store-screenshots' \) \
+              -print0 2>/dev/null
+          )
+
+          for directory in ${stale_dirs[@]+"${stale_dirs[@]}"}; do
+            if [[ -n "$RUNNER_TEMP" && "$directory" == "$RUNNER_TEMP"/* && -d "$directory" ]]; then
+              echo "Removing stale CI directory $directory"
+              rm -rf "$directory"
+            fi
+          done
+
+          xcrun simctl shutdown all >/dev/null 2>&1 || true
+          if [[ "${SIMULATOR_RECLAIM_DELETE_DEVICES:-1}" == "1" ]]; then
+            echo "Deleting all simulator devices to reclaim CoreSimulator/Devices disk."
+            before_devices="$(du -sk "$HOME/Library/Developer/CoreSimulator/Devices" 2>/dev/null | awk '{ print $1 }')"
+            xcrun simctl delete all >/dev/null 2>&1 || true
+            after_devices="$(du -sk "$HOME/Library/Developer/CoreSimulator/Devices" 2>/dev/null | awk '{ print $1 }')"
+            echo "CoreSimulator/Devices KiB before=${before_devices:-0} after=${after_devices:-0}"
+          else
+            xcrun simctl erase all >/dev/null 2>&1 || true
+          fi
+          xcrun simctl delete unavailable >/dev/null 2>&1 || true
+
+          echo "Disk after CI cleanup:"
+          df -h / "$RUNNER_TEMP"
+
+          available_kb="$(df -k "$RUNNER_TEMP" | awk 'NR == 2 { print $4 }')"
+          required_gib="${CI_MIN_FREE_GIB:-7}"
+          required_kb="$((required_gib * 1024 * 1024))"
+          if [[ "${available_kb:-0}" -lt "$required_kb" ]]; then
+            echo "::error::Insufficient disk after cleanup: ${available_kb:-0} KiB available; need at least $required_kb KiB (${required_gib} GiB) for Xcode CI."
+            exit 1
+          fi
+
+      - name: Run CI gate
+        run: |
+          set -euo pipefail
+          run_ui_smoke=0
+          run_ui_extended=0
+          if [[ "${{ github.event_name }}" == "schedule" ]]; then
+            run_ui_smoke=1
+            run_ui_extended=1
+          fi
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ inputs.run_ui_smoke }}" == "true" ]]; then
+            run_ui_smoke=1
+          fi
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ inputs.run_ui_extended }}" == "true" ]]; then
+            run_ui_smoke=1
+            run_ui_extended=1
+          fi
+
+          DERIVED_DATA="$RUNNER_TEMP/DD-${{ github.run_id }}-${{ github.run_attempt }}" \
+          RESULT_DIR="$RUNNER_TEMP/xcode-results" \
+          RUN_CATALYST=1 \
+          RUN_UI_SMOKE="$run_ui_smoke" \
+          RUN_UI_EXTENDED="$run_ui_extended" \
+          scripts/ci-gate.sh
+
+      - name: Summarize Xcode result bundles
+        if: always()
+        run: |
+          set -euo pipefail
+          /usr/bin/find "$RUNNER_TEMP/xcode-results" -maxdepth 1 -name '*.xcresult' -print 2>/dev/null || true
+
+      - name: Reclaim current CI DerivedData
+        if: always()
+        run: |
+          set -euo pipefail
+          gate_dd="$RUNNER_TEMP/DD-${{ github.run_id }}-${{ github.run_attempt }}"
+          catalyst_dd="$gate_dd-catalyst"
+
+          for directory in "$gate_dd" "$catalyst_dd"; do
+            if [[ -n "$RUNNER_TEMP" && "$directory" == "$RUNNER_TEMP"/* && -d "$directory" ]]; then
+              echo "Removing current CI DerivedData $directory"
+              rm -rf "$directory"
+            fi
+          done
+
+          echo "Disk after current CI DerivedData cleanup:"
+          df -h / "$RUNNER_TEMP"
+
+      - name: Reclaim disk before screenshots
+        if: ${{ github.event_name == 'workflow_dispatch' && (inputs.capture_screenshots || inputs.capture_mac_screenshots) }}
+        run: |
+          set -euo pipefail
+          gate_dd="$RUNNER_TEMP/DD-${{ github.run_id }}-${{ github.run_attempt }}"
+          screens_dd="$RUNNER_TEMP/DD-screens-${{ github.run_id }}-${{ github.run_attempt }}"
+
+          echo "Disk before screenshot cleanup:"
+          df -h "$RUNNER_TEMP"
+
+          stale_dirs=("$gate_dd" "$screens_dd")
+          while IFS= read -r -d '' directory; do
+            stale_dirs+=("$directory")
+          done < <(
+            find "$RUNNER_TEMP" -maxdepth 1 -type d \
+              \( -name 'DD-*' -o -name 'xcode-results' -o -name 'xcode-screenshot-results' -o -name 'app-store-screenshots' \) \
+              -print0 2>/dev/null
+          )
+
+          for directory in ${stale_dirs[@]+"${stale_dirs[@]}"}; do
+            if [[ -n "$RUNNER_TEMP" && "$directory" == "$RUNNER_TEMP"/* && -d "$directory" ]]; then
+              echo "Removing $directory"
+              rm -rf "$directory"
+            fi
+          done
+
+          echo "Disk after screenshot cleanup:"
+          df -h "$RUNNER_TEMP"
+
+      - name: Capture App Store screenshots
+        if: ${{ github.event_name == 'workflow_dispatch' && (inputs.capture_screenshots || inputs.capture_mac_screenshots) }}
+        run: |
+          set -euo pipefail
+          run_iphone=0
+          run_ipad=0
+          run_mac=0
+
+          if [[ "${{ inputs.capture_screenshots }}" == "true" ]]; then
+            run_iphone=1
+            run_ipad=1
+          fi
+
+          if [[ "${{ inputs.capture_mac_screenshots }}" == "true" ]]; then
+            run_mac=1
+          fi
+
+          DERIVED_DATA="$RUNNER_TEMP/DD-screens-${{ github.run_id }}-${{ github.run_attempt }}" \
+          OUTPUT_DIR="$RUNNER_TEMP/app-store-screenshots" \
+          RESULT_DIR="$RUNNER_TEMP/xcode-screenshot-results" \
+          RUN_IPHONE_SCREENSHOTS="$run_iphone" \
+          RUN_IPAD_SCREENSHOTS="$run_ipad" \
+          RUN_MAC_SCREENSHOTS="$run_mac" \
+          SCREENSHOT_ARCHS=arm64 \
+          scripts/capture-screenshots.sh
+
+      - name: Publish App Store screenshots
+        if: ${{ always() && github.event_name == 'workflow_dispatch' && (inputs.capture_screenshots || inputs.capture_mac_screenshots) }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SCREENSHOT_ROOT: ${{ runner.temp }}/app-store-screenshots
+          TARGET_BRANCH: ${{ github.ref_name }}
+          TARGET_PREFIX: artifacts/app-store-screenshots/ci-${{ github.run_id }}-${{ github.run_attempt }}
+          TARGET_REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          if [[ ! -d "$SCREENSHOT_ROOT" ]]; then
+            echo "No screenshot directory found at $SCREENSHOT_ROOT"
+            exit 0
+          fi
+
+          python3 - "$SCREENSHOT_ROOT" "$TARGET_PREFIX" "$TARGET_BRANCH" "$TARGET_REPOSITORY" "$GH_TOKEN" <<'PY'
+          import base64
+          import json
+          import os
+          import sys
+          import urllib.error
+          import urllib.parse
+          import urllib.request
+
+          root, prefix, branch, repository, token = sys.argv[1:6]
+          pngs = []
+
+          for current_root, _, files in os.walk(root):
+              for name in files:
+                  if name.lower().endswith(".png"):
+                      pngs.append(os.path.join(current_root, name))
+
+          if not pngs:
+              print(f"No PNG screenshots found under {root}")
+              raise SystemExit(0)
+
+          for path in sorted(pngs):
+              relative = os.path.relpath(path, root)
+              target_path = f"{prefix}/{relative}".replace(os.sep, "/")
+              with open(path, "rb") as handle:
+                  content = base64.b64encode(handle.read()).decode("ascii")
+
+              payload = {
+                  "message": f"Add App Store screenshot {relative}",
+                  "branch": branch,
+                  "content": content,
+              }
+              url_path = urllib.parse.quote(target_path, safe="/")
+              request = urllib.request.Request(
+                  f"https://api.github.com/repos/{repository}/contents/{url_path}",
+                  data=json.dumps(payload).encode("utf-8"),
+                  method="PUT",
+                  headers={
+                      "Accept": "application/vnd.github+json",
+                      "Authorization": f"Bearer {token}",
+                      "Content-Type": "application/json",
+                      "X-GitHub-Api-Version": "2022-11-28",
+                  },
+              )
+
+              try:
+                  with urllib.request.urlopen(request, timeout=120) as response:
+                      data = json.loads(response.read().decode("utf-8"))
+                      print(f"Published {target_path} at {data['content']['html_url']}")
+              except urllib.error.HTTPError as error:
+                  body = error.read().decode("utf-8", errors="replace")
+                  raise SystemExit(f"Failed to publish {target_path}: HTTP {error.code}\n{body}")
+          PY
