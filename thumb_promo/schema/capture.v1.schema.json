@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "goag.thumbnail.capture.v1",
+  "title": "Private clean-frame capture metadata (canonical interop contract)",
+  "type": "object",
+  "required": ["schema", "capture_file", "width", "height", "heroine_stature_m", "camera_focal_mm", "universe_skin", "clean_frame", "debug_ui_hidden", "private_draft", "frame_source"],
+  "properties": {
+    "schema": {"const": "goag.thumbnail.capture.v1"},
+    "capture_file": {"type": "string", "pattern": "^[A-Za-z0-9_-]{1,64}\\.png$"},
+    "width": {"const": 1280},
+    "height": {"const": 720},
+    "heroine_stature_m": {"const": 1.68},
+    "camera_focal_mm": {"type": "number", "minimum": 1.0, "maximum": 500.0},
+    "universe_skin": {"type": "string", "pattern": "^[a-z0-9][a-z0-9_-]{0,47}$"},
+    "clean_frame": {"const": true},
+    "debug_ui_hidden": {"const": true},
+    "private_draft": {"const": true},
+    "frame_source": {"type": "string", "enum": ["viewport", "injected_image", "synthetic_example"]},
+    "transient_ui_root_count": {"type": "integer", "minimum": 0}
+  },
+  "additionalProperties": true
+}
