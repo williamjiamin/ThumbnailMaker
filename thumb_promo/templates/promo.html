@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1280, initial-scale=1">
+<style>
+:root { color-scheme: dark; }
+* { box-sizing: border-box; }
+html, body { margin: 0; width: 1280px; height: 720px; overflow: hidden; }
+body { background: #101924; font-family: sans-serif; }
+.canvas { position: relative; width: 1280px; height: 720px; overflow: hidden; isolation: isolate; background: #101924; }
+.capture {
+ position: absolute; inset: 0;
+ background-image: url('__CAPTURE_DATA_URI__');
+ background-size: cover; background-position: center center;
+ filter: saturate(1.08) contrast(1.04);
+}
+.wash { position: absolute; inset: 0; background: linear-gradient(115deg, rgba(7,14,28,.18), rgba(7,14,28,.01) 68%, rgba(7,14,28,.20)); }
+.topline { position: absolute; left: 70px; right: 70px; top: 42px; height: 3px; background: linear-gradient(90deg,#fee0a4 0%,rgba(254,224,164,.12) 70%,transparent); }
+.corner { position: absolute; right: 72px; top: 56px; padding: 8px 10px; border-radius: 6px; background: rgba(10,19,33,.92); color: rgba(255,255,255,.82); font: 700 13px/1 sans-serif; letter-spacing: .28em; }
+.panel {
+ position: absolute; z-index: 2; left: __ZONE_X__px; top: __ZONE_Y__px;
+ width: __ZONE_W__px; height: __ZONE_H__px;
+ padding: __PAD_Y__px __PAD_X__px;
+ border: 1px solid rgba(255,255,255,.14);
+ border-left: 5px solid #fee0a4; border-radius: 18px;
+ background-color: rgba(10,19,33,.92);
+ display: flex; flex-direction: column; justify-content: center;
+}
+.eyebrow { max-width: 100%; font-size: 16px; font-weight: 800; line-height: 1.25; letter-spacing: .18em; color: #fee0a4; margin-bottom: 13px; overflow-wrap: anywhere; }
+.title { max-width: 100%; font-size: __TITLE_SIZE__px; font-weight: 900; line-height: 1.035; letter-spacing: -.035em; color: #ffffff; overflow-wrap: anywhere; hyphens: none; margin: 0; }
+.subtitle { max-width: 100%; font-size: 20px; line-height: 1.22; letter-spacing: .015em; color: #e4f3f6; margin-top: 14px; overflow-wrap: anywhere; }
+.panel-bottom { position: absolute; z-index:3; right: 72px; bottom: 35px; padding: 8px 10px; border-radius: 6px; background: rgba(10,19,33,.92); color: rgba(255,255,255,.84); font: 600 12px/1 sans-serif; letter-spacing: .16em; }
+</style>
+</head>
+<body>
+<main class="canvas" aria-label="private thumbnail draft">
+  <div class="capture" aria-hidden="true"></div>
+  <div class="wash" aria-hidden="true"></div>
+  <div class="topline" aria-hidden="true"></div>
+  <div class="corner" aria-hidden="true">__CORNER__</div>
+  <section class="panel" data-safe-zone="__ZONE_NAME__">
+    <div class="eyebrow">__EYEBROW__</div>
+    <h1 class="title">__TITLE__</h1>
+    <div class="subtitle">__SUBTITLE__</div>
+  </section>
+  <div class="panel-bottom" aria-hidden="true">__CAPTION__</div>
+</main>
+</body>
+</html>
